@@ -8,8 +8,6 @@ function PrivateRoutes({ children }) {
   if (!isLoggedIn) {
     return <Navigate to="/" />;
   }
-
-  console.log(children)
   
   return children;
 }
