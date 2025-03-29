@@ -29,7 +29,7 @@ const Login = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        if (email == 'admin' && password == 'admin123') {
+        if (email == 'admin@hardware.tech' && password == 'admin123') {
             localStorage.setItem('isLoggedIn', 'true');
             navigate('/dashboard');
         } else {
@@ -51,11 +51,13 @@ const Login = () => {
                     paddingTop: 1,
                     bgcolor: "white",
                 }}
-            >
+            >   
+                <h1>LOGIN</h1>
                 <form onSubmit={handleLogin} style={{ width: '100%' }}>
                     <TextField
                         label="Email"
                         variant="outlined"
+                        type="email"
                         fullWidth
                         size="small"
                         margin="normal"
@@ -63,7 +65,7 @@ const Login = () => {
                         onChange={(e) => setEmail(e.target.value)}
                     />
                     <TextField
-                        label="Password"
+                        label="Senha"
                         type="password"
                         variant="outlined"
                         fullWidth
@@ -79,7 +81,7 @@ const Login = () => {
                         fullWidth
                         sx={{ marginTop: 2 }}
                     >
-                        Login
+                        Entrar
                     </Button>
                 </form>
                 <Divider sx={{ margin: '15px 0' }} /> 
