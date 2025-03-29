@@ -1,0 +1,36 @@
+.loginContainer{
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: linear-gradient(180deg, #2b73df 0%, #000000 100%);
+    align-items: center;
+}
+
+.loginContainer .logo{
+    margin-top: 70px;
+    height: 50px;
+}
+
+.loginContainer > h1{
+    font-family: 'Poppins', sans-serif;
+    font-size: 20px;
+    color: #fff;
+    margin: 10px 0 10px 0;
+}
+
+.loginBox{
+    display: flex;
+    flex-direction: column;
+}
+.loginBox > span{
+    font-family: 'Poppins', sans-serif;
+    font-size: 10px;
+    font-weight: 400;
+    text-align: center;
+}
+.loginContainer > span{
+    font-family: 'Orbitron', sans-serif;
+    font-size: 10px;
+    color: #fff;
+    margin: 10px 0 10px 0;
+}

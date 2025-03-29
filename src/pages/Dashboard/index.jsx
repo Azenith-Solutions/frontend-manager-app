@@ -14,7 +14,7 @@ const Dashboard = () => {
 
     return(
         <>
-            <button className="w-20 h-10  bg-red-400" onClick={handleLogout}>Logout</button>
+            <button onClick={handleLogout}>Logout</button>
         </>
     )
 }
