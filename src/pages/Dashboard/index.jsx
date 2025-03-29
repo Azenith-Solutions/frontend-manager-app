@@ -14,7 +14,9 @@ const Dashboard = () => {
 
     return(
         <>
-            <h1>Dashboard</h1>
+            <h1 class="text-3xl font-bold underline">
+                Hello world!
+            </h1>
             <button onClick={handleLogout}>Logout</button>
         </>
     )
