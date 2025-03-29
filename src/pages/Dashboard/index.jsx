@@ -14,10 +14,7 @@ const Dashboard = () => {
 
     return(
         <>
-            <h1 class="text-3xl font-bold underline">
-                Hello world!
-            </h1>
-            <button onClick={handleLogout}>Logout</button>
+            <button className="w-20 h-10  bg-red-400" onClick={handleLogout}>Logout</button>
         </>
     )
 }
