@@ -40,7 +40,7 @@ const Login = () => {
     return (
         <div className={styles.loginContainer}>
             <img src={Logo} alt="Logo" className={styles.logo} />
-            <h1>PAINEL ADMINISTRATIVO</h1>
+            <span>HardwareStock©</span>
             <Box
                 className={styles.loginBox}
                 sx={{
@@ -89,7 +89,6 @@ const Login = () => {
                     Não possui uma conta? <a href="/register">Cadastre-se</a>
                 </span>
             </Box>
-            <span>HardwareStock©</span>
         </div>
     );
 }
