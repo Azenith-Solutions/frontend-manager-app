@@ -1,0 +1,17 @@
+.css-ro2zky-MuiListItemIcon-root {
+    img {
+        padding-left: 26px;
+    }
+}
+
+.css-1ylcsk0-MuiButtonBase-root-MuiListItemButton-root {
+    padding: 0;
+}
+
+.list-page-buttons {
+    margin-bottom: 80px;
+}
+
+.css-1ylcsk0-MuiButtonBase-root-MuiListItemButton-root {
+    padding: 0 !important;
+}
