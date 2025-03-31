@@ -11,13 +11,16 @@ import Logo from '../../assets/icons/hardwaretech-white-logo.svg';
 import Box from '@mui/material/Box';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
+
+    useEffect(() => {
+        document.title = "HardwareTech | Login";
+    }, []);
 
     useEffect(() => {
         const isLoggedIn = localStorage.getItem('isLoggedIn');
@@ -39,7 +42,7 @@ const Login = () => {
     return (
         <div className="loginContainer">
             <img src={Logo} alt="Logo" className="logo" />
-            <span><b>HardwareStock©</b></span>
+            <span><b>HardwareTech</b></span>
             <Box
                 className="loginBox"
                 sx={{

@@ -37,11 +37,11 @@ import RedReportIcon from "../../assets/icons/red-report-icon.svg";
 const drawerWidth = 240;
 
 const Layout = () => {
-    const navigate = useNavigate();
-    const location = useLocation(); // Hook para acessar a rota atual
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-    const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+  const [mobileOpen, setMobileOpen] = useState(false);
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
