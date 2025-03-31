@@ -1,8 +1,8 @@
-import React, { useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 // css native
-import styles from './styles.module.css';
+import './Login.css'; // Certifique-se de que esta linha está correta
 
 // images
 import Logo from '../../assets/icons/hardwaretech-white-logo.svg';
@@ -15,7 +15,6 @@ import Typography from '@mui/material/Typography';
 import Divider from '@mui/material/Divider';
 
 const Login = () => {
-    
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const navigate = useNavigate();
@@ -23,26 +22,26 @@ const Login = () => {
     useEffect(() => {
         const isLoggedIn = localStorage.getItem('isLoggedIn');
         if (isLoggedIn === 'true') {
-            navigate('/dashboard');
+            navigate('/gerenciamento');
         }
     }, [navigate]);
 
     const handleLogin = (e) => {
         e.preventDefault();
-        if (email == 'admin@hardware.tech' && password == 'admin123') {
+        if (email === 'admin@hardware.tech' && password === 'admin123') {
             localStorage.setItem('isLoggedIn', 'true');
-            navigate('/dashboard');
+            navigate('/gerenciamento');
         } else {
             alert("Admin fajuto, saia");
         }
     };
 
     return (
-        <div className={styles.loginContainer}>
-            <img src={Logo} alt="Logo" className={styles.logo} />
-            <span>HardwareStock©</span>
+        <div className="loginContainer">
+            <img src={Logo} alt="Logo" className="logo" />
+            <span><b>HardwareStock©</b></span>
             <Box
-                className={styles.loginBox}
+                className="loginBox"
                 sx={{
                     width: 300,
                     height: "auto",
@@ -77,15 +76,20 @@ const Login = () => {
                     <Button
                         type="submit"
                         variant="contained"
-                        color="primary"
                         fullWidth
-                        sx={{ marginTop: 2 }}
+                        sx={{
+                            marginTop: 2,
+                            backgroundColor: "#61131A",
+                            "&:hover": {
+                                backgroundColor: "#4e0f14",
+                            },
+                        }}
                     >
                         Entrar
                     </Button>
                 </form>
                 <Divider sx={{ margin: '15px 0' }} /> 
-                <span >
+                <span>
                     Não possui uma conta? <a href="/register">Cadastre-se</a>
                 </span>
             </Box>

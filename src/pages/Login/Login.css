@@ -2,7 +2,7 @@
     height: 100vh;
     display: flex;
     flex-direction: column;
-    background: linear-gradient(180deg, #2b73df 0%, #000000 100%);
+    background: linear-gradient(180deg, #61131A 0%, #000000 100%);
     align-items: center;
 }
 
@@ -35,7 +35,7 @@
     font-family: "Poppins", sans-serif;
     font-size: 20px;
     font-weight: 600;
-    color: #1976d2;
+    color: #61131A;
     text-decoration: uppercase;
     text-align: center;
 }
