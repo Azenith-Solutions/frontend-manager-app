@@ -1,7 +1,12 @@
 import React from "react";
+import { useEffect } from "react";
 import { Typography } from "@mui/material";
 
 const Pedidos = () => {
+  useEffect(() => {
+      document.title = "HardwareTech | Pedidos";
+  }, []);
+
   return (
     <div>
       <Typography paragraph>

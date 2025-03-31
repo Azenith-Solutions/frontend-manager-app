@@ -13,14 +13,11 @@ export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route
-        path="/"
-        element={
+      <Route path="/" element={
           <PrivateRoutes>
             <Layout />
           </PrivateRoutes>
-        }
-      >
+        }>
         <Route path="gerenciamento" element={<Gerenciamento />} />
         <Route path="pedidos" element={<Pedidos />} />
         <Route path="analise" element={<Analise />} />

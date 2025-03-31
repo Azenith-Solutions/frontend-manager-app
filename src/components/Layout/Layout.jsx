@@ -31,7 +31,7 @@ const drawerWidth = 240;
 
 const Layout = () => {
   const navigate = useNavigate();
-  const location = useLocation(); // Hook para acessar a rota atual
+  const location = useLocation(); 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
