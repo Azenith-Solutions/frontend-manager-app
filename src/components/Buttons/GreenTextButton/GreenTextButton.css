@@ -1,0 +1,14 @@
+.green-text-button {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    cursor: pointer;
+    border: none;
+    
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    text-transform: none;
+    color: #000000;
+}

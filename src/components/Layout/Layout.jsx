@@ -5,7 +5,6 @@ import {
     AppBar,
     Box,
     CssBaseline,
-    Divider,
     Drawer,
     IconButton,
     List,
@@ -19,10 +18,6 @@ import {
     useTheme
 } from "@mui/material";
 import {
-    Dashboard as DashboardIcon,
-    People as PeopleIcon,
-    Settings as SettingsIcon,
-    BarChart as AnalyticsIcon,
     Logout as LogoutIcon,
     Menu as MenuIcon
 } from "@mui/icons-material";
@@ -37,11 +32,13 @@ import RedReportIcon from "../../assets/icons/red-report-icon.svg";
 const drawerWidth = 240;
 
 const Layout = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [mobileOpen, setMobileOpen] = useState(false);
+    const navigate = useNavigate();
+    const location = useLocation();
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [hoveredItem, setHoveredItem] = useState(null);
+    // const [itemClicked, setItemClicked] = useState(null);
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -73,8 +70,6 @@ const Layout = () => {
         return currentRoute ? currentRoute.text : "Página Desconhecida";
     };
 
-    const [hoveredItem, setHoveredItem] = useState(null);
-
     const drawer = (
         <>
             <Toolbar sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 2 }}>
@@ -95,6 +90,7 @@ const Layout = () => {
                                 onClick={() => {
                                     navigate(item.path);
                                     if (isMobile) setMobileOpen(false);
+                                    // setItemClicked(item.key);
                                 }}
                                 onMouseEnter={() => setHoveredItem(item.key)}
                                 onMouseLeave={() => setHoveredItem(null)}
