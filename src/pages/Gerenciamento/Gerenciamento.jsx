@@ -2,10 +2,11 @@ import React from "react";
 import { useEffect } from "react";
 import SearchAndImportBar from "../../components/SearchAndImportBar/SearchAndImportBar";
 import { DataGridComponent } from "../../components/DataGrid/DataGrid";
-import LupaIcon from '../../assets/icons/lupa.svg';
-import EditarIcon from '../../assets/icons/editar.svg';
-import LixeiraIcon from '../../assets/icons/lixeira.svg';
-import GreenBackgroundButton from "../../components/Buttons/GreenBackground/GreenBackgroundButton";
+import IconButton from '@mui/material/IconButton';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditSquareIcon from '@mui/icons-material/EditSquare';
+import SearchIcon from '@mui/icons-material/Search';
+
 
 
 const Gerenciamento = () => {
@@ -25,9 +26,15 @@ const Gerenciamento = () => {
       width: 250, 
       renderCell: () => (
         <div style={{ display: 'flex', gap: '10px', width: '40%' }}>
-          <GreenBackgroundButton iconPath={LupaIcon} />
-          <GreenBackgroundButton iconPath={EditarIcon} />
-          <GreenBackgroundButton iconPath={LixeiraIcon} />
+          <IconButton aria-label="search" onClick={(e) => e.stopPropagation()}>
+            <SearchIcon />
+          </IconButton>
+          <IconButton aria-label="edit" onClick={(e) => e.stopPropagation()}>
+            <EditSquareIcon />
+          </IconButton>
+          <IconButton aria-label="delete" onClick={(e) => e.stopPropagation()}>
+            <DeleteIcon />
+          </IconButton>
         </div>
       ) 
     },

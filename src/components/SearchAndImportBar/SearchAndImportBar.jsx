@@ -2,11 +2,9 @@ import './SearchAndImportBar.css';
 import { FormControl, OutlinedInput, InputAdornment, Button } from "@mui/material";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FilterIcon from '../../assets/icons/filter-icon.svg';
-import ExportIcon from '../../assets/icons/export-icon.svg';
-import ImportIcon from '../../assets/icons/import-icon.svg';
 import AddNewObjectIcon from '../../assets/icons/add-new-object-icon.svg';
-import GreenBackgroundButton from "../Buttons/GreenBackground/GreenBackgroundButton";
-import GreenTextButton from '../Buttons/GreenTextButton/GreenTextButton';
+import FileUploadIcon from '@mui/icons-material/FileUpload';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 
 export function Search() {
     return (
@@ -45,23 +43,24 @@ const SearchAndImportBar = () => {
             </div>
 
             <div className="import-bar-content">
-                <GreenTextButton iconPath={ExportIcon} />
-                <GreenBackgroundButton iconPath={ImportIcon} />
-                {/* 
-                <Button variant="outlined" startIcon={<img className="export-icon" src={ExportIcon} />} sx={{
+            
+                <Button variant="contained" endIcon={<FileUploadIcon />} sx={{
                     border: "none", gap: 1,
-                    alignItems: "center",
-                    fontFamily: "Inter", fontSize: "18px", fontWeight: 400, textTransform: "none", color: '#000000'
+                    marginLeft: { xs: "20px", sm: "54px", md: "54px" },
+                    fontFamily: "Inter", fontSize: "18px", fontWeight: 400, textTransform: "none", color: '#000000',
+                    backgroundColor: "#dedede",
                 }}>
                     Exportar
-                </Button> */}
+                </Button>
 
-                <Button variant="outlined" startIcon={<img className="import-icon" src={ImportIcon} />} sx={{
+                <Button variant="contained" endIcon={<FileDownloadIcon />} sx={{
                     border: "none", gap: 1,
-                    width: "40px", height: "50px",
-                    marginRight: 0,
-                    backgroundColor: "#2ECC71"
-                }} />
+                    marginLeft: { xs: "20px", sm: "54px", md: "54px" },
+                    fontFamily: "Inter", fontSize: "18px", fontWeight: 400, textTransform: "none", color: '#000000',
+                    backgroundColor: "#2ECC71",
+                }}>
+                    Importar
+                </Button>
 
                 <Button variant="outlined" startIcon={<img className="add-new-object-icon" src={AddNewObjectIcon} />} sx={{
                     border: "none", borderRadius: "5px",

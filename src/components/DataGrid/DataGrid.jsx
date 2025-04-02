@@ -10,6 +10,15 @@ export function DataGridComponent({ rows, columns, pageSize, onPageChange }) {
         onPageChange={onPageChange}
         rowsPerPageOptions={[5, 10, 20]}
         checkboxSelection
+        disableColumnMenu={true}
+        sx={{
+          '& .MuiDataGrid-cell': {
+            fontSize: '1rem', 
+          },
+          '& .MuiDataGrid-columnHeaders': {
+            fontSize: '1.2rem', 
+          },
+        }}
       />
     </div>
   );
