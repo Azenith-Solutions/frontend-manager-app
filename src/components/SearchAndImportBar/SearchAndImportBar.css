@@ -10,17 +10,25 @@
     background: #F4F4F4;
 
     .search-bar-content {
+        display: flex;
+        flex-direction: row;
+        gap: 30px;
+
         img {
             width: 30px;
         }
     }
-
+    
     .import-bar-content {
         display: flex;
         flex-direction: row;
         gap: 39px;
         img {
             width: 30px;
+        }
+
+        #import-button {
+            margin-left: 100px;
         }
     }
 }
@@ -29,6 +37,7 @@
     .container-search-bar {
         flex-direction: column;
         margin-top: 20px;
+        gap: 15px;
 
         .search-bar-content {
             display: flex;

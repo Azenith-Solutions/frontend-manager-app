@@ -1,10 +1,22 @@
 .green-background-button {
-    width: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
     height: 50px;
     margin-right: 0;
-    gap: 1px;
+    padding: 0 13px;
+    gap: 2px;
+    
+    background-color: #2ECC71;
+    font-family: "Inter";
+    font-size: 18px;
+    font-weight: 400;
+    color: #000000;
+    box-shadow: 4px 4px 4px 0px rgba(0, 0, 0, 0.25);
     
     cursor: pointer;
     border: none;
+    border-radius: 5px;
     background-color: #2ECC71;
 }

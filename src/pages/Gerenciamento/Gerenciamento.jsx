@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import SearchAndImportBar from "../../components/SearchAndImportBar/SearchAndImportBar";
 import { DataGridComponent } from "../../components/DataGrid/DataGrid";
 import LupaIcon from '../../assets/icons/lupa.svg';
+import FavoriteIcon from '../../assets/icons/favorite-icon.svg';
 import EditarIcon from '../../assets/icons/editar.svg';
 import LixeiraIcon from '../../assets/icons/lixeira.svg';
 import GreenBackgroundButton from "../../components/Buttons/GreenBackground/GreenBackgroundButton";
@@ -44,7 +45,7 @@ const Gerenciamento = () => {
   return (
     <div>
       <SearchAndImportBar />
-      <DataGridComponent rows={rows} columns={columns} pageSize={5} />
+      <DataGridComponent rows={rows} columns={columns} pageSize={6} />
     </div>
   );
 };
