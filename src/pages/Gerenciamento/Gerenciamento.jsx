@@ -51,7 +51,7 @@ const Gerenciamento = () => {
   return (
     <div>
       <SearchAndImportBar />
-      <DataGridComponent rows={rows} columns={columns} pageSize={5} />
+      <DataGridComponent rows={rows} columns={columns} pageSize={6} />
     </div>
   );
 };

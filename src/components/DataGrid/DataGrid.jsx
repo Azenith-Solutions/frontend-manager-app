@@ -12,6 +12,8 @@ export function DataGridComponent({ rows, columns, pageSize, onPageChange }) {
         checkboxSelection
         disableColumnMenu={true}
         sx={{
+          width: '85vw',
+          height: "75vh",
           '& .MuiDataGrid-cell': {
             fontSize: '1rem', 
           },

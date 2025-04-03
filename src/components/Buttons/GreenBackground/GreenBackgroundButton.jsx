@@ -1,9 +1,10 @@
 import './GreenBackgroundButton.css';
 
-const GreenBackgroundButton = ({ iconPath }) => {
+const GreenBackgroundButton = ({ iconPath, text }) => {
     return (
         <button className='green-background-button'>
             <img src={iconPath} />
+            {text && <p>{text}</p>}
         </button>
     );
 }
