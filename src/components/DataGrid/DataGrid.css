@@ -1,0 +1,44 @@
+.data-grid-container {
+    display: flex;
+    width: 85vw;
+    height: 75vh;
+
+    .MuiDataGrid-columnHeaderTitleContainer {
+        justify-content: center;
+
+        font-family: Inter;
+        font-size: 18px;
+    }
+    
+    .MuiDataGrid-cell--textLeft {
+        display: flex;
+        align-items: center !important;
+        justify-content: center !important;
+        
+        color: #000000;
+        font-family: Inter;
+        font-size: 15px;
+        text-align: center !important;
+    }
+    
+    .MuiDataGrid-columnHeaders {
+        /* Posso alterar a fonte dos Header */
+    }
+
+    .MuiDataGrid-columnHeader {
+        .MuiDataGrid-iconButtonContainer {
+            display: none;
+        }
+
+        &:hover {
+            .MuiDataGrid-iconButtonContainer {
+                display: flex;
+            }
+        }
+    }
+
+    .catalogo-buttons {
+        display: flex;
+        gap: 10px;
+    }
+}
