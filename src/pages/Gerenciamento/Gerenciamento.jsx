@@ -44,6 +44,7 @@ const Gerenciamento = () => {
     { id: 1, cliente: 'João Silva', status: 'Concluído', categoria: 'Notebook', valor: 'R$ 4.500,00' },
     { id: 2, cliente: 'Maria Oliveira', status: 'Pendente', categoria: 'Smartphone', valor: 'R$ 2.300,00' },
     { id: 3, cliente: 'Carlos Pereira', status: 'Cancelado', categoria: 'Monitor', valor: 'R$ 1.200,00' },
+    { id: 3, cliente: 'Carlos Pereira', status: 'Cancelado', categoria: 'Monitor', valor: 'R$ 1.200,00' },
     { id: 4, cliente: 'Ana Costa', status: 'Em andamento', categoria: 'Teclado', valor: 'R$ 250,00' },
     { id: 5, cliente: 'Lucas Martins', status: 'Concluído', categoria: 'Mouse', valor: 'R$ 150,00' },
   ];
