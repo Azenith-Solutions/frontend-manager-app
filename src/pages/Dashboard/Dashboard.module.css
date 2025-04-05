@@ -1,6 +1,6 @@
 .dashboard {
   height: calc(100vh - 90px);
-  padding: 16px;
+  padding-bottom: 15px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -14,12 +14,13 @@
   height: 80vh;
 }
 
-/* KPI Styles */
+/* kpis */
 .kpiContainer {
   display: flex;
   gap: 16px;
   margin-bottom: 16px;
   width: 100%;
+  cursor: pointer;
 }
 
 .kpiCard {
@@ -75,35 +76,50 @@
   text-overflow: ellipsis;
 }
 
-/* Chart Layout Styles */
+/* charts */
 .chartsContainer {
-  display: flex;
-  flex-wrap: wrap;
-  flex: 1;
-  overflow: hidden;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px; 
+    height: calc(100% - 100px);
+    width: 100%;
+}
+  
+.chartTitle{
+    text-align: center;
+}
+.chartCard1 {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    background-color: white;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+  
+.chartCard2 {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+    background-color: white;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 10px;
+}
+  
+.chartCard3 {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    border: 1px solid rgba(0,0,0,0.1);
+    background-color: white;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 10px;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
-.chartContainer {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding: 16px;
-}
-
-.chartTitle {
-  font-size: 1rem !important;
-  margin-bottom: 12px !important;
-  color: #333;
-  font-weight: 600 !important;
-  text-align: center;
-}
-
-/* Make the right-side chart (Distribuição por Categoria) span full height */
-.tallChart {
-  height: 520px; /* Adjust as needed to match the combined height of the two left charts */
-}
-
-/* Responsive adjustments */
+  
 @media (max-width: 960px) {
   .kpiContainer {
     flex-wrap: wrap;
@@ -128,3 +144,4 @@
     width: 100%;
   }
 }
+

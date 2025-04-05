@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+
+// material ui components
 import { 
   Box, 
   Card, 
@@ -6,14 +8,20 @@ import {
   Typography, 
   CircularProgress
 } from "@mui/material";
+
+// material ui icons
 import WarningIcon from '@mui/icons-material/Warning';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
 
+// graficos do rechart
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
+
+// css
 import styles from "./Dashboard.module.css";
 
-// Mock data function to simulate API fetch
+// mock similando carregamento do fettch de dados
 const fetchKpiData = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -47,6 +55,35 @@ const Dashboard = () => {
     
     fetchData();
   }, []);
+
+  // mock para grafico de linha
+  const dataLine = [
+    { month: 'Nov', value: 12000 },
+    { month: 'Dez', value: 15000 },
+    { month: 'Jan', value: 17000 },
+    { month: 'Fev', value: 16000 },
+    { month: 'Mar', value: 18000 },
+    { month: 'Abr', value: 20000 },
+  ];
+
+  // mock para grafico de linha
+  const dataBar = [
+    { month: 'Nov', entrada: 300, saida: 250 },
+    { month: 'Dez', entrada: 280, saida: 300 },
+    { month: 'Jan', entrada: 320, saida: 290 },
+    { month: 'Fev', entrada: 310, saida: 310 },
+    { month: 'Mar', entrada: 330, saida: 300 },
+    { month: 'Abr', entrada: 340, saida: 320 },
+  ];
+
+  const dataBarHorizon = [
+    { produto: 'Resistor 220Ω', quantidade: 5 },
+    { produto: 'Capacitor 10uF', quantidade: 3 },
+    { produto: 'Transistor BC548', quantidade: 2 },
+    { produto: 'LED Vermelho', quantidade: 6 },
+    { produto: 'Microcontrolador ATmega328', quantidade: 2 },
+  ];
+  
 
   if (loading) {
     return (
@@ -132,6 +169,92 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
+        </Card>
+      </Box>
+      <Box className={styles.chartsContainer}>
+      <Card className={styles.chartCard1}>
+        <h5 className={styles.chartTitle}>📈 Evolução do Valor do Estoque (últimos 6 meses)</h5>
+        <LineChart width={500} height={170} data={dataLine}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+            dataKey="month" 
+            tick={{ fontSize: 10 }} 
+            label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: 10 }}
+            />
+            <YAxis 
+            tick={{ fontSize: 10 }} 
+            label={{ value: 'Valor', angle: -90, position: 'insideLeft', fontSize: 10 }}
+            />
+            <Tooltip 
+            contentStyle={{ fontSize: 14 }} 
+            labelStyle={{ fontSize: 14 }} 
+            itemStyle={{ fontSize: 14 }}
+            />
+            <Line 
+            type="monotone" 
+            dataKey="value" 
+            stroke="#61131A" 
+            strokeWidth={3} 
+            dot={{ r: 4 }} 
+            activeDot={{ r: 6 }}
+            />
+        </LineChart>
+      </Card>
+
+      <Card className={styles.chartCard2}>
+        <h5 className={styles.chartTitle}>📊 Entrada vs. Saída de componentes (mensal)</h5>
+        <BarChart width={500} height={170} data={dataBar}>
+            <CartesianGrid strokeDasharray="3 3" />
+            <XAxis 
+            dataKey="month" 
+            tick={{ fontSize: 10 }} 
+            label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: 10 }}
+            />
+            <YAxis 
+            tick={{ fontSize: 10 }} 
+            label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', fontSize: 10 }}
+            />
+            <Tooltip 
+            contentStyle={{ fontSize: 14 }} 
+            labelStyle={{ fontSize: 14 }} 
+            itemStyle={{ fontSize: 14 }}
+            />
+            <Legend wrapperStyle={{ fontSize: 12 }} />
+            <Bar dataKey="entrada" fill="#689F38" />
+            <Bar dataKey="saida" fill="#61131A" />
+        </BarChart>
+        </Card>
+
+        <Card className={styles.chartCard3}>
+            <h5 className={styles.chartTitle}>🚨 Produtos com Menor Estoque</h5>
+            <BarChart
+                layout="vertical"
+                width={550}
+                height={400}
+                data={dataBarHorizon}
+                margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
+            >
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis
+                    reversed={true}
+                    type="number"
+                    tick={{ fontSize: 10 }}
+                    label={{ value: 'Quantidade', position: 'insideBottom', offset: 0, fontSize: 10 }}
+                />
+                <YAxis
+                    type="category"
+                    dataKey="produto"
+                    tick={{ fontSize: 10 }}
+                    label={{ value: 'Produto', angle: -90, position: 'insideLeft', offset: -16, fontSize: 10 }}
+                />
+                <Tooltip
+                    contentStyle={{ fontSize: 14 }}
+                    labelStyle={{ fontSize: 14 }}
+                    itemStyle={{ fontSize: 14 }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="quantidade" fill="#61131A" name="Estoque" />
+            </BarChart>
         </Card>
       </Box>
     </div>
