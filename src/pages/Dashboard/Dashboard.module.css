@@ -1,0 +1,130 @@
+.dashboard {
+  height: calc(100vh - 90px);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+
+/* KPI Styles */
+.kpiContainer {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.kpiCard {
+  flex: 1;
+  min-width: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kpiCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.kpiContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpiIconBox {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiDataBox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.kpiValue {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpiLabel {
+  color: #666;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Chart Layout Styles */
+.chartsContainer {
+  display: flex;
+  flex-wrap: wrap;
+  flex: 1;
+  overflow: hidden;
+}
+
+.chartContainer {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+}
+
+.chartTitle {
+  font-size: 1rem !important;
+  margin-bottom: 12px !important;
+  color: #333;
+  font-weight: 600 !important;
+  text-align: center;
+}
+
+/* Make the right-side chart (Distribuição por Categoria) span full height */
+.tallChart {
+  height: 520px; /* Adjust as needed to match the combined height of the two left charts */
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .kpiContainer {
+    flex-wrap: wrap;
+  }
+  
+  .kpiCard {
+    flex: 1 1 calc(50% - 8px);
+    min-width: calc(50% - 8px);
+  }
+  
+  .tallChart {
+    height: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .kpiContainer {
+    flex-direction: column;
+  }
+  
+  .kpiCard {
+    width: 100%;
+  }
+}
