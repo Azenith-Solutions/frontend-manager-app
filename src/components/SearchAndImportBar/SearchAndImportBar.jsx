@@ -1,5 +1,5 @@
 import './SearchAndImportBar.css';
-import { FormControl, OutlinedInput, InputAdornment, Button } from "@mui/material";
+import { FormControl, OutlinedInput, InputAdornment } from "@mui/material";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FilterIcon from '../../assets/icons/filter-icon.svg';
 import AddNewObjectIcon from '../../assets/icons/add-new-object-icon.svg';
