@@ -29,7 +29,7 @@ export function Search() {
     );
 }
 
-const SearchAndImportBar = () => {
+const SearchAndImportBar = ({ addButtonTitle }) => {
     return (
         <div className="container-search-bar">
             <div className="search-bar-content">
@@ -40,7 +40,7 @@ const SearchAndImportBar = () => {
             <div className="import-bar-content">
                 <TextButton iconPath={ExportIcon} text="Exportar" />
                 <GreenBackgroundButton iconPath={ImportIcon} />
-                <GreenBackgroundButton iconPath={AddNewObjectIcon} text="Adicionar Produto" />
+                <GreenBackgroundButton iconPath={AddNewObjectIcon} text={ addButtonTitle || 'Adicionar' } />
             </div>
         </div >
     );

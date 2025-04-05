@@ -57,18 +57,9 @@ const Gerenciamento = () => {
     { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' }
   ];
 
-  // const rows = [
-  //   { id: 1, cliente: 'João Silva', status: 'Concluído', categoria: 'Notebook', valor: 'R$ 4.500,00' },
-  //   { id: 2, cliente: 'Maria Oliveira', status: 'Pendente', categoria: 'Smartphone', valor: 'R$ 2.300,00' },
-  //   { id: 3, cliente: 'Carlos Pereira', status: 'Cancelado', categoria: 'Monitor', valor: 'R$ 1.200,00' },
-  //   { id: 3, cliente: 'Carlos Pereira', status: 'Cancelado', categoria: 'Monitor', valor: 'R$ 1.200,00' },
-  //   { id: 4, cliente: 'Ana Costa', status: 'Em andamento', categoria: 'Teclado', valor: 'R$ 250,00' },
-  //   { id: 5, cliente: 'Lucas Martins', status: 'Concluído', categoria: 'Mouse', valor: 'R$ 150,00' },
-  // ];
-
   return (
     <div>
-      <SearchAndImportBar />
+      <SearchAndImportBar addButtonTitle={"Adicionar Componente"} />
       <DataGridComponent rows={rows} columns={columns} pageSize={6} />
     </div>
   );
