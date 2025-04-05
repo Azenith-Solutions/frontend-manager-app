@@ -1,0 +1,180 @@
+.dashboard {
+  height: calc(100vh - 90px);
+  padding-bottom: 15px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 80vh;
+}
+
+/* kpis */
+.kpiContainer {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+  cursor: pointer;
+}
+
+.kpiCard {
+  flex: 1;
+  min-width: 0;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.kpiCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+}
+
+.kpiContent {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.kpiIconBox {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.kpiDataBox {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.kpiValue {
+  font-size: 1.5rem !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.kpiLabel {
+  color: #666;
+  font-size: 0.8rem !important;
+  font-weight: 500 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* charts */
+.chartsContainer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 16px; 
+    height: calc(100% - 100px);
+    width: 100%;
+    overflow: hidden;
+}
+  
+.chartTitle{
+    text-align: center;
+    font-size: 14px;
+    margin-bottom: 8px;
+}
+
+.chartCard1 {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+    background-color: white;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+  
+.chartCard2 {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+    background-color: white;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+  
+.chartCard3 {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    border: 1px solid rgba(0,0,0,0.1);
+    background-color: white;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+@media (max-width: 960px) {
+    .dashboard {
+        height: auto;
+        overflow-y: auto;
+        padding-bottom: 20px;
+      }
+    
+      .kpiContainer {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+      }
+    
+      .kpiCard {
+        flex: 1 1 calc(50% - 8px); /* 2 cards por linha */
+        min-width: calc(50% - 8px);
+        margin-bottom: 8px;
+      }
+    
+  
+    .chartsContainer {
+      grid-template-columns: 1fr;
+      grid-template-rows: auto auto auto;
+      gap: 16px;
+      height: auto;
+      overflow-y: auto;
+    }
+  
+    .chartTitle {
+      font-size: 10px;
+    }
+  
+    .chartCard1 {
+      grid-column: 1;
+      grid-row: 1;
+    }
+  
+    .chartCard2 {
+      grid-column: 1;
+      grid-row: 2;
+    }
+  
+    .chartCard3 {
+      grid-column: 1;
+      grid-row: 3;
+      height: 300px;
+    }
+  }
+  
