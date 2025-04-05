@@ -5,7 +5,6 @@ import {
     AppBar,
     Box,
     CssBaseline,
-    Divider,
     Drawer,
     IconButton,
     List,
@@ -18,21 +17,18 @@ import {
     useMediaQuery,
     useTheme
 } from "@mui/material";
+
 import {
-    Dashboard as DashboardIcon,
-    People as PeopleIcon,
-    Settings as SettingsIcon,
-    BarChart as AnalyticsIcon,
     Logout as LogoutIcon,
     Menu as MenuIcon
 } from "@mui/icons-material";
+
+// icons
 import Logo from "../../assets/Logo.svg";
-import WhiteManagementIcon from "../../assets/icons/white-management-icon.svg";
-import WhiteOrderIcon from "../../assets/icons/white-order-icon.svg";
-import WhiteReportIcon from "../../assets/icons/white-report-icon.svg";
-import RedManagementIcon from "../../assets/icons/red-management-icon.svg";
-import RedOrderIcon from "../../assets/icons/red-order-icon.svg";
-import RedReportIcon from "../../assets/icons/red-report-icon.svg";
+import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
+import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'; 
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'; 
 
 const drawerWidth = 240;
 
@@ -54,14 +50,27 @@ const Layout = () => {
             navigate("/");
         }
     };
-
     const redAndWhiteIcons = {
-        management: { red: RedManagementIcon, white: WhiteManagementIcon },
-        order: { red: RedOrderIcon, white: WhiteOrderIcon },
-        report: { red: RedReportIcon, white: WhiteReportIcon },
+        dashboard: { 
+            red: <DashboardOutlinedIcon sx={{ color: "#61131A" }} />, 
+            white: <DashboardOutlinedIcon sx={{ color: "#FFFFFF" }} />
+        },
+        management: { 
+            red: <ManageSearchOutlinedIcon  sx={{ color: "#61131A" }} />, 
+            white: <ManageSearchOutlinedIcon  sx={{ color: "#FFFFFF" }} />
+        },
+        order: { 
+            red: <ShoppingCartOutlinedIcon sx={{ color: "#61131A" }} />, 
+            white: <ShoppingCartOutlinedIcon sx={{ color: "#FFFFFF" }} />
+        },
+        report: { 
+            red: <BarChartOutlinedIcon sx={{ color: "#61131A" }} />, 
+            white: <BarChartOutlinedIcon sx={{ color: "#FFFFFF" }} />
+        },
     };
 
     const menuItems = [
+        { text: "Dashboard", key: "dashboard", path: "/dashboard" },
         { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
         { text: "Pedidos", key: "order", path: "/pedidos" },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
@@ -109,14 +118,14 @@ const Layout = () => {
                                     },
                                 }}
                             >
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: 30,
-                                        color: "inherit",
-                                    }}
-                                >
-                                    <img src={iconSrc} alt={`${item.text} icon`} style={{ marginRight: 8 }} />
-                                </ListItemIcon>
+                                    <ListItemIcon
+                                        sx={{
+                                                minWidth: 30,
+                                                color: "inherit",
+                                            }}
+                                        >
+                                        {iconSrc}
+                                    </ListItemIcon>
                                 <ListItemText primary={item.text} />
                             </ListItemButton>
                         </ListItem>
