@@ -3,7 +3,6 @@ import { FormControl, OutlinedInput, InputAdornment, Button } from "@mui/materia
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FilterIcon from '../../assets/icons/filter-icon.svg';
 import AddNewObjectIcon from '../../assets/icons/add-new-object-icon.svg';
-import GreenBackgroundButton from "../Buttons/GreenBackground/GreenBackgroundButton";
 import TextButton from '../Buttons/TextButton/TextButton';
 import ExportIcon from '../../assets/icons/export-icon.svg';
 import ImportIcon from '../../assets/icons/import-icon.svg';
@@ -39,8 +38,8 @@ const SearchAndImportBar = ({ addButtonTitle }) => {
 
             <div className="import-bar-content">
                 <TextButton iconPath={ExportIcon} text="Exportar" />
-                <GreenBackgroundButton iconPath={ImportIcon} />
-                <GreenBackgroundButton iconPath={AddNewObjectIcon} text={ addButtonTitle || 'Adicionar' } />
+                <TextButton iconPath={ImportIcon} backgroundColor={"#2ECC71"}/>
+                <TextButton iconPath={AddNewObjectIcon} backgroundColor={"#2ECC71"} text={ addButtonTitle || 'Adicionar' } />
             </div>
         </div >
     );

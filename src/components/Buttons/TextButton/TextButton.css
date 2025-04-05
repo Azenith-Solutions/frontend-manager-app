@@ -1,11 +1,18 @@
-.green-text-button {
+.text-button {
+
     display: flex;
     align-items: center;
-    gap: 15px;
+    justify-content: center;
 
+    height: 50px;
+    margin-right: 0;
+    padding: 0 13px;
+    gap: 2px;
+    
     cursor: pointer;
     border: none;
-    
+    border-radius: 5px;
+
     font-family: 'Inter', sans-serif;
     font-size: 18px;
     font-weight: 400;
