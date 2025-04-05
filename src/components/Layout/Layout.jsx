@@ -96,7 +96,10 @@ const Layout = () => {
                 alignItems: "center"
             }}>
                 {menuItems.map((item) => {
-                    const iconSrc = hoveredItem === item.key ? redAndWhiteIcons[item.key].white : redAndWhiteIcons[item.key].red;
+                    const isActive = location.pathname === item.path;
+                    const iconSrc = isActive || hoveredItem === item.key ? 
+                        redAndWhiteIcons[item.key].white : 
+                        redAndWhiteIcons[item.key].red;
 
                     return (
                         <ListItem key={item.text} disablePadding>
@@ -108,9 +111,10 @@ const Layout = () => {
                                 onMouseEnter={() => setHoveredItem(item.key)}
                                 onMouseLeave={() => setHoveredItem(null)}
                                 sx={{
-                                    color: "#61131A",
+                                    color: isActive ? "#FFFFFF" : "#61131A",
                                     paddingLeft: 3.3,
                                     height: 54,
+                                    backgroundColor: isActive ? "#8B1E26" : "transparent",
                                     "&:hover": {
                                         backgroundColor: "#8B1E26",
                                         color: "#FFFFFF",
