@@ -60,6 +60,8 @@ const Layout = () => {
 
     const menuItems = [
         { text: "Gerenciamento de Estoque", key: "management", path: "/gerenciamento" },
+        { text: "Dashboard", key: "dashboard", path: "/dashboard" },
+        { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
         { text: "Pedidos", key: "order", path: "/pedidos" },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
     ];
