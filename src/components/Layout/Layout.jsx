@@ -59,7 +59,7 @@ const Layout = () => {
     };
 
     const menuItems = [
-        { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
+        { text: "Gerenciamento de Estoque", key: "management", path: "/gerenciamento" },
         { text: "Pedidos", key: "order", path: "/pedidos" },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
     ];
@@ -169,6 +169,8 @@ const Layout = () => {
                 sx={{
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     ml: { sm: `${drawerWidth}px` },
+                    height: "82px",
+                    justifyContent: "center",
                     backgroundColor: "#61131A" // Define a cor da barra
                 }}
             >

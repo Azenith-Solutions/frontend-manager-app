@@ -41,4 +41,9 @@
         display: flex;
         gap: 10px;
     }
+
+    .catalogo-buttons-container {
+        display: flex;
+        flex-direction: row;
+    }
 }

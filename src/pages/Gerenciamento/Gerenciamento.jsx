@@ -6,8 +6,7 @@ import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditSquareIcon from '@mui/icons-material/EditSquare';
 import SearchIcon from '@mui/icons-material/Search';
-
-
+import Toggle from "../../components/Buttons/Toggle/Toggle";
 
 const Gerenciamento = () => {
   useEffect(() => {
@@ -16,22 +15,29 @@ const Gerenciamento = () => {
 
   const columns = [
     { field: 'id', headerName: 'ID H', width: 80 },
-    { field: 'caixa', headerName: 'Caixa', width: 200 },
+    { field: 'caixa', headerName: 'Caixa', width: 80 },
     { field: 'idParticao', headerName: 'Part. Number', width: 150 },
     { field: 'quantidade', headerName: 'Qtd', width: 80 },
     { field: 'anunciadoMercadoLivre', headerName: 'Anunciado ML', width: 150 },
     { field: 'idMercadoLivre', headerName: 'Cód. EAN ML', width: 150 },
     { field: 'verificado', headerName: 'Verificado', width: 150 },
     { field: 'descricao', headerName: 'Descrição', width: 150 },
-    { 
-      field: 'catalogo', 
-      headerName: 'Catálogo', 
-      width: 250, 
+    {
+      field: 'catalogo',
+      headerName: 'Exibir',
+      width: 250,
+      renderCell: () => (
+        <div className="toggle-button">
+          <Toggle />
+        </div>
+      )
+    },
+    {
+      field: 'acoes',
+      headerName: 'Ações',
+      width: 250,
       renderCell: () => (
         <div className="catalogo-buttons">
-          <IconButton aria-label="search" onClick={(e) => e.stopPropagation()}>
-            <SearchIcon />
-          </IconButton>
           <IconButton aria-label="edit" onClick={(e) => e.stopPropagation()}>
             <EditSquareIcon />
           </IconButton>
@@ -39,7 +45,7 @@ const Gerenciamento = () => {
             <DeleteIcon />
           </IconButton>
         </div>
-      ) 
+      )
     },
   ];
 
@@ -48,21 +54,9 @@ const Gerenciamento = () => {
     { id: 2, caixa: 'Caixa 2', idParticao: 'ACA654521AS', quantidade: 56, anunciadoMercadoLivre: 'Pendente', idMercadoLivre: '789012', verificado: 'Usado', descricao: 'Venda de smartphone' },
     { id: 3, caixa: 'Caixa 3', idParticao: 'ACA654521AS', quantidade: 2, anunciadoMercadoLivre: 'Cancelado', idMercadoLivre: '345678', verificado: 'Usado ou velho', descricao: 'Venda de monitor' },
     { id: 4, caixa: 'Caixa 4', idParticao: 'ACA654521AS', quantidade: 6, anunciadoMercadoLivre: 'Em andamento', idMercadoLivre: '901234', verificado: 'Ruim', descricao: 'Venda de teclado' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' },
+    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' }
   ];
-  
+
   // const rows = [
   //   { id: 1, cliente: 'João Silva', status: 'Concluído', categoria: 'Notebook', valor: 'R$ 4.500,00' },
   //   { id: 2, cliente: 'Maria Oliveira', status: 'Pendente', categoria: 'Smartphone', valor: 'R$ 2.300,00' },
