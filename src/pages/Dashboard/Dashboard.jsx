@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
+import { useMediaQuery } from "@mui/material";
 
 // material ui components
 import { 
@@ -16,7 +17,7 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
 
 // graficos do rechart
-import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
 
 // css
 import styles from "./Dashboard.module.css";
@@ -38,6 +39,11 @@ const fetchKpiData = () => {
 const Dashboard = () => {
   const [kpiData, setKpiData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const isMobile = useMediaQuery('(max-width:600px)');
+  const isTablet = useMediaQuery('(max-width:960px)');
+  const chartCard1Ref = useRef(null);
+  const chartCard2Ref = useRef(null);
+  const chartCard3Ref = useRef(null);
 
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
@@ -172,89 +178,105 @@ const Dashboard = () => {
         </Card>
       </Box>
       <Box className={styles.chartsContainer}>
-      <Card className={styles.chartCard1}>
-        <h5 className={styles.chartTitle}>📈 Evolução do Valor do Estoque (últimos 6 meses)</h5>
-        <LineChart width={500} height={170} data={dataLine}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-            dataKey="month" 
-            tick={{ fontSize: 10 }} 
-            label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: 10 }}
-            />
-            <YAxis 
-            tick={{ fontSize: 10 }} 
-            label={{ value: 'Valor', angle: -90, position: 'insideLeft', fontSize: 10 }}
-            />
-            <Tooltip 
-            contentStyle={{ fontSize: 14 }} 
-            labelStyle={{ fontSize: 14 }} 
-            itemStyle={{ fontSize: 14 }}
-            />
-            <Line 
-            type="monotone" 
-            dataKey="value" 
-            stroke="#61131A" 
-            strokeWidth={3} 
-            dot={{ r: 4 }} 
-            activeDot={{ r: 6 }}
-            />
-        </LineChart>
-      </Card>
-
-      <Card className={styles.chartCard2}>
-        <h5 className={styles.chartTitle}>📊 Entrada vs. Saída de componentes (mensal)</h5>
-        <BarChart width={500} height={170} data={dataBar}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis 
-            dataKey="month" 
-            tick={{ fontSize: 10 }} 
-            label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: 10 }}
-            />
-            <YAxis 
-            tick={{ fontSize: 10 }} 
-            label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', fontSize: 10 }}
-            />
-            <Tooltip 
-            contentStyle={{ fontSize: 14 }} 
-            labelStyle={{ fontSize: 14 }} 
-            itemStyle={{ fontSize: 14 }}
-            />
-            <Legend wrapperStyle={{ fontSize: 12 }} />
-            <Bar dataKey="entrada" fill="#689F38" />
-            <Bar dataKey="saida" fill="#61131A" />
-        </BarChart>
+        <Card className={styles.chartCard1} ref={chartCard1Ref}>
+          <h5 className={styles.chartTitle}>📈 Evolução do Valor do Estoque (últimos 6 meses)</h5>
+          <div style={{ width: '100%', height: '170px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={dataLine}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                  label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: isMobile ? 8 : 10 }}
+                />
+                <YAxis 
+                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                  label={{ value: 'Valor', angle: -90, position: 'insideLeft', fontSize: isMobile ? 8 : 10 }}
+                />
+                <Tooltip 
+                  contentStyle={{ fontSize: isMobile ? 12 : 14 }} 
+                  labelStyle={{ fontSize: isMobile ? 12 : 14 }} 
+                  itemStyle={{ fontSize: isMobile ? 12 : 14 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="value" 
+                  stroke="#61131A" 
+                  strokeWidth={isMobile ? 2 : 3} 
+                  dot={{ r: isMobile ? 3 : 4 }} 
+                  activeDot={{ r: isMobile ? 5 : 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
 
-        <Card className={styles.chartCard3}>
-            <h5 className={styles.chartTitle}>🚨 Produtos com Menor Estoque</h5>
-            <BarChart
+        <Card className={styles.chartCard2} ref={chartCard2Ref}>
+          <h5 className={styles.chartTitle}>📊 Entrada vs. Saída de componentes (mensal)</h5>
+          <div style={{ width: '100%', height: '170px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart data={dataBar}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis 
+                  dataKey="month" 
+                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                  label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: isMobile ? 8 : 10 }}
+                />
+                <YAxis 
+                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                  label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', fontSize: isMobile ? 8 : 10 }}
+                />
+                <Tooltip 
+                  contentStyle={{ fontSize: isMobile ? 12 : 14 }} 
+                  labelStyle={{ fontSize: isMobile ? 12 : 14 }} 
+                  itemStyle={{ fontSize: isMobile ? 12 : 14 }}
+                />
+                <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />
+                <Bar dataKey="entrada" fill="#689F38" />
+                <Bar dataKey="saida" fill="#61131A" />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </Card>
+
+        <Card className={styles.chartCard3} ref={chartCard3Ref}>
+          <h5 className={styles.chartTitle}>🚨 Produtos com Menor Estoque</h5>
+          <div style={{ width: '100%', height: isTablet ? '300px' : '400px' }}>
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
                 layout="vertical"
-                width={550}
-                height={400}
                 data={dataBarHorizon}
-                margin={{ top: 5, right: 30, left: 50, bottom: 5 }}
-            >
+                margin={{ 
+                  top: 5, 
+                  right: 5, 
+                  left: 0, 
+                  bottom: 0
+                }}
+              >
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
-                    reversed={true}
-                    type="number"
-                    tick={{ fontSize: 10 }}
-                    label={{ value: 'Quantidade', position: 'insideBottom', offset: 0, fontSize: 10 }}
+                  reversed={true}
+                  type="number"
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
+                  label={{ value: 'Quantidade', position: 'insideBottom', offset: 0, fontSize: isMobile ? 8 : 10 }}
                 />
                 <YAxis
-                    type="category"
-                    dataKey="produto"
-                    tick={{ fontSize: 10 }}
-                    label={{ value: 'Produto', angle: -90, position: 'insideLeft', offset: -16, fontSize: 10 }}
+                  type="category"
+                  dataKey="produto"
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
+                  width={75}
+                  label={{ value: 'Produto', angle: -90, position: 'insideLeft', offset: 5, fontSize: isMobile ? 8 : 10 }}
                 />
                 <Tooltip
-                    contentStyle={{ fontSize: 14 }}
-                    labelStyle={{ fontSize: 14 }}
-                    itemStyle={{ fontSize: 14 }}
+                  contentStyle={{ fontSize: isMobile ? 12 : 14 }}
+                  labelStyle={{ fontSize: isMobile ? 12 : 14 }}
+                  itemStyle={{ fontSize: isMobile ? 12 : 14 }}
                 />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />
                 <Bar dataKey="quantidade" fill="#61131A" name="Estoque" />
-            </BarChart>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
         </Card>
       </Box>
     </div>
