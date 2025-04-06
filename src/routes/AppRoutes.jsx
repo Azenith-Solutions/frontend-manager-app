@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import Login from "../pages/Login/Login";
 import PrivateRoutes from "../components/auth/PrivateRoutes/PrivateRoutes";
 import Layout from "../components/Layout/Layout";
+import Dashboard from "../pages/Dashboard/Dashboard";
 import Gerenciamento from "../pages/Gerenciamento/Gerenciamento";
 import Pedidos from "../pages/Pedidos/Pedidos";
 import Analise from "../pages/Analise/Analise";
@@ -18,6 +19,7 @@ export default function AppRoutes() {
             <Layout />
           </PrivateRoutes>
         }>
+        <Route path="dashboard" element={<Dashboard />} />
         <Route path="gerenciamento" element={<Gerenciamento />} />
         <Route path="pedidos" element={<Pedidos />} />
         <Route path="analise" element={<Analise />} />
