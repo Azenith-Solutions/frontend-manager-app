@@ -1,66 +1,118 @@
 import React from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import SearchAndImportBar from "../../components/SearchAndImportBar/SearchAndImportBar";
 import { DataGridComponent } from "../../components/DataGrid/DataGrid";
 import Toggle from "../../components/Buttons/Toggle/Toggle";
 import IconButton from '@mui/material/IconButton';
 import DeleteIcon from '@mui/icons-material/Delete';
-import EditSquareIcon from '@mui/icons-material/EditSquare';  
+import EditSquareIcon from '@mui/icons-material/EditSquare';
+// import { data } from "react-router-dom";
 
 const Pedidos = () => {
   useEffect(() => {
     document.title = "HardwareTech | Pedidos";
   }, []);
 
-  const columns = [
-    { field: 'id', headerName: 'ID H', width: 80 },
-    { field: 'caixa', headerName: 'Caixa', width: 80 },
-    { field: 'idParticao', headerName: 'Part. Number', width: 150 },
-    { field: 'quantidade', headerName: 'Qtd', width: 80 },
-    { field: 'anunciadoMercadoLivre', headerName: 'Anunciado ML', width: 150 },
-    { field: 'idMercadoLivre', headerName: 'Cód. EAN ML', width: 150 },
-    { field: 'verificado', headerName: 'Verificado', width: 150 },
-    { field: 'descricao', headerName: 'Descrição', width: 150 },
-    {
-      field: 'catalogo',
-      headerName: 'Exibir',
-      width: 250,
-      renderCell: () => (
-        <div className="toggle-button">
-          <Toggle />
-        </div>
-      )
-    },
-    {
-      field: 'acoes',
-      headerName: 'Ações',
-      width: 250,
-      renderCell: () => (
-        <div className="catalogo-buttons">
-          <IconButton aria-label="edit" onClick={(e) => e.stopPropagation()}>
-            <EditSquareIcon />
-          </IconButton>
-          <IconButton aria-label="delete" onClick={(e) => e.stopPropagation()}>
-            <DeleteIcon />
-          </IconButton>
-        </div>
-      )
-    },
-  ];
+  const [labels, setLabels] = useState([]);
+  const [cardsByLabel, setCardsByLabel] = useState([]);
+  const [listsOfCards, setListsOfCards] = useState([]);
 
-  const rows = [
-    { id: 1, caixa: 'Caixa 1', idParticao: 'ACA654521AS', quantidade: 12, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '123456', verificado: 'Ok', descricao: 'Venda de notebook' },
-    { id: 2, caixa: 'Caixa 2', idParticao: 'ACA654521AS', quantidade: 56, anunciadoMercadoLivre: 'Pendente', idMercadoLivre: '789012', verificado: 'Usado', descricao: 'Venda de smartphone' },
-    { id: 3, caixa: 'Caixa 3', idParticao: 'ACA654521AS', quantidade: 2, anunciadoMercadoLivre: 'Cancelado', idMercadoLivre: '345678', verificado: 'Usado ou velho', descricao: 'Venda de monitor' },
-    { id: 4, caixa: 'Caixa 4', idParticao: 'ACA654521AS', quantidade: 6, anunciadoMercadoLivre: 'Em andamento', idMercadoLivre: '901234', verificado: 'Ruim', descricao: 'Venda de teclado' },
-    { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' }
-  ];
+  const boardId = "*****"; // Replace with actual HardwareTech board ID
+
+  async function getAllLabels() {
+    console.log("Fetching Labels...");
+
+    const response = await fetch(`http://localhost:8080/api/trello/labels?boardId=${boardId}`);
+    const labels = await response.json();
+
+    setLabels(labels);
+  }
+
+  async function getCardsByLabel() {
+    const response = await fetch(`http://localhost:8080/api/trello/labels?boardId=${boardId}`);
+    const labels = await response.json();
+    const labelId = labels[0].id;
+
+    const cardsResponse = await fetch(`http://localhost:8080/api/trello/cards?boardId=${boardId}&labelId=${labelId}`);
+    const cardsByLabel = await cardsResponse.json();
+
+    setCardsByLabel(cardsByLabel);
+  }
+
+  async function getListsOfCards() {
+    console.log("Fetching Lists of Cards...");
+
+    const response = await fetch(`http://localhost:8080/api/trello/listsOfCards?boardId=${boardId}`);
+    const listsOfCards = await response.json();
+
+    console.log(listsOfCards);
+
+    setListsOfCards(listsOfCards);
+  }
 
   return (
-    <div>
-      <SearchAndImportBar addButtonTitle={'Adicionar Pedido'} />
-      <DataGridComponent rows={rows} columns={columns} pageSize={6} />
-    </div>
+    <>
+      <div>
+        <button onClick={getAllLabels}>Buscar Etiquetas</button>
+
+        <br /> <br />
+
+        <ul>
+          {labels.map((label) => (
+            <>
+              <p key={label.id}>
+                <strong>{"ID da Etiqueta: " + label.id}</strong> <br />
+                <strong>{"Título da Etiqueta:" + label.name}</strong> <br /><br />
+              </p> <br /> <br />
+            </>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <br /> <br />
+        <br /> <br />
+
+        <button onClick={getCardsByLabel}>Buscar Cartões por Etiqueta</button>
+
+        <br /> <br />
+
+        <ul>
+          {cardsByLabel.map((card) => (
+            <>
+              <p key={card.id}>
+                <strong>{"ID do Cartão: " + card.id}</strong> <br />
+                <strong>{"Nome do Cartão:" + card.name}</strong> <br /><br />
+                <strong>{"URL:" + card.url}</strong> <br /><br />
+                <strong>{"ID(s) da(s) Etiqueta(s):" + card.idLabels}</strong> <br />
+              </p >
+            </>
+          ))}
+        </ul>
+      </div>
+
+      <div>
+        <br /> <br />
+        <br /> <br />
+
+        <button onClick={getListsOfCards}>Buscar Listas de Cartões</button>
+
+        <br /> <br />
+
+        <ul>
+          {listsOfCards.map((list) => (
+            <>
+              <p key={list.id}>
+                <strong>{"ID da Lista: " + list.id}</strong> <br />
+                <strong>{"Nome da Lista:" + list.name}</strong> <br /><br />
+              </p>
+
+              <br /> <br />
+            </>
+          ))}
+        </ul>
+      </div>
+    </>
   );
 };
 
