@@ -29,6 +29,7 @@ import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'; 
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'; 
+import PsychologyIcon from '@mui/icons-material/Psychology';
 
 const drawerWidth = 240;
 
@@ -67,6 +68,10 @@ const Layout = () => {
             red: <BarChartOutlinedIcon sx={{ color: "#61131A" }} />, 
             white: <BarChartOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
+        assistenteIa: { 
+            red: <PsychologyIcon sx={{ color: "#61131A" }} />, 
+            white: <PsychologyIcon sx={{ color: "#FFFFFF" }} />
+        },
     };
 
     const menuItems = [
@@ -74,6 +79,7 @@ const Layout = () => {
         { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
         { text: "Pedidos", key: "order", path: "/pedidos" },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
+        { text: "Assistente IA", key: "assistenteIa", path: "/assistente-ia" },
     ];
 
     // Define o título com base na rota atual
