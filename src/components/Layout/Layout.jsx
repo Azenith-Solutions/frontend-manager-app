@@ -149,9 +149,7 @@ const Layout = () => {
                         sx={{
                             color: "#61131A", // Default text color
                             "&:hover": {
-                                backgroundColor: "#8B1E26", // Slightly lighter background color
-                                color: "#FFFFFF", // White text on hover
-                                transition: "background-color 0.3s, color 0.3s" // Smooth transition
+                                transform: "scale(1.1)", // Scale effect on hover
                             }
                         }}
                     >
