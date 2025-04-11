@@ -11,7 +11,6 @@ import {
 } from "@mui/material";
 import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
-import DeleteIcon from "@mui/icons-material/Delete";
 import SendIcon from "@mui/icons-material/Send";
 import ChatIcon from "@mui/icons-material/Chat";
 import styles from "./AssistenteIa.module.css";
@@ -27,7 +26,6 @@ const AssistenteIa = () => {
   const recognitionRef = useRef(null);
   const chatContainerRef = useRef(null);
 
-  // Initialize speech recognition
   useEffect(() => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -43,7 +41,6 @@ const AssistenteIa = () => {
       console.error('Speech recognition not supported in this browser');
     }
 
-    // Load chat history on component mount
     loadHistory();
 
     return () => {
@@ -53,7 +50,6 @@ const AssistenteIa = () => {
     };
   }, []);
 
-  // Auto-scroll to bottom when chat history updates
   useEffect(() => {
     if (chatContainerRef.current) {
       chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
@@ -68,7 +64,6 @@ const AssistenteIa = () => {
       const transcript = event.results[i][0].transcript;
       if (event.results[i].isFinal) {
         finalTranscript += transcript + ' ';
-        // Automatically send final transcript to API
         sendMessage(transcript.trim());
       } else {
         currentInterimTranscript += transcript;
@@ -96,18 +91,13 @@ const AssistenteIa = () => {
     if (isListening) {
       recognitionRef.current.stop();
     } else {
-      // Make sure we're using the same recognition instance
-      // and not creating a new one which would lose context
       try {
-        // Before starting, ensure we've loaded the latest chat history
         loadHistory();
         recognitionRef.current.start();
         setInterimTranscript('');
       } catch (error) {
         console.error('Error starting speech recognition:', error);
-        
-        // If there's an error (like recognition is already started),
-        // reinitialize the recognition object
+
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (SpeechRecognition) {
           recognitionRef.current = new SpeechRecognition();
@@ -119,7 +109,6 @@ const AssistenteIa = () => {
           recognitionRef.current.onerror = handleSpeechError;
           recognitionRef.current.onend = handleSpeechEnd;
           
-          // Try again
           recognitionRef.current.start();
           setInterimTranscript('');
         }
@@ -139,17 +128,13 @@ const AssistenteIa = () => {
   const sendMessage = async (text) => {
     if (!text.trim()) return;
     
-    // Add user message to chat history
     const updatedHistory = [
       ...chatHistory,
       { role: 'user', content: text }
     ];
     
-    // Update chat history immediately
     setChatHistory(updatedHistory);
-    // Save to session storage after each user message
     saveHistory(updatedHistory);
-    
     setLoading(true);
 
     try {
@@ -173,7 +158,6 @@ const AssistenteIa = () => {
       const aiResponse = data.response || JSON.stringify(data);
       const cleanedResponse = aiResponse.replace(/^Assistant:\s*/i, '');
 
-      // Add AI response to chat history
       const finalHistory = [
         ...updatedHistory,
         { role: 'assistant', content: cleanedResponse }
@@ -184,7 +168,6 @@ const AssistenteIa = () => {
     } catch (error) {
       console.error('Error communicating with backend:', error);
       
-      // Add error message to chat history
       const errorHistory = [
         ...updatedHistory,
         { role: 'error', content: `Error: ${error.message}` }
@@ -217,13 +200,13 @@ const AssistenteIa = () => {
       case "user":
         return (
           <Box key={index} className={styles.userMessage}>
-            <Typography variant="body1"><strong>Você:</strong> {msg.content}</Typography>
+            <Typography variant="body1">{msg.content}</Typography>
           </Box>
         );
       case "assistant":
         return (
           <Box key={index} className={styles.aiMessage}>
-            <Typography variant="body1"><strong>IA:</strong> {msg.content}</Typography>
+            <Typography variant="body1">{msg.content}</Typography>
           </Box>
         );
       case "error":
@@ -302,7 +285,7 @@ const AssistenteIa = () => {
             sx={{
                 "& .MuiOutlinedInput-root": {
                 "&:hover fieldset": {
-                    borderColor: "#9C1F2E", // cor ao passar o mouse
+                    borderColor: "#9C1F2E",
                     },
                   "&.Mui-focused": {
                     "& fieldset": {
@@ -322,9 +305,9 @@ const AssistenteIa = () => {
               "&:hover": {
                 backgroundColor: "#8B1E26"
               },
-              height: "56px", // Match the default height of the multiline TextField
-              padding: "0 16px", // Add appropriate horizontal padding
-              alignSelf: "stretch", // Stretch to match parent height
+              height: "56px", 
+              padding: "0 16px",
+              alignSelf: "stretch", 
               display: "flex",
               alignItems: "center"
             }}
