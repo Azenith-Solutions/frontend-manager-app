@@ -15,3 +15,7 @@
 .css-1ylcsk0-MuiButtonBase-root-MuiListItemButton-root {
     padding: 0 !important;
 }
+
+.MuiListItemButton-root:hover .logout-container {
+    transform: scale(1.1);
+}

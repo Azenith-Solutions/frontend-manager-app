@@ -91,15 +91,22 @@ const Layout = () => {
     const [hoveredItem, setHoveredItem] = useState(null);
 
     const drawer = (
-        <>
-            <Toolbar sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 2 }}>
-                <img src={Logo} alt="Logo" style={{ width: "260px", height: "auto" }} />
+        <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Toolbar sx={{
+                display: "flex", 
+                flexDirection: "column", 
+                alignItems: "center",
+                py: 2,
+                height: 200,
+                mb: 0, // Ensure no margin at the bottom
+                }}>
+                <img src={Logo} alt="Logo" style={{  }} />
             </Toolbar>
             <List sx={{
-                marginTop: "80px",
-                marginBottom: "120px",
+                marginTop: 0, // Remove the gap by setting top margin to 0
                 justifyContent: "center",
-                alignItems: "center"
+                alignItems: "center",
+                flexGrow: 1,
             }}>
                 {menuItems.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -142,44 +149,58 @@ const Layout = () => {
                     );
                 })}
             </List>
-            <List>
-                <ListItem disablePadding>
-                    <ListItemButton
-                        onClick={handleLogout}
-                        sx={{
-                            color: "#61131A", // Default text color
-                            "&:hover": {
-                                transform: "scale(1.1)", // Scale effect on hover
-                            }
-                        }}
-                    >
-                        <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: "100%",
-                            gap: "2px"
-                        }}>
-                            <ListItemIcon
-                                sx={{
-                                    minWidth: 0,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    color: "inherit", // Inherit color for the icon
-                                }}
+            <Box sx={{ 
+                position: 'absolute', 
+                bottom: 0, 
+                left: 0, 
+                right: 0, 
+                bgcolor: 'background.paper',
+                borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+                overflow: 'hidden' // Prevent overflow from causing scrollbars
+            }}>
+                <List>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            onClick={handleLogout}
+                            sx={{
+                                color: "#61131A", // Default text color
+                                transition: "all 0.3s",
+                                "&:hover": {
+                                    backgroundColor: "transparent" // No background change on hover
+                                }
+                            }}
+                        >
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: "100%",
+                                gap: "8px",
+                                transition: "transform 0.3s",
+                            }}
+                            className="logout-container"
                             >
-                                <LogoutIcon />
-                            </ListItemIcon>
-                            <ListItemText sx={{
-                                flex: "none",
-                                textAlign: "center",
-                            }} primary="Logout" />
-                        </div>
-                    </ListItemButton>
-                </ListItem>
-            </List>
-        </>
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 0,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "inherit", // Inherit color for the icon
+                                    }}
+                                >
+                                    <LogoutIcon />
+                                </ListItemIcon>
+                                <ListItemText sx={{
+                                    flex: "none",
+                                    textAlign: "center",
+                                }} primary="Logout" />
+                            </div>
+                        </ListItemButton>
+                    </ListItem>
+                </List>
+            </Box>
+        </Box>
     );
 
     return (
