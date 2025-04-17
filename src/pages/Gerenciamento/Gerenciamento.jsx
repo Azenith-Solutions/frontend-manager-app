@@ -40,6 +40,20 @@ const Gerenciamento = () => {
     },
   ];
 
+  useEffect(() => {
+    fetch('http://localhost:8080/api/v1/componentes')
+    .then(response => response.json())
+    .then(data => {
+      console.log(data);
+
+    })
+    .catch(error => {
+      console.error('Error fetching data:', error);
+    });
+  },[]);
+
+  
+
   const rows = [
     { id: 1, cliente: 'João Silva', status: 'Concluído', categoria: 'Notebook', valor: 'R$ 4.500,00' },
     { id: 2, cliente: 'Maria Oliveira', status: 'Pendente', categoria: 'Smartphone', valor: 'R$ 2.300,00' },
