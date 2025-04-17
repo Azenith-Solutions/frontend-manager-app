@@ -1,0 +1,26 @@
+.text-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    height: 50px;
+    margin-right: 0;
+    padding: 0 13px;
+    gap: 2px;
+
+    cursor: pointer;
+    border: none;
+    border-radius: 5px;
+
+    font-family: 'Inter', sans-serif;
+    font-size: 18px;
+    font-weight: 400;
+    text-transform: none;
+    color: #000000;
+    transition: all 0.2s ease-in-out;
+
+    &:hover {
+        transform: scale(1.03);
+        transition: all 0.1s ease-in-out;
+    }
+}
