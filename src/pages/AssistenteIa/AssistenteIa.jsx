@@ -15,7 +15,7 @@ import SendIcon from "@mui/icons-material/Send";
 import ChatIcon from "@mui/icons-material/Chat";
 import styles from "./AssistenteIa.module.css";
 
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDQzODgwNjB9.V6BDq-RoVYAg_7Qht5G9yFsKJ5eDmjBDPcxpLtOtBWA';
+const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDQ5MzQwMjl9.MHCJ-aFkMEz18iECwNyzs-bjjnw94fhlamx89eqwn4g';
 
 const AssistenteIa = () => {
   const [message, setMessage] = useState('');
@@ -92,7 +92,6 @@ const AssistenteIa = () => {
       recognitionRef.current.stop();
     } else {
       try {
-        loadHistory();
         recognitionRef.current.start();
         setInterimTranscript('');
       } catch (error) {
@@ -127,15 +126,18 @@ const AssistenteIa = () => {
 
   const sendMessage = async (text) => {
     if (!text.trim()) return;
-    
-    const updatedHistory = [
-      ...chatHistory,
-      { role: 'user', content: text }
-    ];
-    
-    setChatHistory(updatedHistory);
-    saveHistory(updatedHistory);
+
+    const userMessage = { role: 'user', content: text };
+
+    setChatHistory(prevHistory => {
+      const historyWithUserMsg = [...prevHistory, userMessage];
+      saveHistory(historyWithUserMsg);
+      return historyWithUserMsg;
+    });
+
     setLoading(true);
+
+    const currentHistoryForAPI = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
 
     try {
       const response = await fetch('http://localhost:8080/api/v1/ai/gemini/chat', {
@@ -146,7 +148,7 @@ const AssistenteIa = () => {
         },
         body: JSON.stringify({
           message: text,
-          history: updatedHistory
+          history: currentHistoryForAPI
         })
       });
 
@@ -157,23 +159,31 @@ const AssistenteIa = () => {
       const data = await response.json();
       const aiResponse = data.response || JSON.stringify(data);
       const cleanedResponse = aiResponse.replace(/^Assistant:\s*/i, '');
+      const assistantMessage = { role: 'assistant', content: cleanedResponse };
 
-      const finalHistory = [
-        ...updatedHistory,
-        { role: 'assistant', content: cleanedResponse }
-      ];
-      
-      setChatHistory(finalHistory);
-      saveHistory(finalHistory);
+      setChatHistory(prevHistory => {
+        const latestHistory = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+        if (latestHistory.length > 0 && latestHistory[latestHistory.length - 1].role === 'assistant' && latestHistory[latestHistory.length - 1].content === cleanedResponse) {
+            return latestHistory;
+        }
+        const finalHistory = [...latestHistory, assistantMessage];
+        saveHistory(finalHistory);
+        return finalHistory;
+      });
+
     } catch (error) {
       console.error('Error communicating with backend:', error);
-      
-      const errorHistory = [
-        ...updatedHistory,
-        { role: 'error', content: `Error: ${error.message}` }
-      ];
-      setChatHistory(errorHistory);
-      saveHistory(errorHistory);
+      const errorMessage = { role: 'error', content: `Error: ${error.message}` };
+
+      setChatHistory(prevHistory => {
+         const latestHistory = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+         if (latestHistory.length > 0 && latestHistory[latestHistory.length - 1].role === 'error' && latestHistory[latestHistory.length - 1].content === errorMessage.content) {
+            return latestHistory;
+         }
+         const errorHistory = [...latestHistory, errorMessage];
+         saveHistory(errorHistory);
+         return errorHistory;
+      });
     } finally {
       setLoading(false);
     }
