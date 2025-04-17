@@ -2,11 +2,11 @@ import { useEffect, useState, useRef } from "react";
 import { useMediaQuery } from "@mui/material";
 
 // material ui components
-import { 
-  Box, 
-  Card, 
-  CardContent, 
-  Typography, 
+import {
+  Box,
+  Card,
+  CardContent,
+  Typography,
   CircularProgress
 } from "@mui/material";
 
@@ -47,7 +47,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
-    
+
     const fetchData = async () => {
       try {
         const kpiResult = await fetchKpiData();
@@ -58,7 +58,7 @@ const Dashboard = () => {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
@@ -89,7 +89,7 @@ const Dashboard = () => {
     { produto: 'LED Vermelho', quantidade: 6 },
     { produto: 'Microcontrolador ATmega328', quantidade: 2 },
   ];
-  
+
 
   if (loading) {
     return (
@@ -184,26 +184,26 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={dataLine}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="month" 
-                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
                   label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: isMobile ? 8 : 10 }}
                 />
-                <YAxis 
-                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                <YAxis
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
                   label={{ value: 'Valor', angle: -90, position: 'insideLeft', fontSize: isMobile ? 8 : 10 }}
                 />
-                <Tooltip 
-                  contentStyle={{ fontSize: isMobile ? 12 : 14 }} 
-                  labelStyle={{ fontSize: isMobile ? 12 : 14 }} 
+                <Tooltip
+                  contentStyle={{ fontSize: isMobile ? 12 : 14 }}
+                  labelStyle={{ fontSize: isMobile ? 12 : 14 }}
                   itemStyle={{ fontSize: isMobile ? 12 : 14 }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#61131A" 
-                  strokeWidth={isMobile ? 2 : 3} 
-                  dot={{ r: isMobile ? 3 : 4 }} 
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#61131A"
+                  strokeWidth={isMobile ? 2 : 3}
+                  dot={{ r: isMobile ? 3 : 4 }}
                   activeDot={{ r: isMobile ? 5 : 6 }}
                 />
               </LineChart>
@@ -217,18 +217,18 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dataBar}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="month" 
-                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
                   label={{ value: 'Mês', position: 'insideBottomRight', offset: -5, fontSize: isMobile ? 8 : 10 }}
                 />
-                <YAxis 
-                  tick={{ fontSize: isMobile ? 8 : 10 }} 
+                <YAxis
+                  tick={{ fontSize: isMobile ? 8 : 10 }}
                   label={{ value: 'Quantidade', angle: -90, position: 'insideLeft', fontSize: isMobile ? 8 : 10 }}
                 />
-                <Tooltip 
-                  contentStyle={{ fontSize: isMobile ? 12 : 14 }} 
-                  labelStyle={{ fontSize: isMobile ? 12 : 14 }} 
+                <Tooltip
+                  contentStyle={{ fontSize: isMobile ? 12 : 14 }}
+                  labelStyle={{ fontSize: isMobile ? 12 : 14 }}
                   itemStyle={{ fontSize: isMobile ? 12 : 14 }}
                 />
                 <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />
@@ -246,10 +246,10 @@ const Dashboard = () => {
               <BarChart
                 layout="vertical"
                 data={dataBarHorizon}
-                margin={{ 
-                  top: 5, 
-                  right: 5, 
-                  left: 0, 
+                margin={{
+                  top: 5,
+                  right: 5,
+                  left: 0,
                   bottom: 0
                 }}
               >

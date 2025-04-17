@@ -1,9 +1,8 @@
 import './SearchAndImportBar.css';
-import { FormControl, OutlinedInput, InputAdornment, Button } from "@mui/material";
+import { FormControl, OutlinedInput, InputAdornment } from "@mui/material";
 import SearchRoundedIcon from '@mui/icons-material/SearchRounded';
 import FilterIcon from '../../assets/icons/filter-icon.svg';
 import AddNewObjectIcon from '../../assets/icons/add-new-object-icon.svg';
-import GreenBackgroundButton from "../Buttons/GreenBackground/GreenBackgroundButton";
 import TextButton from '../Buttons/TextButton/TextButton';
 import ExportIcon from '../../assets/icons/export-icon.svg';
 import ImportIcon from '../../assets/icons/import-icon.svg';
@@ -29,7 +28,7 @@ export function Search() {
     );
 }
 
-const SearchAndImportBar = () => {
+const SearchAndImportBar = ({ addButtonTitle }) => {
     return (
         <div className="container-search-bar">
             <div className="search-bar-content">
@@ -39,8 +38,8 @@ const SearchAndImportBar = () => {
 
             <div className="import-bar-content">
                 <TextButton iconPath={ExportIcon} text="Exportar" />
-                <GreenBackgroundButton iconPath={ImportIcon} />
-                <GreenBackgroundButton iconPath={AddNewObjectIcon} text="Adicionar Produto" />
+                <TextButton iconPath={ImportIcon} backgroundColor={"#2ECC71"}/>
+                <TextButton iconPath={AddNewObjectIcon} backgroundColor={"#2ECC71"} text={ addButtonTitle || 'Adicionar' } />
             </div>
         </div >
     );

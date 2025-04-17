@@ -1,8 +1,9 @@
 import { DataGrid } from '@mui/x-data-grid';
+import './DataGrid.css';
 
 export function DataGridComponent({ rows, columns, pageSize, onPageChange }) {
   return (
-    <div style={{ height: 400, width: '100%' }}>
+    <div className="data-grid-container">
       <DataGrid
         rows={rows}
         columns={columns}
@@ -11,16 +12,6 @@ export function DataGridComponent({ rows, columns, pageSize, onPageChange }) {
         rowsPerPageOptions={[5, 10, 20]}
         checkboxSelection
         disableColumnMenu={true}
-        sx={{
-          width: '85vw',
-          height: "75vh",
-          '& .MuiDataGrid-cell': {
-            fontSize: '1rem', 
-          },
-          '& .MuiDataGrid-columnHeaders': {
-            fontSize: '1.2rem', 
-          },
-        }}
       />
     </div>
   );
