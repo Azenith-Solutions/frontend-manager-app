@@ -25,7 +25,7 @@ const Login = () => {
     useEffect(() => {
         const isLoggedIn = localStorage.getItem('isLoggedIn');
         if (isLoggedIn === 'true') {
-            navigate('/gerenciamento');
+            navigate('/dashboard');
         }
     }, [navigate]);
 
@@ -33,7 +33,7 @@ const Login = () => {
         e.preventDefault();
         if (email === 'admin@hardware.tech' && password === 'admin123') {
             localStorage.setItem('isLoggedIn', 'true');
-            navigate('/gerenciamento');
+            navigate('/dashboard');
         } else {
             alert("Admin fajuto, saia");
         }

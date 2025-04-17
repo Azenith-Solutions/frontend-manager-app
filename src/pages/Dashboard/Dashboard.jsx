@@ -44,6 +44,11 @@ const Dashboard = () => {
   const chartCard1Ref = useRef(null);
   const chartCard2Ref = useRef(null);
   const chartCard3Ref = useRef(null);
+  const [chartHeights, setChartHeights] = useState({
+    chart1: 170,
+    chart2: 170,
+    chart3: isTablet ? 300 : 400
+  });
 
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
@@ -61,6 +66,28 @@ const Dashboard = () => {
 
     fetchData();
   }, []);
+
+  // Adjust chart heights based on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (chartCard1Ref.current && chartCard2Ref.current && chartCard3Ref.current) {
+        // Get the actual card content height and adjust chart height accordingly
+        const card1Height = chartCard1Ref.current.clientHeight - 40; // subtract title height
+        const card2Height = chartCard2Ref.current.clientHeight - 40;
+        const card3Height = chartCard3Ref.current.clientHeight - 40;
+        
+        setChartHeights({
+          chart1: Math.max(card1Height, 150),
+          chart2: Math.max(card2Height, 150),
+          chart3: Math.max(card3Height, isTablet ? 250 : 350)
+        });
+      }
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isTablet]);
 
   // mock para grafico de linha
   const dataLine = [
@@ -180,9 +207,9 @@ const Dashboard = () => {
       <Box className={styles.chartsContainer}>
         <Card className={styles.chartCard1} ref={chartCard1Ref}>
           <h5 className={styles.chartTitle}>📈 Evolução do Valor do Estoque (últimos 6 meses)</h5>
-          <div style={{ width: '100%', height: '170px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={dataLine}>
+          <div style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart1}>
+              <LineChart data={dataLine} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="month"
@@ -213,9 +240,9 @@ const Dashboard = () => {
 
         <Card className={styles.chartCard2} ref={chartCard2Ref}>
           <h5 className={styles.chartTitle}>📊 Entrada vs. Saída de componentes (mensal)</h5>
-          <div style={{ width: '100%', height: '170px' }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={dataBar}>
+          <div style={{ width: '100%', height: '100%', minHeight: chartHeights.chart2 }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart2}>
+              <BarChart data={dataBar} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis
                   dataKey="month"
@@ -241,16 +268,16 @@ const Dashboard = () => {
 
         <Card className={styles.chartCard3} ref={chartCard3Ref}>
           <h5 className={styles.chartTitle}>🚨 Produtos com Menor Estoque</h5>
-          <div style={{ width: '100%', height: isTablet ? '300px' : '400px' }}>
-            <ResponsiveContainer width="100%" height="100%">
+          <div style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
+            <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart3}>
               <BarChart
                 layout="vertical"
                 data={dataBarHorizon}
-                margin={{
-                  top: 5,
-                  right: 5,
-                  left: 0,
-                  bottom: 0
+                margin={{ 
+                  top: 10, 
+                  right: 10, 
+                  left: 10, 
+                  bottom: 10
                 }}
               >
                 <CartesianGrid strokeDasharray="3 3" />
@@ -264,7 +291,7 @@ const Dashboard = () => {
                   type="category"
                   dataKey="produto"
                   tick={{ fontSize: isMobile ? 8 : 10 }}
-                  width={75}
+                  width={isMobile ? 60 : 75}
                   label={{ value: 'Produto', angle: -90, position: 'insideLeft', offset: 5, fontSize: isMobile ? 8 : 10 }}
                 />
                 <Tooltip
