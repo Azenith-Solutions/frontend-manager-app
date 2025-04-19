@@ -13,9 +13,10 @@ import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import SendIcon from "@mui/icons-material/Send";
 import ChatIcon from "@mui/icons-material/Chat";
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 import styles from "./AssistenteIa.module.css";
 
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDQ5MzQwMjl9.MHCJ-aFkMEz18iECwNyzs-bjjnw94fhlamx89eqwn4g';
+const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDUwMjMzNzN9.6Ak4jU2JAKKlT82o8KsAM3CWWoTC3insLmZ9H0V6eGw';
 
 const AssistenteIa = () => {
   const [message, setMessage] = useState('');
@@ -157,19 +158,28 @@ const AssistenteIa = () => {
       }
 
       const data = await response.json();
-      const aiResponse = data.response || JSON.stringify(data);
-      const cleanedResponse = aiResponse.replace(/^Assistant:\s*/i, '');
-      const assistantMessage = { role: 'assistant', content: cleanedResponse };
 
-      setChatHistory(prevHistory => {
-        const latestHistory = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
-        if (latestHistory.length > 0 && latestHistory[latestHistory.length - 1].role === 'assistant' && latestHistory[latestHistory.length - 1].content === cleanedResponse) {
-            return latestHistory;
-        }
-        const finalHistory = [...latestHistory, assistantMessage];
-        saveHistory(finalHistory);
-        return finalHistory;
-      });
+      // Check if the expected data structure exists
+      if (data && data.data && data.data.response) {
+        const aiResponse = data.data.response;
+        const cleanedResponse = aiResponse.replace(/^Assistant:\s*/i, ''); // Keep cleaning if needed
+        const assistantMessage = { role: 'assistant', content: cleanedResponse };
+
+        setChatHistory(prevHistory => {
+          const latestHistory = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
+          // Avoid adding duplicate assistant messages if already present
+          if (latestHistory.length > 0 && latestHistory[latestHistory.length - 1].role === 'assistant' && latestHistory[latestHistory.length - 1].content === cleanedResponse) {
+              return latestHistory;
+          }
+          const finalHistory = [...latestHistory, assistantMessage];
+          saveHistory(finalHistory);
+          return finalHistory;
+        });
+      } else {
+        // Handle cases where the response format is unexpected
+        console.error('Unexpected API response format:', data);
+        throw new Error('Received an unexpected response format from the server.');
+      }
 
     } catch (error) {
       console.error('Error communicating with backend:', error);
@@ -215,8 +225,8 @@ const AssistenteIa = () => {
         );
       case "assistant":
         return (
-          <Box key={index} className={styles.aiMessage}>
-            <Typography variant="body1">{msg.content}</Typography>
+          <Box key={index} className={`${styles.aiMessage} ${styles.markdownContainer}`}> {/* Add markdownContainer class */}
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
           </Box>
         );
       case "error":
