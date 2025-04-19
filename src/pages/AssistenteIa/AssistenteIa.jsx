@@ -13,9 +13,10 @@ import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import SendIcon from "@mui/icons-material/Send";
 import ChatIcon from "@mui/icons-material/Chat";
+import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
 import styles from "./AssistenteIa.module.css";
 
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDUwMTI5OTh9.PYUuh3FcrcHHUejSk-VRBz5te11swaaxbX5FsVqVDTc';
+const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDUwMjMzNzN9.6Ak4jU2JAKKlT82o8KsAM3CWWoTC3insLmZ9H0V6eGw';
 
 const AssistenteIa = () => {
   const [message, setMessage] = useState('');
@@ -224,8 +225,8 @@ const AssistenteIa = () => {
         );
       case "assistant":
         return (
-          <Box key={index} className={styles.aiMessage}>
-            <Typography variant="body1">{msg.content}</Typography>
+          <Box key={index} className={`${styles.aiMessage} ${styles.markdownContainer}`}> {/* Add markdownContainer class */}
+            <ReactMarkdown>{msg.content}</ReactMarkdown>
           </Box>
         );
       case "error":

@@ -127,6 +127,7 @@
     border-bottom-left-radius: 4px;
     margin-right: 50px;
     border: 1px solid #e1e1e1;
+    max-width: 85%;
 }
 
 .aiMessage::after {
@@ -164,6 +165,31 @@
     gap: 8px;
     align-items: flex-start;
     margin-top: auto;
+}
+
+/* Styles for the markdown container */
+.markdownContainer {
+    width: 100%; /* Ensure it takes full width of the parent */
+    text-align: left; /* Default alignment */
+}
+
+/* Example: Style specific markdown elements if needed */
+.markdownContainer p,
+.markdownContainer ul,
+.markdownContainer ol,
+.markdownContainer h1,
+.markdownContainer h2,
+.markdownContainer h3,
+.markdownContainer h4,
+.markdownContainer h5,
+.markdownContainer h6 {
+    margin-bottom: 0.5em; /* Add some spacing between elements */
+    text-align: left; /* Ensure left alignment for block elements */
+}
+
+.markdownContainer ul,
+.markdownContainer ol {
+    padding-left: 1.5em; /* Indent lists */
 }
 
 @media (max-width: 600px) {
