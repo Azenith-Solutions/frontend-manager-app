@@ -38,9 +38,10 @@ const Login = () => {
         })
         .then((response) => {
             if (response.status === 200) {
+                console.log('Response do login:', response.data);
                 localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('token', JSON.stringify(response.data.token));
-                navigate('/gerenciamento');
+                localStorage.setItem('token', response.data.data.token);
+                navigate('/dashboard');
             }
         })
         .catch((error) => {
