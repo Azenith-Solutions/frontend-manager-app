@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import {api} from "../../provider/apiProvider";
 
 // css native
 import './Login.css'; // Certifique-se de que esta linha está correta
@@ -31,12 +32,20 @@ const Login = () => {
 
     const handleLogin = (e) => {
         e.preventDefault();
-        if (email === 'admin@hardware.tech' && password === 'admin123') {
-            localStorage.setItem('isLoggedIn', 'true');
-            navigate('/gerenciamento');
-        } else {
-            alert("Admin fajuto, saia");
-        }
+        api.post('/auth/login', {
+            email,
+            password
+        })
+        .then((response) => {
+            if (response.status === 200) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('token', JSON.stringify(response.data.token));
+                navigate('/gerenciamento');
+            }
+        })
+        .catch((error) => {
+            alert("Login inválido! Verifique seu e-mail e senha.");
+        });
     };
 
     return (
@@ -93,7 +102,7 @@ const Login = () => {
                 </form>
                 <Divider sx={{ margin: '15px 0' }} /> 
                 <span>
-                    Não possui uma conta? <a href="/register">Cadastre-se</a>
+                   @Copyright 2025 - HardwareTech
                 </span>
             </Box>
         </div>
