@@ -7,6 +7,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditSquareIcon from '@mui/icons-material/EditSquare';
 import SearchIcon from '@mui/icons-material/Search';
 import Toggle from "../../components/Buttons/Toggle/Toggle";
+import { api } from "../../provider/apiProvider";
 
 
 const Gerenciamento = () => {
@@ -55,30 +56,30 @@ const Gerenciamento = () => {
   var [rows, setRows] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:8080/api/v1/components' , {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Accept': 'application/json',
-        'Authorization': 'Bearer ' + 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoia2F1YW4uZnJhbmNhQHNwdGVjaC5zY2hvb2wiLCJleHAiOjE3NDQ5MzI5MDF9.cp2k-3P5I1LI_u1RvG1FFRSl78AuwqAV_QWszdPrw9Q'
-      }
-    })
-      .then(response => response.json())
-      .then(data => {
-        console.log(data);
-        const formattedRows = data.map((item, index) => ({
-          id: item.idHardWareTech,
-          caixa: item.caixa,
-          partNumber: item.partNumber,
-          quantidade: item.quantidade,
-          anunciadoMercadoLivre: item.flagML,
-          idMercadoLivre: item.codigoML,
-          flagVerificado: item.flagVerificado? 'Sim' : 'Não',
-          condicao: item.condicao,
-          observacao: item.verificado,
-          descricao: item.descricao
-        }));
-        setRows(formattedRows);
+    api.get('/components')
+      .then(response => {
+        console.log('Response dos componentes:', response);
+        
+        const responseData = response.data.data || response.data;
+        
+        if (Array.isArray(responseData)) {
+          const formattedRows = responseData.map((item) => ({
+            id: item.idHardWareTech,
+            caixa: item.caixa,
+            partNumber: item.partNumber,
+            quantidade: item.quantidade,
+            anunciadoMercadoLivre: item.flagML,
+            idMercadoLivre: item.codigoML,
+            flagVerificado: item.flagVerificado ? 'Sim' : 'Não',
+            condicao: item.condicao,
+            observacao: item.verificado,
+            descricao: item.descricao
+          }));
+          setRows(formattedRows);
+        } else {
+          console.error('Dados recebidos não são um array:', responseData);
+          setRows([]);
+        }
       })
       .catch(error => console.error('Error fetching data:', error));
   }, []);
