@@ -55,11 +55,11 @@ const Pedidos = () => {
     { id: 4, caixa: 'Caixa 4', idParticao: 'ACA654521AS', quantidade: 6, anunciadoMercadoLivre: 'Em andamento', idMercadoLivre: '901234', verificado: 'Ruim', descricao: 'Venda de teclado' },
     { id: 5, caixa: 'Caixa 5', idParticao: 'ACA654521AS', quantidade: 17, anunciadoMercadoLivre: 'Concluído', idMercadoLivre: '567890', verificado: 'Terminais tortos', descricao: '8-bit ALTA VELOCIDADE RAM ESTÁTICO' }
   ];
-
+  
   return (
-    <div>
-      <SearchAndImportBar addButtonTitle={'Adicionar Pedido'} />
-      <DataGridComponent rows={rows} columns={columns} pageSize={6} />
+    <div className="pedidos-container">
+      <SearchAndImportBar addButtonTitle="Novo Pedido" />
+      <DataGridComponent columns={columns} rows={rows} />
     </div>
   );
 };

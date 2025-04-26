@@ -13,7 +13,8 @@ import MicIcon from "@mui/icons-material/Mic";
 import MicOffIcon from "@mui/icons-material/MicOff";
 import SendIcon from "@mui/icons-material/Send";
 import ChatIcon from "@mui/icons-material/Chat";
-import ReactMarkdown from 'react-markdown'; // Import ReactMarkdown
+// Import ReactMarkdown as a direct import instead of named import
+import ReactMarkdown from 'react-markdown';
 import styles from "./AssistenteIa.module.css";
 
 const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDUwMjMzNzN9.6Ak4jU2JAKKlT82o8KsAM3CWWoTC3insLmZ9H0V6eGw';
