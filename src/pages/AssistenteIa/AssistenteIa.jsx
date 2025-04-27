@@ -16,8 +16,10 @@ import ChatIcon from "@mui/icons-material/Chat";
 // Import ReactMarkdown as a direct import instead of named import
 import ReactMarkdown from 'react-markdown';
 import styles from "./AssistenteIa.module.css";
+import { api } from "../../provider/apiProvider";
 
-const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDUwMjMzNzN9.6Ak4jU2JAKKlT82o8KsAM3CWWoTC3insLmZ9H0V6eGw';
+// Remover o token JWT hardcoded
+// const JWT_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJiYWNrZW5kLWFwaS1yZXN0Iiwic3ViIjoiZ2VtaW5pQGdvb2dsZS5jb20iLCJleHAiOjE3NDUwMjMzNzN9.6Ak4jU2JAKKlT82o8KsAM3CWWoTC3insLmZ9H0V6eGw';
 
 const AssistenteIa = () => {
   const [message, setMessage] = useState('');
@@ -142,25 +144,16 @@ const AssistenteIa = () => {
     const currentHistoryForAPI = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
 
     try {
-      const response = await fetch('http://localhost:8080/api/v1/ai/gemini/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${JWT_TOKEN}`
-        },
-        body: JSON.stringify({
-          message: text,
-          history: currentHistoryForAPI
-        })
+      // Substituir fetch por api.post do axios
+      const response = await api.post('/ai/gemini/chat', {
+        message: text,
+        history: currentHistoryForAPI
       });
 
-      if (!response.ok) {
-        throw new Error(`API error: ${response.status} ${response.statusText}`);
-      }
+      // Axios retorna os dados na propriedade data
+      const data = response.data;
 
-      const data = await response.json();
-
-      // Check if the expected data structure exists
+      // Verificar se a estrutura esperada existe na resposta do axios
       if (data && data.data && data.data.response) {
         const aiResponse = data.data.response;
         const cleanedResponse = aiResponse.replace(/^Assistant:\s*/i, ''); // Keep cleaning if needed
@@ -184,7 +177,9 @@ const AssistenteIa = () => {
 
     } catch (error) {
       console.error('Error communicating with backend:', error);
-      const errorMessage = { role: 'error', content: `Error: ${error.message}` };
+      // Adaptar a estrutura de erro do Axios
+      const errorMessageContent = error.response ? `Error: ${error.response.status} ${error.response.statusText}` : `Error: ${error.message}`;
+      const errorMessage = { role: 'error', content: errorMessageContent };
 
       setChatHistory(prevHistory => {
          const latestHistory = JSON.parse(sessionStorage.getItem('chatHistory') || '[]');
