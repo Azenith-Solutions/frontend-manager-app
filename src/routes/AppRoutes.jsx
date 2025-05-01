@@ -10,23 +10,27 @@ import Pedidos from "../pages/Pedidos/Pedidos";
 import Analise from "../pages/Analise/Analise";
 import Suporte from "../pages/Suporte/Suporte";
 import { AssistenteIa } from "../pages/AssistenteIa/AssistenteIa";
+import AlertModal from "../components/AlertModal/AlertModal";
 
 export default function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
-      <Route path="/" element={
+      <Route
+        path="/"
+        element={
           <PrivateRoutes>
             <Layout />
           </PrivateRoutes>
-        }>
+        }
+      >
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="gerenciamento" element={<Gerenciamento />} />
         <Route path="pedidos" element={<Pedidos />} />
         <Route path="analise" element={<Analise />} />
         <Route path="assistente-ia" element={<AssistenteIa />} />
         <Route path="suporte" element={<Suporte />} />
-  
+        <Route path="modal" element={<AlertModal />} />
       </Route>
 
       {/* Página 404 */}

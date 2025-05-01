@@ -1,0 +1,115 @@
+.container-modal {
+    position: fixed;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 100;
+
+    .content-modal {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        gap: 20px;
+
+        color: #2D2D2D;
+        font-family: 'Poppins', sans-serif;
+        text-align: center;
+
+        width: 90%;
+        max-width: 382px;
+        border-radius: 20px;
+        padding: 30px 20px 50px;
+        background-color: #F5F5F5;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        z-index: 100;
+
+        .top-close-button {
+            cursor: pointer;
+            align-self: flex-end;
+
+            width: 34px;
+            border: none;
+
+            background: transparent;
+            color: #9fa3a8;
+            font-size: 24px;
+        }
+
+        img {
+            width: 100px;
+            max-width: 125px;
+            height: auto;
+            filter: drop-shadow(0.35px 8px 2.5px rgba(0, 0, 0, 0.3));
+        }
+
+        h2 {
+            width: 100%;
+            font-size: clamp(18px, 4vw, 24px);
+            word-wrap: break-word;
+        }
+
+        p {
+            width: 100%;
+            font-size: clamp(14px, 3vw, 18px);
+            font-weight: 500;
+            word-wrap: break-word;
+        }
+
+        .bottom-close-button {
+            cursor: pointer;
+
+            background-color: #ED6755;
+            color: #FFFFFF;
+            font-weight: 600;
+            font-size: 16px;
+
+            width: 80%;
+            max-width: 200px;
+            margin-top: 10px;
+            padding: 10px 15px;
+
+            border: 3px solid #2D2D2D;
+            border-radius: 4px;
+        }
+    }
+}
+
+/* Media queries para diferentes tamanhos de tela */
+@media screen and (max-width: 480px) {
+    .container-modal .content-modal {
+        width: 85%;
+        padding: 20px 15px 40px;
+    }
+
+    .container-modal .content-modal img {
+        width: 80px;
+    }
+
+    .container-modal .content-modal .bottom-close-button {
+        font-size: 14px;
+        padding: 8px 12px;
+    }
+}
+
+@media screen and (max-width: 320px) {
+    .container-modal .content-modal {
+        width: 90%;
+        padding: 15px 10px 30px;
+        gap: 15px;
+    }
+
+    .container-modal .content-modal .top-close-button {
+        font-size: 20px;
+    }
+
+    .container-modal .content-modal img {
+        width: 70px;
+    }
+}
