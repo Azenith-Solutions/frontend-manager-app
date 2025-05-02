@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Gerenciamento.module.css";
 import { api } from "../../provider/apiProvider";
+import editarIcon from '../../assets/icons/editar.svg';
+import lixeiraIcon from '../../assets/icons/lixeira.svg';
 
 // Material UI Components
 import {
@@ -12,7 +14,14 @@ import {
   Button,
   IconButton,
   InputAdornment,
-  Paper
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Chip
 } from "@mui/material";
 
 // Material UI Icons
@@ -21,6 +30,10 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import FileUploadIcon from '@mui/icons-material/FileUpload';
 import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import CancelIcon from '@mui/icons-material/Cancel';
 
 const Gerenciamento = () => {
   const [loading, setLoading] = useState(true);
@@ -32,6 +45,37 @@ const Gerenciamento = () => {
     totalComponents: 1367,
     inStockComponents: 1240
   });
+
+  // Mock data para tabela de exemplo
+  const mockItems = [
+    { 
+      id: 1001,
+      caixa: "Caixa A-15",
+      partNumber: "DM74S28N",
+      quantidade: 42,
+      mercadoLivre: true,
+      codigoML: "MLB2546871245",
+      anunciado: true
+    },
+    { 
+      id: 1002,
+      caixa: "Caixa B-07",
+      partNumber: "LM741CN",
+      quantidade: 18,
+      mercadoLivre: true,
+      codigoML: "MLB1754269587",
+      anunciado: true
+    },
+    { 
+      id: 1003,
+      caixa: "Caixa C-22",
+      partNumber: "NE555P",
+      quantidade: 64,
+      mercadoLivre: false,
+      codigoML: "-",
+      anunciado: false
+    }
+  ];
 
   useEffect(() => {
     document.title = "HardwareTech | Gerenciamento";
@@ -151,7 +195,108 @@ const Gerenciamento = () => {
         </Box>
       </Paper>
       <Container maxWidth="xl" sx={{ pt: 2 }}>
-        {/* Additional content can be added here */}
+        <TableContainer component={Paper} sx={{ 
+          boxShadow: '0 3px 10px rgba(0,0,0,0.08)', 
+          borderRadius: '8px',
+          overflow: 'hidden'
+        }}>
+          <Table sx={{ minWidth: 650 }} aria-label="tabela de componentes">
+            <TableHead>
+              <TableRow sx={{ 
+                backgroundColor: '#f5f5f5',
+                '& th': { 
+                  fontWeight: 'bold', 
+                  color: '#333',
+                  fontSize: '0.85rem',
+                  borderBottom: '2px solid #61131A',
+                  py: 1.8
+                }
+              }}>
+                <TableCell align="center">IDH</TableCell>
+                <TableCell align="center">Caixa</TableCell>
+                <TableCell align="center">Part Number</TableCell>
+                <TableCell align="center">Quantidade</TableCell>
+                <TableCell align="center">Mercado Livre</TableCell>
+                <TableCell align="center">Cód. ML</TableCell>
+                <TableCell align="center">Anunciado</TableCell>
+                <TableCell align="center">Ações</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {mockItems.map((item) => (
+                <TableRow
+                  key={item.id}
+                  hover
+                  sx={{ 
+                    '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
+                    '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
+                    transition: 'background-color 0.2s'
+                  }}
+                >
+                  <TableCell align="center" sx={{ fontWeight: 'medium' }}>{item.id}</TableCell>
+                  <TableCell align="center">{item.caixa}</TableCell>
+                  <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>{item.partNumber}</TableCell>
+                  <TableCell align="center">{item.quantidade}</TableCell>
+                  <TableCell align="center">
+                    <Chip 
+                      icon={item.mercadoLivre ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                      label={item.mercadoLivre ? "Sim" : "Não"}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: item.mercadoLivre ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                        color: item.mercadoLivre ? '#27ae60' : '#e74c3c',
+                        fontWeight: 500,
+                        fontSize: '0.75rem',
+                        borderRadius: '4px',
+                        '& .MuiChip-icon': { color: 'inherit' }
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align="center">{item.codigoML}</TableCell>
+                  <TableCell align="center">
+                    <Chip 
+                      label={item.anunciado ? "Sim" : "Não"}
+                      size="small"
+                      sx={{ 
+                        backgroundColor: item.anunciado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                        color: item.anunciado ? '#27ae60' : '#e74c3c',
+                        fontWeight: 500,
+                        fontSize: '0.75rem',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </TableCell>
+                  <TableCell align="center">
+                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                      <IconButton 
+                        size="small" 
+                        title="Editar" 
+                        sx={{ 
+                          color: '#2980b9', 
+                          backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                          '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' } 
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        title="Excluir" 
+                        sx={{ 
+                          color: '#c0392b', 
+                          backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                          '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' } 
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Container>
     </div>
   );
