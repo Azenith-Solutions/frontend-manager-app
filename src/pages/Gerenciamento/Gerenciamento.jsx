@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Gerenciamento.module.css";
 import { api } from "../../provider/apiProvider";
-import editarIcon from '../../assets/icons/editar.svg';
-import lixeiraIcon from '../../assets/icons/lixeira.svg';
 
 // Material UI Components
 import {
@@ -10,10 +8,8 @@ import {
   CircularProgress,
   Typography,
   Container,
-  TextField,
   Button,
   IconButton,
-  InputAdornment,
   Paper,
   Table,
   TableBody,
@@ -42,41 +38,7 @@ const Gerenciamento = () => {
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
-  const [stats] = useState({
-    totalComponents: 1367,
-    inStockComponents: 1240
-  });
-
-  // Mock data para tabela de exemplo
-  const mockItems = [
-    { 
-      id: 1001,
-      caixa: "Caixa A-15",
-      partNumber: "DM74S28N",
-      quantidade: 42,
-      mercadoLivre: true,
-      codigoML: "MLB2546871245",
-      anunciado: true
-    },
-    { 
-      id: 1002,
-      caixa: "Caixa B-07",
-      partNumber: "LM741CN",
-      quantidade: 18,
-      mercadoLivre: true,
-      codigoML: "MLB1754269587",
-      anunciado: true
-    },
-    { 
-      id: 1003,
-      caixa: "Caixa C-22",
-      partNumber: "NE555P",
-      quantidade: 64,
-      mercadoLivre: false,
-      codigoML: "-",
-      anunciado: false
-    }
-  ];
+  const [totalComponents, setTotalComponents] = useState(0);
 
   useEffect(() => {
     document.title = "HardwareTech | Gerenciamento";
@@ -86,26 +48,18 @@ const Gerenciamento = () => {
   const fetchComponents = async () => {
     try {
       setLoading(true);
+      
+      // Adicionando um delay artificial para mostrar a tela de carregamento
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
       const response = await api.get('/components');
       console.log('Resposta dos componentes:', response);
       
       const responseData = response.data.data || response.data;
       
       if (Array.isArray(responseData)) {
-        const formattedComponents = responseData.map((item) => ({
-          id: item.idHardWareTech,
-          caixa: item.caixa,
-          partNumber: item.partNumber,
-          quantidade: item.quantidade,
-          flagML: item.flagML ? 'Sim' : 'Não',
-          idMercadoLivre: item.codigoML || 'N/A',
-          flagVerificado: item.flagVerificado ? 'Sim' : 'Não',
-          condicao: item.condicao || 'N/A',
-          observacao: item.verificado || '',
-          descricao: item.descricao || 'Sem descrição'
-        }));
-        
-        setComponents(formattedComponents);
+        setComponents(responseData);
+        setTotalComponents(responseData.length);
       } else {
         console.error('Dados recebidos não são um array:', responseData);
         setComponents([]);
@@ -134,8 +88,8 @@ const Gerenciamento = () => {
   const filteredComponents = components.filter(
     (item) => 
       item.partNumber.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.descricao.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.id.toString().includes(searchText.toLowerCase())
+      (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
+      item.idHardWareTech.toString().includes(searchText.toLowerCase())
   );
 
   if (loading) {
@@ -157,7 +111,7 @@ const Gerenciamento = () => {
           <input 
             type="text" 
             placeholder="Buscar componente..."
-            className={styles.searchInput}e
+            className={styles.searchInput}
             onChange={handleSearchChange}
             value={searchText}
           />
@@ -212,7 +166,7 @@ const Gerenciamento = () => {
           overflow: 'hidden',
           width: '100%',
           mt: 0,
-          height: 'calc(100vh - 180px)', // Ajusta para ocupar a maior parte da altura da tela
+          height: 'calc(100vh - 180px)',
           display: 'flex',
           flexDirection: 'column'
         }}>
@@ -232,17 +186,18 @@ const Gerenciamento = () => {
                   <TableCell align="center">IDH</TableCell>
                   <TableCell align="center">Part Number</TableCell>
                   <TableCell align="center">Quantidade</TableCell>
-                  <TableCell align="center">Categoria</TableCell>
                   <TableCell align="center">Caixa</TableCell>
                   <TableCell align="center">Mercado Livre</TableCell>
-                  <TableCell align="center">Anunciado</TableCell>
+                  <TableCell align="center">Verificado</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {mockItems.map((item) => (
+                {filteredComponents
+                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
+                  .map((item) => (
                   <TableRow
-                    key={item.id}
+                    key={item.idComponente}
                     hover
                     sx={{ 
                       '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
@@ -250,19 +205,18 @@ const Gerenciamento = () => {
                       transition: 'background-color 0.2s'
                     }}
                   >
-                    <TableCell align="center" sx={{ fontWeight: 'medium' }}>{item.id}</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium' }}>{item.idHardWareTech}</TableCell>
                     <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>{item.partNumber}</TableCell>
                     <TableCell align="center">{item.quantidade}</TableCell>
-                    <TableCell align="center">Semicondutores</TableCell>
-                    <TableCell align="center">{item.caixa}</TableCell>
+                    <TableCell align="center">{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
                     <TableCell align="center">
                       <Chip 
-                        icon={item.mercadoLivre ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.mercadoLivre ? "Sim" : "Não"}
+                        icon={item.flagML ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                        label={item.flagML ? "Sim" : "Não"}
                         size="small"
                         sx={{ 
-                          backgroundColor: item.mercadoLivre ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.mercadoLivre ? '#27ae60' : '#e74c3c',
+                          backgroundColor: item.flagML ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                          color: item.flagML ? '#27ae60' : '#e74c3c',
                           fontWeight: 500,
                           fontSize: '0.75rem',
                           borderRadius: '4px',
@@ -272,12 +226,12 @@ const Gerenciamento = () => {
                     </TableCell>
                     <TableCell align="center">
                       <Chip 
-                        icon={item.anunciado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.anunciado ? "Sim" : "Não"}
+                        icon={item.flagVerificado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                        label={item.flagVerificado ? "Sim" : "Não"}
                         size="small"
                         sx={{ 
-                          backgroundColor: item.anunciado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.anunciado ? '#27ae60' : '#e74c3c',
+                          backgroundColor: item.flagVerificado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                          color: item.flagVerificado ? '#27ae60' : '#e74c3c',
                           fontWeight: 500,
                           fontSize: '0.75rem',
                           borderRadius: '4px',
@@ -314,17 +268,26 @@ const Gerenciamento = () => {
                   </TableRow>
                 ))}
                 {/* Adiciona linhas vazias para preencher espaço quando houver poucos itens */}
-                {Array.from({ length: Math.max(0, 10 - mockItems.length) }).map((_, index) => (
+                {filteredComponents.length > 0 && 
+                 filteredComponents.length < rowsPerPage && 
+                 Array.from({ length: Math.max(0, rowsPerPage - filteredComponents.length) }).map((_, index) => (
                   <TableRow key={`empty-${index}`} sx={{ height: '53px' }}>
-                    <TableCell colSpan={8} />
+                    <TableCell colSpan={7} />
                   </TableRow>
                 ))}
+                {filteredComponents.length === 0 && (
+                  <TableRow sx={{ height: '53px' }}>
+                    <TableCell colSpan={7} align="center">
+                      Nenhum componente encontrado
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </Box>
           <TablePagination
             component="div"
-            count={100}
+            count={filteredComponents.length}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
