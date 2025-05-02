@@ -21,7 +21,8 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  Chip
+  Chip,
+  TablePagination
 } from "@mui/material";
 
 // Material UI Icons
@@ -194,108 +195,155 @@ const Gerenciamento = () => {
           </Button>
         </Box>
       </Paper>
-      <Container maxWidth="xl" sx={{ pt: 2 }}>
+      <Container 
+        maxWidth={false} 
+        disableGutters 
+        sx={{ 
+          px: 0,
+          flexGrow: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
+        }}
+      >
         <TableContainer component={Paper} sx={{ 
           boxShadow: '0 3px 10px rgba(0,0,0,0.08)', 
           borderRadius: '8px',
-          overflow: 'hidden'
+          overflow: 'hidden',
+          width: '100%',
+          mt: 0,
+          height: 'calc(100vh - 180px)', // Ajusta para ocupar a maior parte da altura da tela
+          display: 'flex',
+          flexDirection: 'column'
         }}>
-          <Table sx={{ minWidth: 650 }} aria-label="tabela de componentes">
-            <TableHead>
-              <TableRow sx={{ 
-                backgroundColor: '#f5f5f5',
-                '& th': { 
-                  fontWeight: 'bold', 
-                  color: '#333',
-                  fontSize: '0.85rem',
-                  borderBottom: '2px solid #61131A',
-                  py: 1.8
-                }
-              }}>
-                <TableCell align="center">IDH</TableCell>
-                <TableCell align="center">Caixa</TableCell>
-                <TableCell align="center">Part Number</TableCell>
-                <TableCell align="center">Quantidade</TableCell>
-                <TableCell align="center">Mercado Livre</TableCell>
-                <TableCell align="center">Cód. ML</TableCell>
-                <TableCell align="center">Anunciado</TableCell>
-                <TableCell align="center">Ações</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {mockItems.map((item) => (
-                <TableRow
-                  key={item.id}
-                  hover
-                  sx={{ 
-                    '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                    '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                    transition: 'background-color 0.2s'
-                  }}
-                >
-                  <TableCell align="center" sx={{ fontWeight: 'medium' }}>{item.id}</TableCell>
-                  <TableCell align="center">{item.caixa}</TableCell>
-                  <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>{item.partNumber}</TableCell>
-                  <TableCell align="center">{item.quantidade}</TableCell>
-                  <TableCell align="center">
-                    <Chip 
-                      icon={item.mercadoLivre ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                      label={item.mercadoLivre ? "Sim" : "Não"}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: item.mercadoLivre ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                        color: item.mercadoLivre ? '#27ae60' : '#e74c3c',
-                        fontWeight: 500,
-                        fontSize: '0.75rem',
-                        borderRadius: '4px',
-                        '& .MuiChip-icon': { color: 'inherit' }
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">{item.codigoML}</TableCell>
-                  <TableCell align="center">
-                    <Chip 
-                      label={item.anunciado ? "Sim" : "Não"}
-                      size="small"
-                      sx={{ 
-                        backgroundColor: item.anunciado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                        color: item.anunciado ? '#27ae60' : '#e74c3c',
-                        fontWeight: 500,
-                        fontSize: '0.75rem',
-                        borderRadius: '4px'
-                      }}
-                    />
-                  </TableCell>
-                  <TableCell align="center">
-                    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                      <IconButton 
-                        size="small" 
-                        title="Editar" 
-                        sx={{ 
-                          color: '#2980b9', 
-                          backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                          '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' } 
-                        }}
-                      >
-                        <EditIcon fontSize="small" />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        title="Excluir" 
-                        sx={{ 
-                          color: '#c0392b', 
-                          backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                          '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' } 
-                        }}
-                      >
-                        <DeleteIcon fontSize="small" />
-                      </IconButton>
-                    </Box>
-                  </TableCell>
+          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
+            <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de componentes">
+              <TableHead>
+                <TableRow sx={{ 
+                  backgroundColor: '#f5f5f5',
+                  '& th': { 
+                    fontWeight: 'bold', 
+                    color: '#333',
+                    fontSize: '0.85rem',
+                    borderBottom: '2px solid #61131A',
+                    py: 1.8
+                  }
+                }}>
+                  <TableCell align="center">IDH</TableCell>
+                  <TableCell align="center">Part Number</TableCell>
+                  <TableCell align="center">Quantidade</TableCell>
+                  <TableCell align="center">Categoria</TableCell>
+                  <TableCell align="center">Caixa</TableCell>
+                  <TableCell align="center">Mercado Livre</TableCell>
+                  <TableCell align="center">Anunciado</TableCell>
+                  <TableCell align="center">Ações</TableCell>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHead>
+              <TableBody>
+                {mockItems.map((item) => (
+                  <TableRow
+                    key={item.id}
+                    hover
+                    sx={{ 
+                      '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
+                      '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
+                      transition: 'background-color 0.2s'
+                    }}
+                  >
+                    <TableCell align="center" sx={{ fontWeight: 'medium' }}>{item.id}</TableCell>
+                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>{item.partNumber}</TableCell>
+                    <TableCell align="center">{item.quantidade}</TableCell>
+                    <TableCell align="center">Semicondutores</TableCell>
+                    <TableCell align="center">{item.caixa}</TableCell>
+                    <TableCell align="center">
+                      <Chip 
+                        icon={item.mercadoLivre ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                        label={item.mercadoLivre ? "Sim" : "Não"}
+                        size="small"
+                        sx={{ 
+                          backgroundColor: item.mercadoLivre ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                          color: item.mercadoLivre ? '#27ae60' : '#e74c3c',
+                          fontWeight: 500,
+                          fontSize: '0.75rem',
+                          borderRadius: '4px',
+                          '& .MuiChip-icon': { color: 'inherit' }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Chip 
+                        icon={item.anunciado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                        label={item.anunciado ? "Sim" : "Não"}
+                        size="small"
+                        sx={{ 
+                          backgroundColor: item.anunciado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                          color: item.anunciado ? '#27ae60' : '#e74c3c',
+                          fontWeight: 500,
+                          fontSize: '0.75rem',
+                          borderRadius: '4px',
+                          '& .MuiChip-icon': { color: 'inherit' }
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align="center">
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                        <IconButton 
+                          size="small" 
+                          title="Editar" 
+                          sx={{ 
+                            color: '#2980b9', 
+                            backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                            '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' } 
+                          }}
+                        >
+                          <EditIcon fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          title="Excluir" 
+                          sx={{ 
+                            color: '#c0392b', 
+                            backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                            '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' } 
+                          }}
+                        >
+                          <DeleteIcon fontSize="small" />
+                        </IconButton>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+                {/* Adiciona linhas vazias para preencher espaço quando houver poucos itens */}
+                {Array.from({ length: Math.max(0, 10 - mockItems.length) }).map((_, index) => (
+                  <TableRow key={`empty-${index}`} sx={{ height: '53px' }}>
+                    <TableCell colSpan={8} />
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+          <TablePagination
+            component="div"
+            count={100}
+            page={page}
+            onPageChange={handleChangePage}
+            rowsPerPage={rowsPerPage}
+            onRowsPerPageChange={handleChangeRowsPerPage}
+            rowsPerPageOptions={[5, 10, 25, 50]}
+            labelRowsPerPage="Linhas por página:"
+            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+            sx={{
+              borderTop: '1px solid rgba(224, 224, 224, 1)',
+              backgroundColor: '#f9f9f9',
+              overflowY: 'hidden',
+              '& .MuiTablePagination-toolbar': {
+                minHeight: '48px',
+              },
+              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
+                fontSize: '0.875rem',
+              }
+            }}
+          />
         </TableContainer>
       </Container>
     </div>
