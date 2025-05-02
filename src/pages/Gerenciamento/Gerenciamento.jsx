@@ -18,7 +18,8 @@ import {
   TableHead,
   TableRow,
   Chip,
-  TablePagination
+  TablePagination,
+  Avatar
 } from "@mui/material";
 
 // Material UI Icons
@@ -39,6 +40,9 @@ const Gerenciamento = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalComponents, setTotalComponents] = useState(0);
+
+  // Imagem padrão para os componentes
+  const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
 
   useEffect(() => {
     document.title = "HardwareTech | Gerenciamento";
@@ -183,6 +187,7 @@ const Gerenciamento = () => {
                     py: 1.8
                   }
                 }}>
+                  <TableCell align="center">Componente</TableCell>
                   <TableCell align="center">IDH</TableCell>
                   <TableCell align="center">Part Number</TableCell>
                   <TableCell align="center">Quantidade</TableCell>
@@ -202,14 +207,30 @@ const Gerenciamento = () => {
                     sx={{ 
                       '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
                       '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                      transition: 'background-color 0.2s'
+                      transition: 'background-color 0.2s',
+                      height: '54px' // Reduzindo a altura da linha de 60px para 54px
                     }}
                   >
-                    <TableCell align="center" sx={{ fontWeight: 'medium' }}>{item.idHardWareTech}</TableCell>
-                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium' }}>{item.partNumber}</TableCell>
-                    <TableCell align="center">{item.quantidade}</TableCell>
-                    <TableCell align="center">{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={{ py: 0.8 }}>
+                      <Avatar 
+                        src={item.imagemUrl || defaultImage} 
+                        variant="rounded"
+                        alt={item.partNumber}
+                        sx={{ 
+                          width: 34, 
+                          height: 34, 
+                          margin: '0 auto',
+                          bgcolor: '#ccc',
+                          position: 'relative',
+                          top: '-1px' // Ajustando ligeiramente a posição vertical
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idHardWareTech}</TableCell>
+                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.partNumber}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.quantidade}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
                         icon={item.flagML ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
                         label={item.flagML ? "Sim" : "Não"}
@@ -224,7 +245,7 @@ const Gerenciamento = () => {
                         }}
                       />
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
                         icon={item.flagVerificado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
                         label={item.flagVerificado ? "Sim" : "Não"}
@@ -239,7 +260,7 @@ const Gerenciamento = () => {
                         }}
                       />
                     </TableCell>
-                    <TableCell align="center">
+                    <TableCell align="center" sx={{ py: 0.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                         <IconButton 
                           size="small" 
@@ -271,13 +292,13 @@ const Gerenciamento = () => {
                 {filteredComponents.length > 0 && 
                  filteredComponents.length < rowsPerPage && 
                  Array.from({ length: Math.max(0, rowsPerPage - filteredComponents.length) }).map((_, index) => (
-                  <TableRow key={`empty-${index}`} sx={{ height: '53px' }}>
-                    <TableCell colSpan={7} />
+                  <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
+                    <TableCell colSpan={8} />
                   </TableRow>
                 ))}
                 {filteredComponents.length === 0 && (
                   <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={8} align="center">
                       Nenhum componente encontrado
                     </TableCell>
                   </TableRow>
