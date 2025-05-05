@@ -1,4 +1,4 @@
-.gerenciamento {
+.pedidos {
   padding: 0;
   height: calc(100vh - 114px); /* Alterado de min-height para height fixa */
   overflow: hidden; /* Impede o scroll no container principal */
@@ -184,7 +184,7 @@
 
 /* Estilo para responsividade */
 @media (max-width: 960px) {
-  .gerenciamento {
+  .pedidos {
     height: auto;
     overflow-y: auto;
     padding-bottom: 20px;
