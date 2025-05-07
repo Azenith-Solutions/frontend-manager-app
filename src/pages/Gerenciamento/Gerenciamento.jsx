@@ -45,7 +45,7 @@ const Gerenciamento = () => {
   const [searchText, setSearchText] = useState("");
   const [totalComponents, setTotalComponents] = useState(0);
 
-  // Imagem padrão para os componentes
+  // Imagem padrão para os componentes TESTE
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
 
   useEffect(() => {
@@ -116,7 +116,7 @@ const Gerenciamento = () => {
       <Paper elevation={1} className={styles.toolbar} sx={{ 
         p: '10px 16px',
         display: 'flex',
-        flexWrap: 'wrap', // Permite quebrar linha em telas menores
+        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '12px',
@@ -124,16 +124,14 @@ const Gerenciamento = () => {
         borderRadius: '8px',
         mb: 2,
       }}>
-        {/* Container flexível com quebra de linha para responsividade */}
         <Box sx={{ 
           display: 'flex', 
           flexWrap: 'wrap',
           alignItems: 'center', 
           gap: '12px',
-          flex: '1 1 auto', // Permite crescer e encolher
-          minWidth: '0', // Importante para flexbox
+          flex: '1 1 auto',
+          minWidth: '0', 
         }}>
-          {/* Barra de busca redesenhada */}
           <Box
             sx={{ 
               display: 'flex',
@@ -190,8 +188,6 @@ const Gerenciamento = () => {
               }}
             />
           </Box>
-          
-          {/* Controles de filtro e exportação - estilo mais moderno e menos como botões tradicionais */}
           <Box sx={{ 
             display: 'flex', 
             gap: '10px',
@@ -273,14 +269,12 @@ const Gerenciamento = () => {
             </Box>
           </Box>
           
-          {/* Divisor visível apenas em telas maiores */}
           <Divider orientation="vertical" flexItem sx={{ 
             height: 28, 
             mx: 0.5,
             display: { xs: 'none', md: 'block' } 
           }} />
           
-          {/* Container para os indicadores KPI */}
           <Box sx={{ 
             display: 'flex', 
             flexWrap: 'wrap',
@@ -290,10 +284,9 @@ const Gerenciamento = () => {
             flexGrow: 1,
             justifyContent: { xs: 'flex-start', md: 'flex-start' },
           }}>
-            {/* Card KPI de total de componentes */}
             <Card sx={{ 
               height: '38px', 
-              flex: '1 1 140px', // Cresce e encolhe, mas tem um tamanho base
+              flex: '1 1 140px',
               maxWidth: '180px',
               minWidth: '140px',
               borderTop: '3px solid #61131A',
@@ -332,7 +325,7 @@ const Gerenciamento = () => {
                     <InventoryIcon sx={{ color: '#61131A', fontSize: 14 }} />
                   </Box>
                   <Box sx={{ 
-                    minWidth: 0, // Importante para text-overflow funcionar
+                    minWidth: 0, 
                     overflow: 'hidden',
                   }}>
                     <Typography variant="h6" sx={{ 
@@ -364,11 +357,9 @@ const Gerenciamento = () => {
                 </Box>
               </CardContent>
             </Card>
-
-            {/* Card KPI de componentes anunciados */}
             <Card sx={{ 
               height: '38px', 
-              flex: '1 1 170px', // Cresce e encolhe, mas tem um tamanho base
+              flex: '1 1 170px', 
               maxWidth: '200px',
               minWidth: '170px',
               borderTop: '3px solid #27ae60',
@@ -407,7 +398,7 @@ const Gerenciamento = () => {
                     <StorefrontIcon sx={{ color: '#27ae60', fontSize: 14 }} />
                   </Box>
                   <Box sx={{ 
-                    minWidth: 0, // Importante para text-overflow funcionar
+                    minWidth: 0, 
                     overflow: 'hidden', 
                   }}>
                     <Typography variant="h6" sx={{ 
@@ -441,8 +432,6 @@ const Gerenciamento = () => {
             </Card>
           </Box>
         </Box>
-        
-        {/* Botão Criar - vai para nova linha em telas pequenas */}
         <Button 
           size="small" 
           variant="contained" 
@@ -458,9 +447,9 @@ const Gerenciamento = () => {
             fontWeight: 600,
             px: 1.5,
             minWidth: '100px',
-            flexShrink: 0, // Não encolher
-            ml: { xs: 0, sm: 'auto' }, // Margin left auto em telas maiores para empurrar para direita
-            alignSelf: { xs: 'flex-start', sm: 'center' } // Alinhamento vertical
+            flexShrink: 0,
+            ml: { xs: 0, sm: 'auto' }, 
+            alignSelf: { xs: 'flex-start', sm: 'center' } 
           }}
         >
           Criar
@@ -521,7 +510,7 @@ const Gerenciamento = () => {
                       '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
                       '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
                       transition: 'background-color 0.2s',
-                      height: '54px' // Reduzindo a altura da linha de 60px para 54px
+                      height: '54px'
                     }}
                   >
                     <TableCell align="center" sx={{ py: 0.8 }}>
@@ -601,7 +590,6 @@ const Gerenciamento = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {/* Adiciona linhas vazias para preencher espaço quando houver poucos itens */}
                 {filteredComponents.length > 0 && 
                  filteredComponents.length < rowsPerPage && 
                  Array.from({ length: Math.max(0, rowsPerPage - filteredComponents.length) }).map((_, index) => (
