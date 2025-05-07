@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./Pedido.module.css";
+import styles from "./Usuarios.module.css";
 import { api } from "../../provider/apiProvider";
 
 // Material UI Components
@@ -21,7 +21,8 @@ import {
   TablePagination,
   Divider,
   Card,
-  CardContent
+  CardContent,
+  Avatar
 } from "@mui/material";
 
 // Material UI Icons
@@ -33,43 +34,43 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
-import ReceiptIcon from '@mui/icons-material/Receipt';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import PeopleIcon from '@mui/icons-material/People';
+import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Pedidos = () => {
+const Usuarios = () => {
   const [loading, setLoading] = useState(true);
-  const [pedidos, setPedidos] = useState([]);
+  const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
-  const [totalPedidos, setTotalPedidos] = useState(0);
+  const [totalUsuarios, setTotalUsuarios] = useState(0);
 
   useEffect(() => {
-    document.title = "HardwareTech | Pedidos";
-    fetchPedidos();
+    document.title = "HardwareTech | Usuários";
+    fetchUsuarios();
   }, []);
 
-  const fetchPedidos = async () => {
+  const fetchUsuarios = async () => {
     try {
       setLoading(true);
       
       // Adicionando um delay artificial para mostrar a tela de carregamento
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Dados de exemplo para pedidos
-      const mockPedidos = [
-        { id: 1, idSolicitacao: 'SOL-001', cnpjCpf: '12.345.678/0001-90', aprovado: true, dataPedido: '01/05/2025', valor: 1250.99, status: 'Aprovado' },
-        { id: 2, idSolicitacao: 'SOL-002', cnpjCpf: '98.765.432/0001-21', aprovado: false, dataPedido: '28/04/2025', valor: 750.50, status: 'Pendente' },
-        { id: 3, idSolicitacao: 'SOL-003', cnpjCpf: '45.678.901/0001-23', aprovado: true, dataPedido: '25/04/2025', valor: 3200.00, status: 'Aprovado' },
-        { id: 4, idSolicitacao: 'SOL-004', cnpjCpf: '789.456.123-45', aprovado: true, dataPedido: '20/04/2025', valor: 899.90, status: 'Entregue' },
-        { id: 5, idSolicitacao: 'SOL-005', cnpjCpf: '34.567.890/0001-12', aprovado: false, dataPedido: '15/04/2025', valor: 1599.99, status: 'Cancelado' },
-        { id: 6, idSolicitacao: 'SOL-006', cnpjCpf: '23.456.789/0001-34', aprovado: true, dataPedido: '10/04/2025', valor: 2399.00, status: 'Aprovado' },
-        { id: 7, idSolicitacao: 'SOL-007', cnpjCpf: '56.789.012/0001-45', aprovado: true, dataPedido: '05/04/2025', valor: 4500.00, status: 'Entregue' },
-        { id: 8, idSolicitacao: 'SOL-008', cnpjCpf: '67.890.123/0001-56', aprovado: false, dataPedido: '01/04/2025', valor: 799.90, status: 'Pendente' }
+      // Dados de exemplo para usuários
+      const mockUsuarios = [
+        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'Administrador', departamento: 'TI', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
+        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Gerente', departamento: 'Vendas', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
+        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', departamento: 'Suporte', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
+        { id: 4, nome: 'Ana Costa', email: 'ana.costa@example.com', cargo: 'Analista', departamento: 'Financeiro', status: 'Ativo', ultimoAcesso: '29/04/2025', avatar: 'https://randomuser.me/api/portraits/women/4.jpg' },
+        { id: 5, nome: 'Carlos Ferreira', email: 'carlos.ferreira@example.com', cargo: 'Administrador', departamento: 'TI', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/5.jpg' },
+        { id: 6, nome: 'Luciana Almeida', email: 'luciana.almeida@example.com', cargo: 'Estoquista', departamento: 'Logística', status: 'Ativo', ultimoAcesso: '28/04/2025', avatar: 'https://randomuser.me/api/portraits/women/6.jpg' },
+        { id: 7, nome: 'Ricardo Souza', email: 'ricardo.souza@example.com', cargo: 'Contador', departamento: 'Financeiro', status: 'Inativo', ultimoAcesso: '10/04/2025', avatar: 'https://randomuser.me/api/portraits/men/7.jpg' },
+        { id: 8, nome: 'Mariana Lima', email: 'mariana.lima@example.com', cargo: 'Recepcionista', departamento: 'Administrativo', status: 'Ativo', ultimoAcesso: '27/04/2025', avatar: 'https://randomuser.me/api/portraits/women/8.jpg' },
       ];
       
-      setPedidos(mockPedidos);
-      setTotalPedidos(mockPedidos.length);
+      setUsuarios(mockUsuarios);
+      setTotalUsuarios(mockUsuarios.length);
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
@@ -91,11 +92,12 @@ const Pedidos = () => {
     setPage(0);
   };
 
-  const filteredPedidos = pedidos.filter(
+  const filteredUsuarios = usuarios.filter(
     (item) => 
-      item.idSolicitacao.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.cnpjCpf.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.dataPedido.includes(searchText)
+      item.nome.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.email.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.cargo.toLowerCase().includes(searchText.toLowerCase()) ||
+      item.departamento.toLowerCase().includes(searchText.toLowerCase())
   );
 
   if (loading) {
@@ -103,18 +105,18 @@ const Pedidos = () => {
       <Box className={styles.loadingContainer}>
         <CircularProgress />
         <Typography variant="h6" sx={{ mt: 2 }}>
-          Carregando dados de pedidos...
+          Carregando dados de usuários...
         </Typography>
       </Box>
     );
   }
 
   return (
-    <div className={styles.pedidos}>
+    <div className={styles.usuarios}>
       <Paper elevation={1} className={styles.toolbar} sx={{ 
         p: '10px 16px',
         display: 'flex',
-        flexWrap: 'wrap', 
+        flexWrap: 'wrap',
         alignItems: 'center',
         justifyContent: 'space-between',
         gap: '12px',
@@ -127,7 +129,7 @@ const Pedidos = () => {
           flexWrap: 'wrap',
           alignItems: 'center', 
           gap: '12px',
-          flex: '1 1 auto', 
+          flex: '1 1 auto',
           minWidth: '0', 
         }}>
           <Box
@@ -170,7 +172,7 @@ const Pedidos = () => {
             />
             <input 
               type="text" 
-              placeholder="Buscar pedido..."
+              placeholder="Buscar usuário..."
               value={searchText}
               onChange={handleSearchChange}
               style={{
@@ -321,7 +323,7 @@ const Pedidos = () => {
                     mr: 1,
                     flexShrink: 0
                   }}>
-                    <ReceiptIcon sx={{ color: '#61131A', fontSize: 14 }} />
+                    <PeopleIcon sx={{ color: '#61131A', fontSize: 14 }} />
                   </Box>
                   <Box sx={{ 
                     minWidth: 0, 
@@ -337,7 +339,7 @@ const Pedidos = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
-                      {totalPedidos}
+                      {totalUsuarios}
                     </Typography>
                     <Typography variant="caption" sx={{ 
                       fontSize: '0.6rem',
@@ -350,7 +352,7 @@ const Pedidos = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
-                      Pedidos
+                      Usuários
                     </Typography>
                   </Box>
                 </Box>
@@ -395,7 +397,7 @@ const Pedidos = () => {
                     mr: 1,
                     flexShrink: 0
                   }}>
-                    <ShoppingCartIcon sx={{ color: '#27ae60', fontSize: 14 }} />
+                    <AdminPanelSettingsIcon sx={{ color: '#27ae60', fontSize: 14 }} />
                   </Box>
                   <Box sx={{ 
                     minWidth: 0, 
@@ -411,7 +413,7 @@ const Pedidos = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
-                      {pedidos.filter(item => item.aprovado).length}
+                      {usuarios.filter(item => item.cargo === 'Administrador').length}
                     </Typography>
                     <Typography variant="caption" sx={{ 
                       fontSize: '0.6rem',
@@ -424,7 +426,7 @@ const Pedidos = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
-                      Aprovados
+                      Administradores
                     </Typography>
                   </Box>
                 </Box>
@@ -453,7 +455,7 @@ const Pedidos = () => {
             alignSelf: { xs: 'flex-start', sm: 'center' } 
           }}
         >
-          Novo Pedido
+          Novo Usuário
         </Button>
       </Paper>
       <Container 
@@ -478,7 +480,7 @@ const Pedidos = () => {
           flexDirection: 'column'
         }}>
           <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-            <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de pedidos">
+            <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de usuários">
               <TableHead>
                 <TableRow sx={{ 
                   backgroundColor: '#f5f5f5',
@@ -490,17 +492,18 @@ const Pedidos = () => {
                     py: 1.8
                   }
                 }}>
-                  <TableCell align="center">ID Solicitação</TableCell>
-                  <TableCell align="center">CNPJ/CPF</TableCell>
-                  <TableCell align="center">Aprovado</TableCell>
-                  <TableCell align="center">Data Pedido</TableCell>
-                  <TableCell align="center">Valor</TableCell>
+                  <TableCell align="center">Avatar</TableCell>
+                  <TableCell align="center">Nome</TableCell>
+                  <TableCell align="center">Email</TableCell>
+                  <TableCell align="center">Cargo</TableCell>
+                  <TableCell align="center">Departamento</TableCell>
                   <TableCell align="center">Status</TableCell>
+                  <TableCell align="center">Último Acesso</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredPedidos
+                {filteredUsuarios
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((item) => (
                   <TableRow
@@ -513,16 +516,30 @@ const Pedidos = () => {
                       height: '54px' 
                     }}
                   >
-                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idSolicitacao}</TableCell>
-                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.cnpjCpf}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>
+                      <Avatar 
+                        src={item.avatar} 
+                        alt={item.nome}
+                        sx={{ 
+                          width: 34, 
+                          height: 34, 
+                          margin: '0 auto',
+                          bgcolor: '#ccc'
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
+                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.departamento}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
-                        icon={item.aprovado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.aprovado ? "Sim" : "Não"}
+                        icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                        label={item.status}
                         size="small"
                         sx={{ 
-                          backgroundColor: item.aprovado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.aprovado ? '#27ae60' : '#e74c3c',
+                          backgroundColor: item.status === 'Ativo' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                          color: item.status === 'Ativo' ? '#27ae60' : '#e74c3c',
                           fontWeight: 500,
                           fontSize: '0.75rem',
                           borderRadius: '4px',
@@ -530,31 +547,7 @@ const Pedidos = () => {
                         }}
                       />
                     </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.dataPedido}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Chip 
-                        label={item.status}
-                        size="small"
-                        sx={{ 
-                          backgroundColor: 
-                            item.status === 'Aprovado' ? 'rgba(46, 204, 113, 0.1)' : 
-                            item.status === 'Pendente' ? 'rgba(241, 196, 15, 0.1)' : 
-                            item.status === 'Entregue' ? 'rgba(52, 152, 219, 0.1)' :
-                            'rgba(231, 76, 60, 0.1)',
-                          color: 
-                            item.status === 'Aprovado' ? '#27ae60' : 
-                            item.status === 'Pendente' ? '#f39c12' : 
-                            item.status === 'Entregue' ? '#3498db' :
-                            '#e74c3c',
-                          fontWeight: 500,
-                          fontSize: '0.75rem',
-                          borderRadius: '4px'
-                        }}
-                      />
-                    </TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.ultimoAcesso}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                         <IconButton 
@@ -583,17 +576,17 @@ const Pedidos = () => {
                     </TableCell>
                   </TableRow>
                 ))}
-                {filteredPedidos.length > 0 && 
-                 filteredPedidos.length < rowsPerPage && 
-                 Array.from({ length: Math.max(0, rowsPerPage - filteredPedidos.length) }).map((_, index) => (
+                {filteredUsuarios.length > 0 && 
+                 filteredUsuarios.length < rowsPerPage && 
+                 Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
                   <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                    <TableCell colSpan={7} />
+                    <TableCell colSpan={8} />
                   </TableRow>
                 ))}
-                {filteredPedidos.length === 0 && (
+                {filteredUsuarios.length === 0 && (
                   <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={7} align="center">
-                      Nenhum pedido encontrado
+                    <TableCell colSpan={8} align="center">
+                      Nenhum usuário encontrado
                     </TableCell>
                   </TableRow>
                 )}
@@ -602,7 +595,7 @@ const Pedidos = () => {
           </Box>
           <TablePagination
             component="div"
-            count={filteredPedidos.length}
+            count={filteredUsuarios.length}
             page={page}
             onPageChange={handleChangePage}
             rowsPerPage={rowsPerPage}
@@ -628,4 +621,4 @@ const Pedidos = () => {
   );
 };
 
-export default Pedidos;
+export { Usuarios };

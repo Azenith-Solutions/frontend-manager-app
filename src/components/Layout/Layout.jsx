@@ -30,6 +30,10 @@ import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'; 
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'; 
 import PsychologyIcon from '@mui/icons-material/Psychology';
+import PeopleIcon from '@mui/icons-material/People';
+import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
+
+
 
 const drawerWidth = 240;
 
@@ -64,13 +68,21 @@ const Layout = () => {
             red: <ShoppingCartOutlinedIcon sx={{ color: "#61131A" }} />, 
             white: <ShoppingCartOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
+        users: { 
+            red: <PeopleIcon sx={{ color: "#61131A" }} />, 
+            white: <PeopleIcon sx={{ color: "#FFFFFF" }} />
+        },
         report: { 
             red: <BarChartOutlinedIcon sx={{ color: "#61131A" }} />, 
             white: <BarChartOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
-        assistenteIa: { 
+        assistentIa: { 
             red: <PsychologyIcon sx={{ color: "#61131A" }} />, 
             white: <PsychologyIcon sx={{ color: "#FFFFFF" }} />
+        },
+        suport: { 
+            red: <HeadsetMicIcon sx={{ color: "#61131A" }} />, 
+            white: <HeadsetMicIcon sx={{ color: "#FFFFFF" }} />
         },
     };
 
@@ -78,8 +90,10 @@ const Layout = () => {
         { text: "Dashboard", key: "dashboard", path: "/dashboard" },
         { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
         { text: "Pedidos", key: "order", path: "/pedidos" },
+        { text: "Usuários", key: "users", path: "/usuarios" },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
-        { text: "Assistente IA", key: "assistenteIa", path: "/assistente-ia" },
+        { text: "Assistente IA", key: "assistentIa", path: "/assistente-ia" },
+        { text: "Suporte", key: "suport", path: "/suporte" },
     ];
 
     // Define o título com base na rota atual

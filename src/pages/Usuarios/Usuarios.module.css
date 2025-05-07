@@ -1,0 +1,100 @@
+.usuarios {
+  padding: 0;
+  height: calc(100vh - 114px);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.loadingContainer {
+  width: 100%;
+  height: 80vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.pageTitle {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+.headerContainer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+/* Estilos para a barra de ferramentas minimalista */
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 16px;
+  background-color: white;
+  border-radius: 0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+  width: 100%;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.statusChip {
+  border-radius: 16px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+}
+
+.tableContainer {
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 32px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  background: white;
+}
+
+/* Estilo para o cabeçalho da tabela */
+.tableContainer thead th {
+  background-color: #f9f9f9;
+  font-weight: 600;
+  color: #555;
+}
+
+/* Efeito zebra para facilitar a leitura da tabela */
+.tableContainer tbody tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+/* Estilo para hover na linha da tabela */
+.tableContainer tbody tr:hover {
+  background-color: rgba(0, 0, 0, 0.04);
+}
+
+/* Responsividade */
+@media (max-width: 960px) {
+  .usuarios {
+    height: auto;
+    overflow-y: auto;
+    padding-bottom: 20px;
+  }
+  
+  .headerContainer {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .tableContainer {
+    overflow-x: auto;
+  }
+}
