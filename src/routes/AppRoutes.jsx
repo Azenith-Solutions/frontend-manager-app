@@ -5,7 +5,7 @@ import Login from "../pages/Login/Login";
 import PrivateRoutes from "../components/auth/PrivateRoutes/PrivateRoutes";
 import Layout from "../components/Layout/Layout";
 import Dashboard from "../pages/Dashboard/Dashboard";
-import Gerenciamento from "../pages/Gerenciamento/Gerenciamento";
+import Componentes from "../pages/Componentes/Componentes";
 import Pedidos from "../pages/Pedidos/Pedidos";
 import Analise from "../pages/Analise/Analise";
 import Suporte from "../pages/Suporte/Suporte";
@@ -22,7 +22,7 @@ export default function AppRoutes() {
           </PrivateRoutes>
         }>
         <Route path="dashboard" element={<Dashboard />} />
-        <Route path="gerenciamento" element={<Gerenciamento />} />
+        <Route path="componentes" element={<Componentes />} />
         <Route path="pedidos" element={<Pedidos />} />
         <Route path="usuarios" element={<Usuarios/>} />
         <Route path="analise" element={<Analise />} />

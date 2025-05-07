@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from "react";
-import styles from "./Gerenciamento.module.css";
+import React, { Component, useEffect, useState } from "react";
+import styles from "./componentes.module.css";
 import { api } from "../../provider/apiProvider";
 
 // Material UI Components
@@ -37,7 +37,7 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 
-const Gerenciamento = () => {
+const Componentes = () => {
   const [loading, setLoading] = useState(true);
   const [components, setComponents] = useState([]);
   const [page, setPage] = useState(0);
@@ -49,7 +49,7 @@ const Gerenciamento = () => {
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
 
   useEffect(() => {
-    document.title = "HardwareTech | Gerenciamento";
+    document.title = "HardwareTech | Componentes";
     fetchComponents();
   }, []);
 
@@ -105,14 +105,14 @@ const Gerenciamento = () => {
       <Box className={styles.loadingContainer}>
         <CircularProgress />
         <Typography variant="h6" sx={{ mt: 2 }}>
-          Carregando dados do gerenciamento...
+          Carregando dados dos componentes...
         </Typography>
       </Box>
     );
   }
 
   return (
-    <div className={styles.gerenciamento}>
+    <div className={styles.componentes}>
       <Paper elevation={1} className={styles.toolbar} sx={{ 
         p: '10px 16px',
         display: 'flex',
@@ -635,4 +635,4 @@ const Gerenciamento = () => {
   );
 };
 
-export default Gerenciamento;
+export default Componentes;
