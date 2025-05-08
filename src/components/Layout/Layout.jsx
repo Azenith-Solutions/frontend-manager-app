@@ -36,7 +36,7 @@ import PsychologyIcon from '@mui/icons-material/Psychology';
 import PeopleIcon from '@mui/icons-material/People';
 import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
 import SettingsIcon from '@mui/icons-material/Settings';
-import ElectricalServicesIcon from '@mui/icons-material/ElectricalServices';
+import MemoryIcon from '@mui/icons-material/Memory';
 
 
 
@@ -71,8 +71,8 @@ const Layout = () => {
             white: <SettingsIcon sx={{ color: "#FFFFFF" }} />
         },
         components: { 
-            red: <ElectricalServicesIcon  sx={{ color: "#61131A" }} />, 
-            white: <ElectricalServicesIcon  sx={{ color: "#FFFFFF" }} />
+            red: <MemoryIcon sx={{ color: "#61131A" }} />, 
+            white: <MemoryIcon sx={{ color: "#FFFFFF" }} />
         },
         order: { 
             red: <ShoppingCartOutlinedIcon sx={{ color: "#61131A" }} />, 
