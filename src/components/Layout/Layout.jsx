@@ -184,7 +184,7 @@ const Layout = () => {
             onClick={handleToggleSidebar}
             sx={{
                 position: 'absolute',
-                right: 17,  // Changed from -12 to -16 to move it further left
+                right: 20,  // Changed from -12 to -16 to move it further left
                 top: 20,
                 zIndex: 1200,
                 bgcolor: 'background.paper',
@@ -244,7 +244,7 @@ const Layout = () => {
                         onMouseLeave={() => setHoveredItem(null)}
                         sx={{
                             color: (isActive || hasActiveSubItem) ? "#FFFFFF" : "#61131A",
-                            paddingLeft: 2,
+                            paddingLeft: sidebarExpanded ? 2 : 0,
                             paddingRight: 1,
                             height: 42,
                             backgroundColor: (isActive || hasActiveSubItem) ? "#8B1E26" : "transparent",
@@ -262,6 +262,7 @@ const Layout = () => {
                               color: "inherit",
                               mr: sidebarExpanded ? 0 : 'auto',
                               ml: sidebarExpanded ? 0 : 'auto',
+                              pl: sidebarExpanded ? 0 : 0, // Added left padding when collapsed
                           }}
                       >
                           {iconSrc}
@@ -322,7 +323,8 @@ const Layout = () => {
                                                       sx={{
                                                           minWidth: 30,
                                                           color: "inherit",
-                                                      }}
+                                                          pl: sidebarExpanded ? 0 : '10px', // Added left padding when collapseds
+                                                      }}m
                                                   >
                                                       {subIconSrc}
                                                   </ListItemIcon>
