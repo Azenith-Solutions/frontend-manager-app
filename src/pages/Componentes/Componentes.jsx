@@ -1,5 +1,5 @@
 import React, { Component, useEffect, useState } from "react";
-import styles from "./componentes.module.css";
+import styles from "./Componentes.module.css";
 import { api } from "../../provider/apiProvider";
 
 // Material UI Components
