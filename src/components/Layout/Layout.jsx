@@ -516,7 +516,7 @@ const Layout = () => {
                                 </Box>
                                 <InputBase
                                     id="global-search-input"
-                                    placeholder="Buscar…"
+                                    placeholder="Pesquisar…"
                                     value={searchTerm}
                                     onChange={handleSearchChange}
                                     onFocus={handleSearchFocus} 
@@ -583,7 +583,7 @@ const Layout = () => {
 
                             {/* Username */}
                             <Typography variant="subtitle1" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                Usuário Exemplo
+                                Jean Charles
                             </Typography>
                         </Box>
                     </ClickAwayListener>
