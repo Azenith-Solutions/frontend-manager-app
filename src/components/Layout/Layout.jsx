@@ -15,12 +15,15 @@ import {
     Toolbar,
     Typography,
     useMediaQuery,
-    useTheme
+    useTheme,
+    Collapse
 } from "@mui/material";
 
 import {
     Logout as LogoutIcon,
-    Menu as MenuIcon
+    Menu as MenuIcon,
+    ExpandLess,
+    ExpandMore
 } from "@mui/icons-material";
 
 // icons
@@ -32,6 +35,8 @@ import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import PeopleIcon from '@mui/icons-material/People';
 import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
+import SettingsIcon from '@mui/icons-material/Settings';
+import MemoryIcon from '@mui/icons-material/Memory';
 
 
 
@@ -43,6 +48,7 @@ const Layout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [managementOpen, setManagementOpen] = useState(false);
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -60,9 +66,13 @@ const Layout = () => {
             red: <DashboardOutlinedIcon sx={{ color: "#61131A" }} />, 
             white: <DashboardOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
-        management: { 
-            red: <ManageSearchOutlinedIcon  sx={{ color: "#61131A" }} />, 
-            white: <ManageSearchOutlinedIcon  sx={{ color: "#FFFFFF" }} />
+        management: {
+            red: <SettingsIcon sx={{ color: "#61131A" }} />,
+            white: <SettingsIcon sx={{ color: "#FFFFFF" }} />
+        },
+        components: { 
+            red: <MemoryIcon sx={{ color: "#61131A" }} />, 
+            white: <MemoryIcon sx={{ color: "#FFFFFF" }} />
         },
         order: { 
             red: <ShoppingCartOutlinedIcon sx={{ color: "#61131A" }} />, 
@@ -88,9 +98,16 @@ const Layout = () => {
 
     const menuItems = [
         { text: "Dashboard", key: "dashboard", path: "/dashboard" },
-        { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
-        { text: "Pedidos", key: "order", path: "/pedidos" },
-        { text: "Usuários", key: "users", path: "/usuarios" },
+        { 
+            text: "Gerenciamento", 
+            key: "management", 
+            isExpandable: true,
+            subItems: [
+                { text: "Componentes", key: "components", path: "/componentes" },
+                { text: "Pedidos", key: "order", path: "/pedidos" },
+                { text: "Usuários", key: "users", path: "/usuarios" }
+            ]
+        },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
         { text: "Assistente IA", key: "assistentIa", path: "/assistente-ia" },
         { text: "Suporte", key: "suport", path: "/suporte" },
@@ -98,8 +115,23 @@ const Layout = () => {
 
     // Define o título com base na rota atual
     const getPageTitle = () => {
+        // Verificar primeiro nos itens principais
         const currentRoute = menuItems.find((item) => item.path === location.pathname);
-        return currentRoute ? currentRoute.text : "Página Desconhecida";
+        if (currentRoute) {
+            return currentRoute.text;
+        }
+        
+        // Se não encontrar nos itens principais, procurar nos subitens
+        for (const item of menuItems) {
+            if (item.subItems) {
+                const subItem = item.subItems.find(sub => sub.path === location.pathname);
+                if (subItem) {
+                    return subItem.text;
+                }
+            }
+        }
+        
+        return "Página Desconhecida";
     };
 
     const [hoveredItem, setHoveredItem] = useState(null);
@@ -112,54 +144,113 @@ const Layout = () => {
                 alignItems: "center",
                 py: 2,
                 height: 200,
-                mb: 0, // Ensure no margin at the bottom
+                mb: 0,
                 }}>
                 <img src={Logo} alt="Logo" style={{  }} />
             </Toolbar>
             <List sx={{
-                marginTop: 0, // Remove the gap by setting top margin to 0
+                marginTop: 0,
                 justifyContent: "center",
                 alignItems: "center",
                 flexGrow: 1,
             }}>
                 {menuItems.map((item) => {
+                    // Verificar se o item atual ou algum de seus subitens está ativo
                     const isActive = location.pathname === item.path;
-                    const iconSrc = isActive || hoveredItem === item.key ? 
-                        redAndWhiteIcons[item.key].white : 
-                        redAndWhiteIcons[item.key].red;
-
+                    const hasActiveSubItem = item.subItems?.some(sub => location.pathname === sub.path);
+                    
+                    // Determinar qual ícone mostrar
+                    const iconColor = (isActive || hasActiveSubItem || hoveredItem === item.key) ? 'white' : 'red';
+                    const iconSrc = redAndWhiteIcons[item.key][iconColor];
+                    
                     return (
-                        <ListItem key={item.text} disablePadding>
-                            <ListItemButton
-                                onClick={() => {
-                                    navigate(item.path);
-                                    if (isMobile) setMobileOpen(false);
-                                }}
-                                onMouseEnter={() => setHoveredItem(item.key)}
-                                onMouseLeave={() => setHoveredItem(null)}
-                                sx={{
-                                    color: isActive ? "#FFFFFF" : "#61131A",
-                                    paddingLeft: 3.3,
-                                    height: 54,
-                                    backgroundColor: isActive ? "#8B1E26" : "transparent",
-                                    "&:hover": {
-                                        backgroundColor: "#8B1E26",
-                                        color: "#FFFFFF",
-                                        transition: "background-color 0.3s, color 0.3s",
-                                    },
-                                }}
-                            >
+                        <React.Fragment key={item.text}>
+                            <ListItem disablePadding>
+                                <ListItemButton
+                                    onClick={() => {
+                                        if (item.isExpandable) {
+                                            setManagementOpen(!managementOpen);
+                                        } else {
+                                            navigate(item.path);
+                                            if (isMobile) setMobileOpen(false);
+                                        }
+                                    }}
+                                    onMouseEnter={() => setHoveredItem(item.key)}
+                                    onMouseLeave={() => setHoveredItem(null)}
+                                    sx={{
+                                        color: (isActive || hasActiveSubItem) ? "#FFFFFF" : "#61131A",
+                                        paddingLeft: 3.3,
+                                        height: 54,
+                                        backgroundColor: (isActive || hasActiveSubItem) ? "#8B1E26" : "transparent",
+                                        "&:hover": {
+                                            backgroundColor: "#8B1E26",
+                                            color: "#FFFFFF",
+                                            transition: "background-color 0.3s, color 0.3s",
+                                        },
+                                    }}
+                                >
                                     <ListItemIcon
                                         sx={{
-                                                minWidth: 30,
-                                                color: "inherit",
-                                            }}
-                                        >
+                                            minWidth: 30,
+                                            color: "inherit",
+                                        }}
+                                    >
                                         {iconSrc}
                                     </ListItemIcon>
-                                <ListItemText primary={item.text} />
-                            </ListItemButton>
-                        </ListItem>
+                                    <ListItemText primary={item.text} />
+                                    {item.isExpandable && (
+                                        managementOpen ? <ExpandLess /> : <ExpandMore />
+                                    )}
+                                </ListItemButton>
+                            </ListItem>
+                            
+                            {/* Renderizar subitens caso o item seja expandível */}
+                            {item.isExpandable && (
+                                <Collapse in={managementOpen} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        {item.subItems.map((subItem) => {
+                                            const isSubActive = location.pathname === subItem.path;
+                                            const subIconColor = isSubActive || hoveredItem === subItem.key ? 'white' : 'red';
+                                            const subIconSrc = redAndWhiteIcons[subItem.key][subIconColor];
+                                            
+                                            return (
+                                                <ListItem key={subItem.text} disablePadding>
+                                                    <ListItemButton
+                                                        onClick={() => {
+                                                            navigate(subItem.path);
+                                                            if (isMobile) setMobileOpen(false);
+                                                        }}
+                                                        onMouseEnter={() => setHoveredItem(subItem.key)}
+                                                        onMouseLeave={() => setHoveredItem(null)}
+                                                        sx={{
+                                                            color: isSubActive ? "#FFFFFF" : "#61131A",
+                                                            paddingLeft: 6,
+                                                            height: 48,
+                                                            backgroundColor: isSubActive ? "#8B1E26" : "transparent",
+                                                            "&:hover": {
+                                                                backgroundColor: "#8B1E26",
+                                                                color: "#FFFFFF",
+                                                                transition: "background-color 0.3s, color 0.3s",
+                                                            },
+                                                        }}
+                                                    >
+                                                        <ListItemIcon
+                                                            sx={{
+                                                                minWidth: 30,
+                                                                color: "inherit",
+                                                            }}
+                                                        >
+                                                            {subIconSrc}
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={subItem.text} />
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            );
+                                        })}
+                                    </List>
+                                </Collapse>
+                            )}
+                        </React.Fragment>
                     );
                 })}
             </List>
@@ -170,17 +261,17 @@ const Layout = () => {
                 right: 0, 
                 bgcolor: 'background.paper',
                 borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-                overflow: 'hidden' // Prevent overflow from causing scrollbars
+                overflow: 'hidden'
             }}>
                 <List>
                     <ListItem disablePadding>
                         <ListItemButton
                             onClick={handleLogout}
                             sx={{
-                                color: "#61131A", // Default text color
+                                color: "#61131A",
                                 transition: "all 0.3s",
                                 "&:hover": {
-                                    backgroundColor: "transparent" // No background change on hover
+                                    backgroundColor: "transparent"
                                 }
                             }}
                         >
@@ -200,7 +291,7 @@ const Layout = () => {
                                         display: "flex",
                                         alignItems: "center",
                                         justifyContent: "center",
-                                        color: "inherit", // Inherit color for the icon
+                                        color: "inherit",
                                     }}
                                 >
                                     <LogoutIcon />
