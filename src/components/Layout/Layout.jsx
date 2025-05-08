@@ -17,7 +17,14 @@ import {
     useMediaQuery,
     useTheme,
     Collapse,
-    Tooltip
+    Tooltip,
+    Avatar,
+    InputBase,
+    Popper,
+    Paper,
+    ClickAwayListener,
+    List as MuiList,
+    ListItemButton as MuiListItemButton
 } from "@mui/material";
 
 import {
@@ -28,8 +35,13 @@ import {
     ChevronLeft as ChevronLeftIcon,
     ChevronRight as ChevronRightIcon,
     ArrowBackIosNew as ArrowBackIosNewIcon,
-    ArrowForwardIos as ArrowForwardIosIcon
+    ArrowForwardIos as ArrowForwardIosIcon,
+    NotificationsNoneOutlined as NotificationsNoneOutlinedIcon,
+    MailOutlineOutlined as MailOutlineOutlinedIcon,
+    Search as SearchIcon
 } from "@mui/icons-material";
+
+import { alpha } from '@mui/material/styles';
 
 // icons
 import Logo from "../../assets/Logo.svg";
@@ -56,6 +68,11 @@ const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [managementOpen, setManagementOpen] = useState(false);
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
+
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchAnchorEl, setSearchAnchorEl] = useState(null);
+  const searchInputRef = React.useRef(null);
   
   const drawerWidth = sidebarExpanded ? EXPANDED_DRAWER_WIDTH : COLLAPSED_DRAWER_WIDTH;
 
@@ -147,6 +164,53 @@ const Layout = () => {
 
     const handleToggleSidebar = () => {
       setSidebarExpanded(!sidebarExpanded);
+    };
+
+    const handleSearchChange = (event) => {
+        const term = event.target.value;
+        setSearchTerm(term);
+
+        if (term.trim() === "") {
+            setSearchResults([]);
+            setSearchAnchorEl(null);
+            return;
+        }
+
+        const filteredResults = [];
+        menuItems.forEach(item => {
+            if (item.text.toLowerCase().includes(term.toLowerCase())) {
+                if (item.path) { // Only add if it's a navigable item
+                    filteredResults.push({ text: item.text, path: item.path, originalText: item.text });
+                }
+            }
+            if (item.subItems) {
+                item.subItems.forEach(subItem => {
+                    if (subItem.text.toLowerCase().includes(term.toLowerCase())) {
+                        filteredResults.push({ text: subItem.text, path: subItem.path, originalText: subItem.text });
+                    }
+                });
+            }
+        });
+        setSearchResults(filteredResults);
+        setSearchAnchorEl(event.currentTarget);
+    };
+
+    const handleSearchResultClick = (path) => {
+        navigate(path);
+        setSearchTerm("");
+        setSearchResults([]);
+        setSearchAnchorEl(null);
+        if (isMobile) setMobileOpen(false);
+    };
+
+    const handleSearchFocus = (event) => {
+        if (searchTerm.trim() !== "" && searchResults.length > 0) {
+            setSearchAnchorEl(event.currentTarget);
+        }
+    };
+    
+    const handleClickAwaySearch = () => {
+        setSearchAnchorEl(null);
     };
 
     const drawer = (
@@ -429,9 +493,100 @@ const Layout = () => {
                     >
                         <MenuIcon />
                     </IconButton>
-                    <Typography variant="h4" noWrap component="div" sx={{ flexGrow: 1 }}>
+                    <Typography variant="h5" noWrap component="div" sx={{ flexGrow: 1 }}>
                         {getPageTitle()}
                     </Typography>
+                    <ClickAwayListener onClickAway={handleClickAwaySearch}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                            {/* Search Bar */}
+                            <Box sx={{
+                                position: 'relative',
+                                borderRadius: theme.shape.borderRadius,
+                                backgroundColor: alpha(theme.palette.common.white, 0.15),
+                                '&:hover': {
+                                    backgroundColor: alpha(theme.palette.common.white, 0.25),
+                                },
+                                marginRight: theme.spacing(2),
+                                marginLeft: 0,
+                                width: 'auto',
+                                display: { xs: 'none', sm: 'flex' }
+                            }}>
+                                <Box sx={{ padding: theme.spacing(0, 1), height: '100%', position: 'absolute', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                                    <SearchIcon />
+                                </Box>
+                                <InputBase
+                                    id="global-search-input"
+                                    placeholder="Pesquisar…"
+                                    value={searchTerm}
+                                    onChange={handleSearchChange}
+                                    onFocus={handleSearchFocus} 
+                                    ref={searchInputRef}
+                                    sx={{
+                                        color: 'inherit',
+                                        '& .MuiInputBase-input': {
+                                            padding: theme.spacing(1, 1, 1, 0),
+                                            paddingLeft: `calc(1em + ${theme.spacing(3)})`,
+                                            transition: theme.transitions.create('width'),
+                                            width: '15ch',
+                                            '&:focus': {
+                                                width: '25ch',
+                                            },
+                                        },
+                                    }}
+                                />
+                                <Popper
+                                    open={Boolean(searchAnchorEl && searchResults.length > 0)}
+                                    anchorEl={searchAnchorEl}                                   
+                                    placement="bottom-start"
+                                    modifiers={[
+                                        {
+                                          name: 'offset',
+                                          options: {
+                                            offset: [0, 8], // Add some offset from the anchor
+                                          },
+                                        },
+                                        {
+                                            name: 'preventOverflow',
+                                            options: {
+                                                boundary: 'viewport',
+                                            },
+                                        }
+                                      ]}
+                                    sx={{ zIndex: theme.zIndex.modal + 1, width: searchInputRef.current ? searchInputRef.current.offsetWidth : 'auto' }}
+                                >
+                                    <Paper elevation={3} sx={{ maxHeight: 300, overflow: 'auto' }}>
+                                        <MuiList dense>
+                                            {searchResults.map((result, index) => (
+                                                <MuiListItemButton key={index} onClick={() => handleSearchResultClick(result.path)}>
+                                                    <ListItemText primary={result.text} />
+                                                </MuiListItemButton>
+                                            ))}
+                                        </MuiList>
+                                    </Paper>
+                                </Popper>
+                            </Box>
+
+                            {/* Email Icon */}
+                            <IconButton color="inherit">
+                                <MailOutlineOutlinedIcon />
+                            </IconButton>
+
+                            {/* Notification Icon */}
+                            <IconButton color="inherit">
+                                <NotificationsNoneOutlinedIcon />
+                            </IconButton>
+
+                            {/* Avatar */}
+                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}>
+                                U
+                            </Avatar>
+
+                            {/* Username */}
+                            <Typography variant="subtitle1" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                                Jean Charles
+                            </Typography>
+                        </Box>
+                    </ClickAwayListener>
                 </Toolbar>
             </AppBar>
             <Box
