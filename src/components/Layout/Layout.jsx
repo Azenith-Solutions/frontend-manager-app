@@ -26,7 +26,9 @@ import {
     ExpandLess,
     ExpandMore,
     ChevronLeft as ChevronLeftIcon,
-    ChevronRight as ChevronRightIcon
+    ChevronRight as ChevronRightIcon,
+    ArrowBackIosNew as ArrowBackIosNewIcon,
+    ArrowForwardIos as ArrowForwardIosIcon
 } from "@mui/icons-material";
 
 // icons
@@ -184,7 +186,7 @@ const Layout = () => {
             onClick={handleToggleSidebar}
             sx={{
                 position: 'absolute',
-                right: 20,  // Changed from -12 to -16 to move it further left
+                right: 20, 
                 top: 20,
                 zIndex: 1200,
                 bgcolor: 'background.paper',
@@ -200,7 +202,7 @@ const Layout = () => {
                 }
             }}
         >
-            {sidebarExpanded ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+            {sidebarExpanded ? <ArrowBackIosNewIcon sx={{ fontSize: '0.8rem' }} /> : <ArrowForwardIosIcon sx={{ fontSize: '0.8rem' }} />}
         </IconButton>
         
         <List sx={{
