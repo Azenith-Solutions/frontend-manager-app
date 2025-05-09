@@ -16,14 +16,17 @@ import {
     Typography,
     useMediaQuery,
     useTheme,
-    Collapse
+    Collapse,
+    Tooltip
 } from "@mui/material";
 
 import {
     Logout as LogoutIcon,
     Menu as MenuIcon,
     ExpandLess,
-    ExpandMore
+    ExpandMore,
+    ChevronLeft as ChevronLeftIcon,
+    ChevronRight as ChevronRightIcon
 } from "@mui/icons-material";
 
 // icons
@@ -40,7 +43,8 @@ import MemoryIcon from '@mui/icons-material/Memory';
 
 
 
-const drawerWidth = 240;
+const EXPANDED_DRAWER_WIDTH = 240;
+const COLLAPSED_DRAWER_WIDTH = 65;
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -49,6 +53,9 @@ const Layout = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [managementOpen, setManagementOpen] = useState(false);
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  
+  const drawerWidth = sidebarExpanded ? EXPANDED_DRAWER_WIDTH : COLLAPSED_DRAWER_WIDTH;
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -136,176 +143,261 @@ const Layout = () => {
 
     const [hoveredItem, setHoveredItem] = useState(null);
 
+    const handleToggleSidebar = () => {
+      setSidebarExpanded(!sidebarExpanded);
+    };
+
     const drawer = (
-        <Box sx={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Toolbar sx={{
-                display: "flex", 
-                flexDirection: "column", 
-                alignItems: "center",
-                py: 2,
-                height: 200,
-                mb: 0,
-                }}>
-                <img src={Logo} alt="Logo" style={{  }} />
-            </Toolbar>
-            <List sx={{
-                marginTop: 0,
-                justifyContent: "center",
-                alignItems: "center",
-                flexGrow: 1,
+      <Box sx={{ 
+        position: 'relative', 
+        height: '100%', 
+        display: 'flex', 
+        flexDirection: 'column',
+        transition: theme.transitions.create(['width'], {
+          easing: theme.transitions.easing.sharp,
+          duration: theme.transitions.duration.enteringScreen,
+        }),
+      }}>
+        <Toolbar sx={{
+            display: "flex", 
+            flexDirection: "column", 
+            alignItems: "center",
+            py: 1.5,
+            height: 'auto',
+            mb: 1,
             }}>
-                {menuItems.map((item) => {
-                    // Verificar se o item atual ou algum de seus subitens está ativo
-                    const isActive = location.pathname === item.path;
-                    const hasActiveSubItem = item.subItems?.some(sub => location.pathname === sub.path);
-                    
-                    // Determinar qual ícone mostrar
-                    const iconColor = (isActive || hasActiveSubItem || hoveredItem === item.key) ? 'white' : 'red';
-                    const iconSrc = redAndWhiteIcons[item.key][iconColor];
-                    
-                    return (
-                        <React.Fragment key={item.text}>
-                            <ListItem disablePadding>
-                                <ListItemButton
-                                    onClick={() => {
-                                        if (item.isExpandable) {
-                                            setManagementOpen(!managementOpen);
-                                        } else {
-                                            navigate(item.path);
-                                            if (isMobile) setMobileOpen(false);
-                                        }
-                                    }}
-                                    onMouseEnter={() => setHoveredItem(item.key)}
-                                    onMouseLeave={() => setHoveredItem(null)}
-                                    sx={{
-                                        color: (isActive || hasActiveSubItem) ? "#FFFFFF" : "#61131A",
-                                        paddingLeft: 3.3,
-                                        height: 54,
-                                        backgroundColor: (isActive || hasActiveSubItem) ? "#8B1E26" : "transparent",
-                                        "&:hover": {
-                                            backgroundColor: "#8B1E26",
-                                            color: "#FFFFFF",
-                                            transition: "background-color 0.3s, color 0.3s",
-                                        },
-                                    }}
-                                >
-                                    <ListItemIcon
-                                        sx={{
-                                            minWidth: 30,
-                                            color: "inherit",
-                                        }}
-                                    >
-                                        {iconSrc}
-                                    </ListItemIcon>
-                                    <ListItemText primary={item.text} />
-                                    {item.isExpandable && (
-                                        managementOpen ? <ExpandLess /> : <ExpandMore />
-                                    )}
-                                </ListItemButton>
-                            </ListItem>
-                            
-                            {/* Renderizar subitens caso o item seja expandível */}
-                            {item.isExpandable && (
-                                <Collapse in={managementOpen} timeout="auto" unmountOnExit>
-                                    <List component="div" disablePadding>
-                                        {item.subItems.map((subItem) => {
-                                            const isSubActive = location.pathname === subItem.path;
-                                            const subIconColor = isSubActive || hoveredItem === subItem.key ? 'white' : 'red';
-                                            const subIconSrc = redAndWhiteIcons[subItem.key][subIconColor];
-                                            
-                                            return (
-                                                <ListItem key={subItem.text} disablePadding>
-                                                    <ListItemButton
-                                                        onClick={() => {
-                                                            navigate(subItem.path);
-                                                            if (isMobile) setMobileOpen(false);
-                                                        }}
-                                                        onMouseEnter={() => setHoveredItem(subItem.key)}
-                                                        onMouseLeave={() => setHoveredItem(null)}
-                                                        sx={{
-                                                            color: isSubActive ? "#FFFFFF" : "#61131A",
-                                                            paddingLeft: 6,
-                                                            height: 48,
-                                                            backgroundColor: isSubActive ? "#8B1E26" : "transparent",
-                                                            "&:hover": {
-                                                                backgroundColor: "#8B1E26",
-                                                                color: "#FFFFFF",
-                                                                transition: "background-color 0.3s, color 0.3s",
-                                                            },
-                                                        }}
-                                                    >
-                                                        <ListItemIcon
-                                                            sx={{
-                                                                minWidth: 30,
-                                                                color: "inherit",
-                                                            }}
-                                                        >
-                                                            {subIconSrc}
-                                                        </ListItemIcon>
-                                                        <ListItemText primary={subItem.text} />
-                                                    </ListItemButton>
-                                                </ListItem>
-                                            );
-                                        })}
-                                    </List>
-                                </Collapse>
-                            )}
-                        </React.Fragment>
-                    );
-                })}
-            </List>
-            <Box sx={{ 
-                position: 'absolute', 
-                bottom: 0, 
-                left: 0, 
-                right: 0, 
+            <img 
+              src={Logo} 
+              alt="Logo" 
+              style={{ 
+                display: sidebarExpanded ? 'flex' : 'none',  
+                maxWidth: sidebarExpanded ? '100%' : '70%', 
+                height: 'auto',
+                transition: 'max-width 0.3s, margin-top 0.3s',
+                minWidth: sidebarExpanded ? 'auto' : '50px',
+                marginTop: sidebarExpanded ? 0 : '50px',  
+              }} 
+            />
+        </Toolbar>
+        
+        <IconButton
+            onClick={handleToggleSidebar}
+            sx={{
+                position: 'absolute',
+                right: 17,  // Changed from -12 to -16 to move it further left
+                top: 20,
+                zIndex: 1200,
                 bgcolor: 'background.paper',
-                borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-                overflow: 'hidden'
-            }}>
-                <List>
-                    <ListItem disablePadding>
-                        <ListItemButton
-                            onClick={handleLogout}
-                            sx={{
-                                color: "#61131A",
-                                transition: "all 0.3s",
-                                "&:hover": {
-                                    backgroundColor: "transparent"
+                border: '1px solid rgba(0, 0, 0, 0.12)',
+                borderRadius: '50%',
+                width: 24,
+                height: 24,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                '&:hover': {
+                    bgcolor: 'rgba(0,0,0,0.04)',
+                }
+            }}
+        >
+            {sidebarExpanded ? <ChevronLeftIcon fontSize="small" /> : <ChevronRightIcon fontSize="small" />}
+        </IconButton>
+        
+        <List sx={{
+            marginTop: 0,
+            justifyContent: "center",
+            alignItems: "center",
+            flexGrow: 1,
+            '& .MuiTypography-root': {
+                fontSize: '0.95rem',
+                fontWeight: 500
+            },
+            '& .MuiSvgIcon-root': {
+                fontSize: '1.35rem'
+            }
+        }}>
+            {menuItems.map((item) => {
+                // Verificar se o item atual ou algum de seus subitens está ativo
+                const isActive = location.pathname === item.path;
+                const hasActiveSubItem = item.subItems?.some(sub => location.pathname === sub.path);
+                
+                // Determinar qual ícone mostrar
+                const iconColor = (isActive || hasActiveSubItem || hoveredItem === item.key) ? 'white' : 'red';
+                const iconSrc = redAndWhiteIcons[item.key][iconColor];
+                
+                const listItem = (
+                    <ListItemButton
+                        onClick={() => {
+                            if (item.isExpandable) {
+                                if (sidebarExpanded) {
+                                    setManagementOpen(!managementOpen);
+                                } else {
+                                    setSidebarExpanded(true);
+                                    setManagementOpen(true);
                                 }
-                            }}
+                            } else {
+                                navigate(item.path);
+                                if (isMobile) setMobileOpen(false);
+                            }
+                        }}
+                        onMouseEnter={() => setHoveredItem(item.key)}
+                        onMouseLeave={() => setHoveredItem(null)}
+                        sx={{
+                            color: (isActive || hasActiveSubItem) ? "#FFFFFF" : "#61131A",
+                            paddingLeft: 2,
+                            paddingRight: 1,
+                            height: 42,
+                            backgroundColor: (isActive || hasActiveSubItem) ? "#8B1E26" : "transparent",
+                            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+                            "&:hover": {
+                                backgroundColor: "#8B1E26",
+                                color: "#FFFFFF",
+                                transition: "background-color 0.3s, color 0.3s",
+                            },
+                        }}
+                    >
+                      <ListItemIcon
+                          sx={{
+                              minWidth: sidebarExpanded ? 35 : 0,
+                              color: "inherit",
+                              mr: sidebarExpanded ? 0 : 'auto',
+                              ml: sidebarExpanded ? 0 : 'auto',
+                          }}
+                      >
+                          {iconSrc}
+                      </ListItemIcon>
+                      {sidebarExpanded && <ListItemText primary={item.text} />}
+                      {sidebarExpanded && item.isExpandable && (
+                          managementOpen ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />
+                      )}
+                    </ListItemButton>
+                );
+                
+                return (
+                    <React.Fragment key={item.text}>
+                        <ListItem disablePadding>
+                            {sidebarExpanded ? 
+                                listItem : 
+                                <Tooltip title={item.text} placement="right">
+                                    {listItem}
+                                </Tooltip>
+                            }
+                        </ListItem>
+                        
+                        {/* Renderizar subitens caso o item seja expandível */}
+                        {item.isExpandable && sidebarExpanded && (
+                            <Collapse in={managementOpen} timeout="auto" unmountOnExit>
+                                <List component="div" disablePadding>
+                                    {item.subItems.map((subItem) => {
+                                        const isSubActive = location.pathname === subItem.path;
+                                        const subIconColor = isSubActive || hoveredItem === subItem.key ? 'white' : 'red';
+                                        const subIconSrc = redAndWhiteIcons[subItem.key][subIconColor];
+                                        
+                                        return (
+                                            <ListItem key={subItem.text} disablePadding>
+                                                <ListItemButton
+                                                    onClick={() => {
+                                                        navigate(subItem.path);
+                                                        if (isMobile) setMobileOpen(false);
+                                                    }}
+                                                    onMouseEnter={() => setHoveredItem(subItem.key)}
+                                                    onMouseLeave={() => setHoveredItem(null)}
+                                                    sx={{
+                                                        color: isSubActive ? "#FFFFFF" : "#61131A",
+                                                        paddingLeft: 4.5,
+                                                        paddingRight: 1,
+                                                        height: 38,
+                                                        backgroundColor: isSubActive ? "#8B1E26" : "transparent",
+                                                        "&:hover": {
+                                                            backgroundColor: "#8B1E26",
+                                                            color: "#FFFFFF",
+                                                            transition: "background-color 0.3s, color 0.3s",
+                                                        },
+                                                        '& .MuiTypography-root': {
+                                                            fontSize: '0.85rem'
+                                                        },
+                                                    }}
+                                                >
+                                                  <ListItemIcon
+                                                      sx={{
+                                                          minWidth: 30,
+                                                          color: "inherit",
+                                                      }}
+                                                  >
+                                                      {subIconSrc}
+                                                  </ListItemIcon>
+                                                  <ListItemText primary={subItem.text} />
+                                                </ListItemButton>
+                                            </ListItem>
+                                        );
+                                    })}
+                                </List>
+                            </Collapse>
+                        )}
+                    </React.Fragment>
+                );
+            })}
+        </List>
+        <Box sx={{ 
+            position: 'absolute', 
+            bottom: 0, 
+            left: 0, 
+            right: 0, 
+            bgcolor: 'background.paper',
+            borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+            overflow: 'hidden'
+        }}>
+            <List>
+                <ListItem disablePadding>
+                    <ListItemButton
+                        onClick={handleLogout}
+                        sx={{
+                            color: "#61131A",
+                            height: 40,
+                            transition: "all 0.3s",
+                            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+                            "&:hover": {
+                                backgroundColor: "transparent"
+                            }
+                        }}
+                    >
+                        <div style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "center",
+                            width: sidebarExpanded ? "100%" : "auto",
+                            gap: sidebarExpanded ? "8px" : "0",
+                            transition: "transform 0.3s",
+                        }}
+                        className="logout-container"
                         >
-                            <div style={{
-                                display: "flex",
-                                alignItems: "center",
-                                justifyContent: "center",
-                                width: "100%",
-                                gap: "8px",
-                                transition: "transform 0.3s",
-                            }}
-                            className="logout-container"
+                            <ListItemIcon
+                                sx={{
+                                    minWidth: 0,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    color: "inherit",
+                                }}
                             >
-                                <ListItemIcon
-                                    sx={{
-                                        minWidth: 0,
-                                        display: "flex",
-                                        alignItems: "center",
-                                        justifyContent: "center",
-                                        color: "inherit",
-                                    }}
-                                >
-                                    <LogoutIcon />
-                                </ListItemIcon>
+                                <LogoutIcon fontSize="small" />
+                            </ListItemIcon>
+                            {sidebarExpanded && (
                                 <ListItemText sx={{
                                     flex: "none",
                                     textAlign: "center",
+                                    '& .MuiTypography-root': {
+                                        fontSize: '0.9rem',
+                                        fontWeight: 500
+                                    }
                                 }} primary="Logout" />
-                            </div>
-                        </ListItemButton>
-                    </ListItem>
-                </List>
-            </Box>
+                            )}
+                        </div>
+                    </ListItemButton>
+                </ListItem>
+            </List>
         </Box>
+      </Box>
     );
 
     return (
@@ -316,7 +408,11 @@ const Layout = () => {
                 sx={{
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
                     ml: { sm: `${drawerWidth}px` },
-                    backgroundColor: "#61131A" // Define a cor da barra
+                    backgroundColor: "#61131A",
+                    transition: theme.transitions.create(['margin', 'width'], {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.leavingScreen,
+                    }),
                 }}
             >
                 <Toolbar>
@@ -336,7 +432,14 @@ const Layout = () => {
             </AppBar>
             <Box
                 component="nav"
-                sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+                sx={{ 
+                    width: { sm: drawerWidth }, 
+                    flexShrink: { sm: 0 },
+                    transition: theme.transitions.create('width', {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
+                }}
                 aria-label="mailbox folders"
             >
                 <Drawer
@@ -348,7 +451,10 @@ const Layout = () => {
                     }}
                     sx={{
                         display: { xs: "block", sm: "none" },
-                        "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
+                        "& .MuiDrawer-paper": { 
+                            boxSizing: "border-box", 
+                            width: EXPANDED_DRAWER_WIDTH
+                        }
                     }}
                 >
                     {drawer}
@@ -357,7 +463,15 @@ const Layout = () => {
                     variant="permanent"
                     sx={{
                         display: { xs: "none", sm: "block" },
-                        "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
+                        "& .MuiDrawer-paper": { 
+                            boxSizing: "border-box", 
+                            width: drawerWidth,
+                            transition: theme.transitions.create('width', {
+                                easing: theme.transitions.easing.sharp,
+                                duration: theme.transitions.duration.enteringScreen,
+                            }),
+                            overflowX: 'hidden'
+                        }
                     }}
                     open
                 >
@@ -370,7 +484,11 @@ const Layout = () => {
                     flexGrow: 1,
                     p: 3,
                     width: { sm: `calc(100% - ${drawerWidth}px)` },
-                    marginTop: { xs: "56px", sm: "64px" }
+                    marginTop: { xs: "56px", sm: "64px" },
+                    transition: theme.transitions.create(['margin', 'width'], {
+                        easing: theme.transitions.easing.sharp,
+                        duration: theme.transitions.duration.enteringScreen,
+                    }),
                 }}
             >
                 <Outlet />
@@ -380,243 +498,3 @@ const Layout = () => {
 };
 
 export default Layout;
-
-// import React, { useState } from "react";
-// import './Layout.css';
-// import { Outlet, useNavigate, useLocation } from "react-router-dom";
-// import {
-//     AppBar,
-//     Box,
-//     CssBaseline,
-//     Drawer,
-//     IconButton,
-//     List,
-//     ListItem,
-//     ListItemButton,
-//     ListItemIcon,
-//     ListItemText,
-//     Toolbar,
-//     Typography,
-//     useMediaQuery,
-//     useTheme
-// } from "@mui/material";
-// import {
-//     Logout as LogoutIcon,
-//     Menu as MenuIcon
-// } from "@mui/icons-material";
-// import Logo from "../../assets/Logo.svg";
-// import WhiteManagementIcon from "../../assets/icons/white-management-icon.svg";
-// import WhiteOrderIcon from "../../assets/icons/white-order-icon.svg";
-// import WhiteReportIcon from "../../assets/icons/white-report-icon.svg";
-// import RedManagementIcon from "../../assets/icons/red-management-icon.svg";
-// import RedOrderIcon from "../../assets/icons/red-order-icon.svg";
-// import RedReportIcon from "../../assets/icons/red-report-icon.svg";
-
-// const drawerWidth = 240;
-
-// const Layout = () => {
-//     const navigate = useNavigate();
-//     const location = useLocation();
-//     const theme = useTheme();
-//     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-//     const [mobileOpen, setMobileOpen] = useState(false);
-//     const [hoveredItem, setHoveredItem] = useState(null);
-//     // const [itemClicked, setItemClicked] = useState(null);
-
-//     const handleDrawerToggle = () => {
-//         setMobileOpen(!mobileOpen);
-//     };
-
-//     const handleLogout = () => {
-//         const wantsToLogout = window.confirm("Você realmente deseja sair?");
-//         if (wantsToLogout) {
-//             localStorage.removeItem("isLoggedIn");
-//             navigate("/");
-//         }
-//     };
-
-//     const redAndWhiteIcons = {
-//         management: { red: RedManagementIcon, white: WhiteManagementIcon },
-//         order: { red: RedOrderIcon, white: WhiteOrderIcon },
-//         report: { red: RedReportIcon, white: WhiteReportIcon },
-//     };
-
-//     const menuItems = [
-//         { text: "Gerenciamento de Estoque", key: "management", path: "/gerenciamento" },
-//         { text: "Dashboard", key: "dashboard", path: "/dashboard" },
-//         { text: "Gerenciamento", key: "management", path: "/gerenciamento" },
-//         { text: "Pedidos", key: "order", path: "/pedidos" },
-//         { text: "Relatórios e Análise", key: "report", path: "/analise" },
-//     ];
-
-//     // Define o título com base na rota atual
-//     const getPageTitle = () => {
-//         const currentRoute = menuItems.find((item) => item.path === location.pathname);
-//         return currentRoute ? currentRoute.text : "Página Desconhecida";
-//     };
-
-//     const drawer = (
-//         <>
-//             <Toolbar sx={{ display: "flex", flexDirection: "column", alignItems: "center", py: 2 }}>
-//                 <img src={Logo} alt="Logo" style={{ width: "260px", height: "auto" }} />
-//             </Toolbar>
-//             <List sx={{
-//                 marginTop: "80px",
-//                 marginBottom: "120px",
-//                 justifyContent: "center",
-//                 alignItems: "center"
-//             }}>
-//                 {menuItems.map((item) => {
-//                     const iconSrc = hoveredItem === item.key ? redAndWhiteIcons[item.key].white : redAndWhiteIcons[item.key].red;
-
-//                     return (
-//                         <ListItem key={item.text} disablePadding>
-//                             <ListItemButton
-//                                 onClick={() => {
-//                                     navigate(item.path);
-//                                     if (isMobile) setMobileOpen(false);
-//                                     // setItemClicked(item.key);
-//                                 }}
-//                                 onMouseEnter={() => setHoveredItem(item.key)}
-//                                 onMouseLeave={() => setHoveredItem(null)}
-//                                 sx={{
-//                                     color: "#61131A",
-//                                     paddingLeft: 3.3,
-//                                     height: 54,
-//                                     "&:hover": {
-//                                         backgroundColor: "#8B1E26",
-//                                         color: "#FFFFFF",
-//                                         transition: "background-color 0.3s, color 0.3s",
-//                                     },
-//                                 }}
-//                             >
-//                                 <ListItemIcon
-//                                     sx={{
-//                                         minWidth: 30,
-//                                         color: "inherit",
-//                                     }}
-//                                 >
-//                                     <img src={iconSrc} alt={`${item.text} icon`} style={{ marginRight: 8 }} />
-//                                 </ListItemIcon>
-//                                 <ListItemText primary={item.text} />
-//                             </ListItemButton>
-//                         </ListItem>
-//                     );
-//                 })}
-//             </List>
-//             <List>
-//                 <ListItem disablePadding>
-//                     <ListItemButton
-//                         onClick={handleLogout}
-//                         sx={{
-//                             color: "#61131A", // Default text color
-//                             "&:hover": {
-//                                 backgroundColor: "#8B1E26", // Slightly lighter background color
-//                                 color: "#FFFFFF", // White text on hover
-//                                 transition: "background-color 0.3s, color 0.3s" // Smooth transition
-//                             }
-//                         }}
-//                     >
-//                         <div style={{
-//                             display: "flex",
-//                             alignItems: "center",
-//                             justifyContent: "center",
-//                             width: "100%",
-//                             gap: "2px"
-//                         }}>
-//                             <ListItemIcon
-//                                 sx={{
-//                                     minWidth: 0,
-//                                     display: "flex",
-//                                     alignItems: "center",
-//                                     justifyContent: "center",
-//                                     color: "inherit", // Inherit color for the icon
-//                                 }}
-//                             >
-//                                 <LogoutIcon />
-//                             </ListItemIcon>
-//                             <ListItemText sx={{
-//                                 flex: "none",
-//                                 textAlign: "center",
-//                             }} primary="Logout" />
-//                         </div>
-//                     </ListItemButton>
-//                 </ListItem>
-//             </List>
-//         </>
-//     );
-
-//     return (
-//         <Box sx={{ display: "flex" }}>
-//             <CssBaseline />
-//             <AppBar
-//                 position="fixed"
-//                 sx={{
-//                     width: { sm: `calc(100% - ${drawerWidth}px)` },
-//                     ml: { sm: `${drawerWidth}px` },
-//                     height: "82px",
-//                     justifyContent: "center",
-//                     backgroundColor: "#61131A" // Define a cor da barra
-//                 }}
-//             >
-//                 <Toolbar>
-//                     <IconButton
-//                         color="inherit"
-//                         aria-label="open drawer"
-//                         edge="start"
-//                         onClick={handleDrawerToggle}
-//                         sx={{ mr: 2, display: { sm: "none" } }}
-//                     >
-//                         <MenuIcon />
-//                     </IconButton>
-//                     <Typography variant="h4" noWrap component="div" sx={{ flexGrow: 1 }}>
-//                         {getPageTitle()}
-//                     </Typography>
-//                 </Toolbar>
-//             </AppBar>
-//             <Box
-//                 component="nav"
-//                 sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
-//                 aria-label="mailbox folders"
-//             >
-//                 <Drawer
-//                     variant="temporary"
-//                     open={mobileOpen}
-//                     onClose={handleDrawerToggle}
-//                     ModalProps={{
-//                         keepMounted: true
-//                     }}
-//                     sx={{
-//                         display: { xs: "block", sm: "none" },
-//                         "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
-//                     }}
-//                 >
-//                     {drawer}
-//                 </Drawer>
-//                 <Drawer
-//                     variant="permanent"
-//                     sx={{
-//                         display: { xs: "none", sm: "block" },
-//                         "& .MuiDrawer-paper": { boxSizing: "border-box", width: drawerWidth }
-//                     }}
-//                     open
-//                 >
-//                     {drawer}
-//                 </Drawer>
-//             </Box>
-//             <Box
-//                 component="main"
-//                 sx={{
-//                     flexGrow: 1,
-//                     p: 3,
-//                     width: { sm: `calc(100% - ${drawerWidth}px)` },
-//                     marginTop: { xs: "56px", sm: "64px" }
-//                 }}
-//             >
-//                 <Outlet />
-//             </Box>
-//         </Box>
-//     );
-// };
-
-// export default Layout;
