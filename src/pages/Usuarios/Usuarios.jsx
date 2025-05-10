@@ -22,8 +22,9 @@ import {
   Divider,
   Card,
   CardContent,
-  Avatar
-} from "@mui/material";
+  Avatar,
+  Modal
+}from "@mui/material";
 
 // Material UI Icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -37,13 +38,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Usuarios = () => {
-  const [loading, setLoading] = useState(true);
+const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
+  const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
@@ -59,14 +60,9 @@ const Usuarios = () => {
       
       // Dados de exemplo para usuários
       const mockUsuarios = [
-        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'Administrador', departamento: 'TI', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
-        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Gerente', departamento: 'Vendas', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
-        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', departamento: 'Suporte', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
-        { id: 4, nome: 'Ana Costa', email: 'ana.costa@example.com', cargo: 'Analista', departamento: 'Financeiro', status: 'Ativo', ultimoAcesso: '29/04/2025', avatar: 'https://randomuser.me/api/portraits/women/4.jpg' },
-        { id: 5, nome: 'Carlos Ferreira', email: 'carlos.ferreira@example.com', cargo: 'Administrador', departamento: 'TI', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/5.jpg' },
-        { id: 6, nome: 'Luciana Almeida', email: 'luciana.almeida@example.com', cargo: 'Estoquista', departamento: 'Logística', status: 'Ativo', ultimoAcesso: '28/04/2025', avatar: 'https://randomuser.me/api/portraits/women/6.jpg' },
-        { id: 7, nome: 'Ricardo Souza', email: 'ricardo.souza@example.com', cargo: 'Contador', departamento: 'Financeiro', status: 'Inativo', ultimoAcesso: '10/04/2025', avatar: 'https://randomuser.me/api/portraits/men/7.jpg' },
-        { id: 8, nome: 'Mariana Lima', email: 'mariana.lima@example.com', cargo: 'Recepcionista', departamento: 'Administrativo', status: 'Ativo', ultimoAcesso: '27/04/2025', avatar: 'https://randomuser.me/api/portraits/women/8.jpg' },
+        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'TI (root)', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
+        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Administrador', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
+        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
       ];
       
       setUsuarios(mockUsuarios);
@@ -81,7 +77,6 @@ const Usuarios = () => {
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
-
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -91,13 +86,20 @@ const Usuarios = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
+  
+  const handleOpenModal = () => {
+    setOpenModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setOpenModal(false);
+  };
 
   const filteredUsuarios = usuarios.filter(
     (item) => 
       item.nome.toLowerCase().includes(searchText.toLowerCase()) ||
       item.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.cargo.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.departamento.toLowerCase().includes(searchText.toLowerCase())
+      item.cargo.toLowerCase().includes(searchText.toLowerCase())
   );
 
   if (loading) {
@@ -434,12 +436,12 @@ const Usuarios = () => {
             </Card>
           </Box>
         </Box>
-        
-        <Button 
+          <Button 
           size="small" 
           variant="contained" 
           disableElevation
           startIcon={<AddIcon fontSize="small" />}
+          onClick={handleOpenModal}
           sx={{ 
             height: '38px',
             bgcolor: '#61131A', 
@@ -496,7 +498,6 @@ const Usuarios = () => {
                   <TableCell align="center">Nome</TableCell>
                   <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Cargo</TableCell>
-                  <TableCell align="center">Departamento</TableCell>
                   <TableCell align="center">Status</TableCell>
                   <TableCell align="center">Último Acesso</TableCell>
                   <TableCell align="center">Ações</TableCell>
@@ -531,7 +532,6 @@ const Usuarios = () => {
                     <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
                     <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.departamento}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
                         icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
@@ -580,12 +580,12 @@ const Usuarios = () => {
                  filteredUsuarios.length < rowsPerPage && 
                  Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
                   <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                    <TableCell colSpan={8} />
+                    <TableCell colSpan={7} />
                   </TableRow>
                 ))}
                 {filteredUsuarios.length === 0 && (
                   <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={7} align="center">
                       Nenhum usuário encontrado
                     </TableCell>
                   </TableRow>
@@ -613,10 +613,34 @@ const Usuarios = () => {
               '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                 fontSize: '0.875rem',
               }
-            }}
-          />
+            }}          />
         </TableContainer>
       </Container>
+        {/* Modal vazio */}
+      <Modal
+        open={openModal}
+        onClose={handleCloseModal}
+        aria-labelledby="novo-usuario-modal"
+        aria-describedby="modal-para-cadastro-de-novo-usuario"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '700px',
+          height: '400px',
+          bgcolor: 'background.paper',
+          borderTop: '4px solid #61131A',
+          boxShadow: '0px 15px 35px -5px rgba(0,0,0,0.15), 0px 10px 15px -5px rgba(0,0,0,0.07)',
+          p: 0,
+          borderRadius: '12px',
+          outline: 'none',
+          overflow: 'hidden',
+        }}>
+          {/* Conteúdo do modal vai aqui posteriormente */}
+        </Box>
+      </Modal>
     </div>
   );
 };
