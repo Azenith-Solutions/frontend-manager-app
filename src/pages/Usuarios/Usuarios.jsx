@@ -48,7 +48,6 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
-
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
@@ -58,19 +57,39 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
     try {
       setLoading(true);
       
-      // Adicionando um delay artificial para mostrar a tela de carregamento
-      await new Promise(resolve => setTimeout(resolve, 1000));
-        // Dados de exemplo para usuários
-      const mockUsuarios = [
-        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'TI (root)', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent('JS')}` },
-        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Administrador', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent('MS')}` },
-        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent('PO')}` },
-      ];
+      const response = await api.get('/users');
+      console.log('Resposta da API:', response.data);
       
-      setUsuarios(mockUsuarios);
-      setTotalUsuarios(mockUsuarios.length);
+      if (response.data && response.data.data) {
+        const usuariosAPI = response.data.data.map(user => {
+          // Extrair iniciais para o avatar
+          const iniciais = user.fullName
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .substring(0, 2);
+            
+          return {            id: user.id,
+            nome: user.fullName,
+            email: user.email,
+            cargo: user.role,
+            status: user.status ? 'Ativo' : 'Inativo',
+            criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
+            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`
+          };
+        });
+        
+        setUsuarios(usuariosAPI);
+        setTotalUsuarios(usuariosAPI.length);
+      } else {
+        console.error('Formato de resposta inesperado:', response);
+        setUsuarios([]);
+        setTotalUsuarios(0);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
+      setUsuarios([]);
+      setTotalUsuarios(0);
     } finally {
       setLoading(false);
     }
@@ -89,12 +108,11 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
     setSearchText(event.target.value);
     setPage(0);
   };
-
   const filteredUsuarios = usuarios.filter(
     (item) => 
-      item.nome.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.cargo.toLowerCase().includes(searchText.toLowerCase())
+      (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
+      (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
+      (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   if (loading) {
@@ -408,9 +426,8 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
                       color: '#333',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {usuarios.filter(item => item.cargo === 'Administrador').length}
+                      textOverflow: 'ellipsis'                    }}>
+                      {usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length}
                     </Typography>
                     <Typography variant="caption" sx={{ 
                       fontSize: '0.6rem',
@@ -490,11 +507,10 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
                   }
                 }}>
                   <TableCell align="center">Avatar</TableCell>
-                  <TableCell align="center">Nome</TableCell>
-                  <TableCell align="center">Email</TableCell>
+                  <TableCell align="center">Nome</TableCell>                  <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Cargo</TableCell>
                   <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Último Acesso</TableCell>
+                  <TableCell align="center">Criado em</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
@@ -537,11 +553,10 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
                           fontWeight: 500,
                           fontSize: '0.75rem',
                           borderRadius: '4px',
-                          '& .MuiChip-icon': { color: 'inherit' }
-                        }}
+                          '& .MuiChip-icon': { color: 'inherit' }                        }}
                       />
                     </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.ultimoAcesso}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                         <IconButton 
