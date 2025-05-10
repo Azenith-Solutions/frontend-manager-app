@@ -625,11 +625,13 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
           />
         </TableContainer>
       </Container>
-      
-      {/* Modal for creating a new user */}
+        {/* Modal for creating a new user */}
       <UserFormModal 
         open={modalOpen} 
-        onClose={() => setModalOpen(false)} 
+        onClose={() => {
+          setModalOpen(false);
+          fetchUsuarios(); // Recarrega a lista após o cadastro
+        }} 
       />
     </div>
   );
