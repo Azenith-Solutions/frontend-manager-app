@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Usuarios.module.css";
 import { api } from "../../provider/apiProvider";
+import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
 
 // Standardized avatar URL
 const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
@@ -40,13 +41,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Usuarios = () => {
-  const [loading, setLoading] = useState(true);
+const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
 
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
@@ -430,12 +431,12 @@ const Usuarios = () => {
             </Card>
           </Box>
         </Box>
-        
-        <Button 
+          <Button 
           size="small" 
           variant="contained" 
           disableElevation
           startIcon={<AddIcon fontSize="small" />}
+          onClick={() => setModalOpen(true)}
           sx={{ 
             height: '38px',
             bgcolor: '#61131A', 
@@ -605,11 +606,16 @@ const Usuarios = () => {
               },
               '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                 fontSize: '0.875rem',
-              }
-            }}
+              }            }}
           />
         </TableContainer>
       </Container>
+      
+      {/* Modal for creating a new user */}
+      <UserFormModal 
+        open={modalOpen} 
+        onClose={() => setModalOpen(false)} 
+      />
     </div>
   );
 };
