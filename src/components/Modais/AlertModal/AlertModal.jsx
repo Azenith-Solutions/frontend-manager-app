@@ -1,6 +1,6 @@
 import React from "react";
 import "./AlertModal.css";
-import AlertIcon from "../../assets/icons/icon-warning.svg";
+import AlertIcon from "../../../assets/icons/icon-warning.svg";
 
 const AlertModal = () => {
   function updateModalState() {

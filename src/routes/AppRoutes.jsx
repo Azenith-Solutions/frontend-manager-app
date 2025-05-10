@@ -10,7 +10,7 @@ import Pedidos from "../pages/Pedidos/Pedidos";
 import Analise from "../pages/Analise/Analise";
 import Suporte from "../pages/Suporte/Suporte";
 import { AssistenteIa } from "../pages/AssistenteIa/AssistenteIa";
-import AlertModal from "../components/AlertModal/AlertModal";
+import AlertModal from "../components/Modais/AlertModal/AlertModal";
 
 export default function AppRoutes() {
   return (
