@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -13,12 +13,50 @@ import {
   MenuItem,
   Box,
   Typography,
-  Divider
+  Divider,
+  CircularProgress
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
+import { api } from '../../../provider/apiProvider';
 
 const UserFormModal = ({ open, onClose }) => {
+  const [roles, setRoles] = useState([]);
+  const [selectedRole, setSelectedRole] = useState('');
+  const [loading, setLoading] = useState(false);
+  // Função para carregar os cargos da API
+  const fetchRoles = async () => {
+    try {
+      setLoading(true);
+      const response = await api.get('/roles');
+      console.log('Resposta da API de cargos:', response.data);
+      
+      if (response.data && Array.isArray(response.data.data)) {
+        setRoles(response.data.data);
+      } else {
+        console.error('Formato de resposta inesperado para cargos:', response);
+        setRoles([]);
+      }
+    } catch (error) {
+      console.error('Erro ao buscar cargos:', error);
+      setRoles([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Carrega os cargos quando o modal é aberto
+  useEffect(() => {
+    if (open) {
+      fetchRoles();
+    }
+  }, [open]);
+
+  // Função para lidar com mudança de cargo selecionado
+  const handleRoleChange = (e) => {
+    setSelectedRole(e.target.value);
+  };
+
   return (
     <Dialog 
       open={open} 
@@ -100,20 +138,35 @@ const UserFormModal = ({ open, onClose }) => {
                   fontSize: '0.875rem'
                 }
               }}
-            />
-
-            <FormControl variant="outlined" size="small" required sx={{ flex: 1 }}>
-              <InputLabel id="cargo-label" sx={{ fontSize: '0.875rem' }}>Cargo</InputLabel>              <Select
+            />            <FormControl variant="outlined" size="small" required sx={{ flex: 1 }}>
+              <InputLabel id="cargo-label" sx={{ fontSize: '0.875rem' }}>Cargo</InputLabel>
+              <Select
                 labelId="cargo-label"
                 label="Cargo"
-                defaultValue=""
+                value={selectedRole}
+                onChange={handleRoleChange}
                 sx={{ 
                   borderRadius: '6px',
                   fontSize: '0.875rem'
                 }}
-              >
-                <MenuItem value="Administrador">Administrador</MenuItem>
-                <MenuItem value="Técnico">Técnico</MenuItem>
+              >                {loading ? (
+                  <MenuItem disabled>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <CircularProgress size={20} />
+                      <Typography>Carregando...</Typography>
+                    </Box>
+                  </MenuItem>
+                ) : (
+                  roles.length > 0 ? (
+                    roles.map((role) => (
+                      <MenuItem key={role.id} value={role.id}>
+                        {role.funcao}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>Nenhum cargo disponível</MenuItem>
+                  )
+                )}
               </Select>
             </FormControl>
           </Box>
