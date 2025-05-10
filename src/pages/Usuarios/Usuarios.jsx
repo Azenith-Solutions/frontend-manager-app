@@ -2,6 +2,9 @@ import React, { useEffect, useState } from "react";
 import styles from "./Usuarios.module.css";
 import { api } from "../../provider/apiProvider";
 
+// Standardized avatar URL
+const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
+
 // Material UI Components
 import {
   Box,
@@ -22,9 +25,8 @@ import {
   Divider,
   Card,
   CardContent,
-  Avatar,
-  Modal
-}from "@mui/material";
+  Avatar
+} from "@mui/material";
 
 // Material UI Icons
 import SearchIcon from '@mui/icons-material/Search';
@@ -38,13 +40,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Usuarios = () => {  const [loading, setLoading] = useState(true);
+const Usuarios = () => {
+  const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
-  const [openModal, setOpenModal] = useState(false);
 
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
@@ -57,12 +59,11 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
       
       // Adicionando um delay artificial para mostrar a tela de carregamento
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Dados de exemplo para usuários
+        // Dados de exemplo para usuários
       const mockUsuarios = [
-        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'TI (root)', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
-        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Administrador', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
-        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
+        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'TI (root)', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent('JS')}` },
+        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Administrador', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent('MS')}` },
+        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent('PO')}` },
       ];
       
       setUsuarios(mockUsuarios);
@@ -77,6 +78,7 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const handleChangePage = (event, newPage) => {
     setPage(newPage);
   };
+
   const handleChangeRowsPerPage = (event) => {
     setRowsPerPage(parseInt(event.target.value, 10));
     setPage(0);
@@ -85,14 +87,6 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const handleSearchChange = (event) => {
     setSearchText(event.target.value);
     setPage(0);
-  };
-  
-  const handleOpenModal = () => {
-    setOpenModal(true);
-  };
-  
-  const handleCloseModal = () => {
-    setOpenModal(false);
   };
 
   const filteredUsuarios = usuarios.filter(
@@ -436,12 +430,12 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
             </Card>
           </Box>
         </Box>
-          <Button 
+        
+        <Button 
           size="small" 
           variant="contained" 
           disableElevation
           startIcon={<AddIcon fontSize="small" />}
-          onClick={handleOpenModal}
           sx={{ 
             height: '38px',
             bgcolor: '#61131A', 
@@ -516,8 +510,7 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
                       transition: 'background-color 0.2s',
                       height: '54px' 
                     }}
-                  >
-                    <TableCell align="center" sx={{ py: 0.8 }}>
+                  >                    <TableCell align="center" sx={{ py: 0.8 }}>
                       <Avatar 
                         src={item.avatar} 
                         alt={item.nome}
@@ -525,7 +518,7 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
                           width: 34, 
                           height: 34, 
                           margin: '0 auto',
-                          bgcolor: '#ccc'
+                          bgcolor: '#61131A' // Using brand color as fallback
                         }}
                       />
                     </TableCell>
@@ -613,34 +606,10 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
               '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                 fontSize: '0.875rem',
               }
-            }}          />
+            }}
+          />
         </TableContainer>
       </Container>
-        {/* Modal vazio */}
-      <Modal
-        open={openModal}
-        onClose={handleCloseModal}
-        aria-labelledby="novo-usuario-modal"
-        aria-describedby="modal-para-cadastro-de-novo-usuario"
-      >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '700px',
-          height: '400px',
-          bgcolor: 'background.paper',
-          borderTop: '4px solid #61131A',
-          boxShadow: '0px 15px 35px -5px rgba(0,0,0,0.15), 0px 10px 15px -5px rgba(0,0,0,0.07)',
-          p: 0,
-          borderRadius: '12px',
-          outline: 'none',
-          overflow: 'hidden',
-        }}>
-          {/* Conteúdo do modal vai aqui posteriormente */}
-        </Box>
-      </Modal>
     </div>
   );
 };
