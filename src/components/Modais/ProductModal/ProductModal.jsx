@@ -24,7 +24,7 @@ const style = {
   overflowY: 'auto',
 };
 
-export default function BasicModal() {
+export default function ProductModal({ title, buttonText }) {
   const [open, setOpen] = useState(false);
   const [imagem, setImagem] = useState(null);
 
@@ -54,7 +54,7 @@ return (
                         mb: 2,
                     }}
                 >
-                    Novo Produto
+                    {title}                
                 </DialogTitle>
 
                 <Box
@@ -189,7 +189,7 @@ return (
                             backgroundColor: '#6b0f1a',
                         }}
                     >
-                        Cadastrar Produto
+                       {buttonText}
                     </Button>
                 </Box>
             </Box>
