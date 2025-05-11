@@ -53,27 +53,45 @@ const Pedidos = () => {
     try {
       setLoading(true);
       
-      // Adicionando um delay artificial para mostrar a tela de carregamento
+
       await new Promise(resolve => setTimeout(resolve, 1000));
       
-      // Dados de exemplo para pedidos
-      const mockPedidos = [
-        { id: 1, idSolicitacao: 'SOL-001', cnpjCpf: '12.345.678/0001-90', aprovado: true, dataPedido: '01/05/2025', valor: 1250.99, status: 'Aprovado' },
-        { id: 2, idSolicitacao: 'SOL-002', cnpjCpf: '98.765.432/0001-21', aprovado: false, dataPedido: '28/04/2025', valor: 750.50, status: 'Pendente' },
-        { id: 3, idSolicitacao: 'SOL-003', cnpjCpf: '45.678.901/0001-23', aprovado: true, dataPedido: '25/04/2025', valor: 3200.00, status: 'Aprovado' },
-        { id: 4, idSolicitacao: 'SOL-004', cnpjCpf: '789.456.123-45', aprovado: true, dataPedido: '20/04/2025', valor: 899.90, status: 'Entregue' },
-        { id: 5, idSolicitacao: 'SOL-005', cnpjCpf: '34.567.890/0001-12', aprovado: false, dataPedido: '15/04/2025', valor: 1599.99, status: 'Cancelado' },
-        { id: 6, idSolicitacao: 'SOL-006', cnpjCpf: '23.456.789/0001-34', aprovado: true, dataPedido: '10/04/2025', valor: 2399.00, status: 'Aprovado' },
-        { id: 7, idSolicitacao: 'SOL-007', cnpjCpf: '56.789.012/0001-45', aprovado: true, dataPedido: '05/04/2025', valor: 4500.00, status: 'Entregue' },
-        { id: 8, idSolicitacao: 'SOL-008', cnpjCpf: '67.890.123/0001-56', aprovado: false, dataPedido: '01/04/2025', valor: 799.90, status: 'Pendente' }
-      ];
       
-      setPedidos(mockPedidos);
-      setTotalPedidos(mockPedidos.length);
+      const response = await api.get('/orders');
+      console.log('Resposta dos pedidos:', response);
+
+      const responseData = response.data.data || response.data;
+
+      if (Array.isArray(responseData)) {
+        setPedidos(responseData);
+        setTotalPedidos(responseData.length);
+      } else {
+        console.error('Dados recebidos não são um array:', responseData);
+        setPedidos([]);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCreate = async () => {
+    try {
+
+      const response = await api.post('/orders', {
+        
+          "codigo": "PED-2023-004",
+          "fkEmpresa": 1,
+          "nomeComprador": "João Silva",
+          "emailComprador": "joao.silva@email.com",
+          "telCelular": "(11) 98765-4321",
+          "status": "Aprovado"
+      });
+      console.log('Resposta do pedido criado:', response);
+      fetchPedidos();
+    } catch (error) {
+      console.error('Erro ao criar pedido:', error);
     }
   };
 
@@ -93,9 +111,9 @@ const Pedidos = () => {
 
   const filteredPedidos = pedidos.filter(
     (item) => 
-      item.idSolicitacao.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.cnpjCpf.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.dataPedido.includes(searchText)
+      (typeof item.idPedido === 'string' && item.idPedido.toLowerCase().includes(searchText.toLowerCase())) ||
+      (item.fkEmpresa && typeof item.fkEmpresa.cnpj === 'string' && item.fkEmpresa.cnpj.toLowerCase().includes(searchText.toLowerCase())) ||
+      (typeof item.createdAt === 'string' && item.createdAt.includes(searchText))
   );
 
   if (loading) {
@@ -411,7 +429,7 @@ const Pedidos = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
-                      {pedidos.filter(item => item.aprovado).length}
+                      {pedidos.filter(item => item.status === 'Aprovado').length}
                     </Typography>
                     <Typography variant="caption" sx={{ 
                       fontSize: '0.6rem',
@@ -451,7 +469,8 @@ const Pedidos = () => {
             flexShrink: 0, 
             ml: { xs: 0, sm: 'auto' }, 
             alignSelf: { xs: 'flex-start', sm: 'center' } 
-          }}
+          }} 
+          onClick={fetchCreate }
         >
           Novo Pedido
         </Button>
@@ -513,8 +532,8 @@ const Pedidos = () => {
                       height: '54px' 
                     }}
                   >
-                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idSolicitacao}</TableCell>
-                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.cnpjCpf}</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idPedido}</TableCell>
+                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.fkEmpresa.cnpj}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
                         icon={item.aprovado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
@@ -530,7 +549,7 @@ const Pedidos = () => {
                         }}
                       />
                     </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.dataPedido}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
                     </TableCell>
