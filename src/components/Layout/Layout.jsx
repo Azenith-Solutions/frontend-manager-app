@@ -1,6 +1,10 @@
 import React, { useState } from "react";
 import './Layout.css';
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
+
+// Standardized avatar URL
+const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33&name=";
+
 import {
     AppBar,
     Box,
@@ -574,12 +578,12 @@ const Layout = () => {
                             {/* Notification Icon */}
                             <IconButton color="inherit">
                                 <NotificationsNoneOutlinedIcon />
-                            </IconButton>
-
-                            {/* Avatar */}
-                            <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}>
-                                U
-                            </Avatar>
+                            </IconButton>                            {/* Avatar */}
+                            <Avatar 
+                                src={`${STANDARD_AVATAR}JC`}
+                                alt="Jean Charles"
+                                sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}
+                            />
 
                             {/* Username */}
                             <Typography variant="subtitle1" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
