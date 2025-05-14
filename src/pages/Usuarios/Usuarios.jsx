@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import styles from "./Usuarios.module.css";
 import { api } from "../../provider/apiProvider";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
+import UserEditModal from "../../components/forms/UserFormModal/UserEditModal";
+import UserDeleteModal from "../../components/forms/UserFormModal/UserDeleteModal";
 
 // Standardized avatar URL
 const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
@@ -26,7 +28,9 @@ import {
   Divider,
   Card,
   CardContent,
-  Avatar
+  Avatar,
+  Snackbar,
+  Alert
 } from "@mui/material";
 
 // Material UI Icons
@@ -47,12 +51,22 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
-  const [modalOpen, setModalOpen] = useState(false);
-  useEffect(() => {
+  const [modalOpen, setModalOpen] = useState(false);  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [updatedUserId, setUpdatedUserId] = useState(null);
+  const [deletedUserId, setDeletedUserId] = useState(null);
+  const [feedbackMessage, setFeedbackMessage] = useState({ open: false, message: '', severity: 'success' });
+    useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
   }, []);
-
+  
+  // Atualizar a contagem de usuários quando a lista mudar
+  useEffect(() => {
+    setTotalUsuarios(usuarios.length);
+  }, [usuarios]);
+  
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
@@ -69,13 +83,16 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
             .join('')
             .substring(0, 2);
             
-          return {            id: user.id,
+          return {
+            id: user.id,
             nome: user.fullName,
             email: user.email,
             cargo: user.role,
             status: user.status ? 'Ativo' : 'Inativo',
             criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
-            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`
+            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`,
+            // Dados originais para facilitar a edição
+            rawData: user
           };
         });
         
@@ -108,6 +125,18 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
     setSearchText(event.target.value);
     setPage(0);
   };
+    // Função para lidar com o clique no botão de editar
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  };
+  
+  // Função para lidar com o clique no botão de excluir
+  const handleDeleteUser = (user) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+  
   const filteredUsuarios = usuarios.filter(
     (item) => 
       (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
@@ -517,17 +546,34 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
               <TableBody>
                 {filteredUsuarios
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((item) => (
-                  <TableRow
+                  .map((item) => (                  <TableRow
                     key={item.id}
-                    hover
-                    sx={{ 
+                    hover                    sx={{ 
                       '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                      '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                      transition: 'background-color 0.2s',
-                      height: '54px' 
+                      '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },                      
+                      transition: 'background-color 0.3s, box-shadow 0.3s, opacity 0.5s',
+                      height: '54px',
+                      ...(updatedUserId === item.id && {
+                        backgroundColor: 'rgba(97, 19, 26, 0.08)',
+                        boxShadow: 'inset 0 0 0 1px rgba(97, 19, 26, 0.3)',
+                        animation: 'pulse 1.5s',
+                        '@keyframes pulse': {
+                          '0%': { backgroundColor: 'rgba(97, 19, 26, 0.2)' },
+                          '50%': { backgroundColor: 'rgba(97, 19, 26, 0.05)' },
+                          '100%': { backgroundColor: 'rgba(97, 19, 26, 0.1)' }
+                        }
+                      }),
+                      ...(deletedUserId === item.id && {
+                        opacity: 0.3,
+                        backgroundColor: 'rgba(255, 0, 0, 0.05)',
+                        animation: 'fadeOut 1.5s',
+                        '@keyframes fadeOut': {
+                          '0%': { opacity: 1, backgroundColor: 'rgba(255, 0, 0, 0.1)' },
+                          '100%': { opacity: 0.3, backgroundColor: 'rgba(255, 0, 0, 0.05)' }
+                        }
+                      })
                     }}
-                  >                    <TableCell align="center" sx={{ py: 0.8 }}>
+                  ><TableCell align="center" sx={{ py: 0.8 }}>
                       <Avatar 
                         src={item.avatar} 
                         alt={item.nome}
@@ -558,21 +604,21 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <IconButton 
+                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>                        <IconButton 
                           size="small" 
                           title="Editar" 
+                          onClick={() => handleEditUser(item)}
                           sx={{ 
-                            color: '#2980b9', 
-                            backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                            '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' } 
+                            color: '#d4a31a', 
+                            backgroundColor: '#ebb2142f',
+                            '&:hover': { backgroundColor: '#ebb21447' } 
                           }}
                         >
                           <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
+                        </IconButton>                        <IconButton 
                           size="small" 
                           title="Excluir" 
+                          onClick={() => handleDeleteUser(item)}
                           sx={{ 
                             color: '#c0392b', 
                             backgroundColor: 'rgba(192, 57, 43, 0.1)',
@@ -633,6 +679,78 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
           fetchUsuarios(); // Recarrega a lista após o cadastro
         }} 
       />
+        {/* Modal for editing a user */}
+      <UserEditModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUserUpdated={() => {
+          // Marcar o ID do usuário atualizado antes de buscar os dados
+          if (selectedUser) {
+            setUpdatedUserId(selectedUser.id);
+          }
+          fetchUsuarios();
+          
+          // Limpar o ID após 2 segundos para remover o efeito de destaque
+          setTimeout(() => {
+            setUpdatedUserId(null);
+          }, 2000);
+        }}
+      />
+      
+      {/* Modal for deleting a user */}      <UserDeleteModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUserDeleted={() => {
+          // Marcar o ID do usuário excluído antes de buscar os dados
+          if (selectedUser) {
+            setDeletedUserId(selectedUser.id);
+            
+            // Atualizar a lista localmente removendo o usuário
+            setUsuarios(prev => prev.filter(user => user.id !== selectedUser.id));
+            
+            // Mostrar mensagem de feedback
+            setFeedbackMessage({
+              open: true,
+              message: `Usuário ${selectedUser.nome} excluído com sucesso!`,
+              severity: 'success'
+            });
+            
+            // Limpar o ID após 2 segundos
+            setTimeout(() => {
+              setDeletedUserId(null);
+            }, 2000);
+          }
+        }}
+      />
+      
+      {/* Snackbar para feedback */}
+      <Snackbar
+        open={feedbackMessage.open}
+        autoHideDuration={5000}
+        onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert 
+          onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))} 
+          severity={feedbackMessage.severity} 
+          variant="filled"
+          sx={{ 
+            width: '100%',
+            maxWidth: '400px',
+            fontSize: '0.9rem'
+          }}
+        >
+          {feedbackMessage.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
