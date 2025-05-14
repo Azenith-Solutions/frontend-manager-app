@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Usuarios.module.css";
 import { api } from "../../provider/apiProvider";
+import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
+
+// Standardized avatar URL
+const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
 
 // Material UI Components
 import {
@@ -37,14 +41,13 @@ import CancelIcon from '@mui/icons-material/Cancel';
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Usuarios = () => {
-  const [loading, setLoading] = useState(true);
+const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
-
+  const [modalOpen, setModalOpen] = useState(false);
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
@@ -54,25 +57,39 @@ const Usuarios = () => {
     try {
       setLoading(true);
       
-      // Adicionando um delay artificial para mostrar a tela de carregamento
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await api.get('/users');
+      console.log('Resposta da API:', response.data);
       
-      // Dados de exemplo para usuários
-      const mockUsuarios = [
-        { id: 1, nome: 'João Silva', email: 'joao.silva@example.com', cargo: 'Administrador', departamento: 'TI', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/1.jpg' },
-        { id: 2, nome: 'Maria Santos', email: 'maria.santos@example.com', cargo: 'Gerente', departamento: 'Vendas', status: 'Ativo', ultimoAcesso: '30/04/2025', avatar: 'https://randomuser.me/api/portraits/women/2.jpg' },
-        { id: 3, nome: 'Pedro Oliveira', email: 'pedro.oliveira@example.com', cargo: 'Técnico', departamento: 'Suporte', status: 'Inativo', ultimoAcesso: '15/04/2025', avatar: 'https://randomuser.me/api/portraits/men/3.jpg' },
-        { id: 4, nome: 'Ana Costa', email: 'ana.costa@example.com', cargo: 'Analista', departamento: 'Financeiro', status: 'Ativo', ultimoAcesso: '29/04/2025', avatar: 'https://randomuser.me/api/portraits/women/4.jpg' },
-        { id: 5, nome: 'Carlos Ferreira', email: 'carlos.ferreira@example.com', cargo: 'Administrador', departamento: 'TI', status: 'Ativo', ultimoAcesso: '01/05/2025', avatar: 'https://randomuser.me/api/portraits/men/5.jpg' },
-        { id: 6, nome: 'Luciana Almeida', email: 'luciana.almeida@example.com', cargo: 'Estoquista', departamento: 'Logística', status: 'Ativo', ultimoAcesso: '28/04/2025', avatar: 'https://randomuser.me/api/portraits/women/6.jpg' },
-        { id: 7, nome: 'Ricardo Souza', email: 'ricardo.souza@example.com', cargo: 'Contador', departamento: 'Financeiro', status: 'Inativo', ultimoAcesso: '10/04/2025', avatar: 'https://randomuser.me/api/portraits/men/7.jpg' },
-        { id: 8, nome: 'Mariana Lima', email: 'mariana.lima@example.com', cargo: 'Recepcionista', departamento: 'Administrativo', status: 'Ativo', ultimoAcesso: '27/04/2025', avatar: 'https://randomuser.me/api/portraits/women/8.jpg' },
-      ];
-      
-      setUsuarios(mockUsuarios);
-      setTotalUsuarios(mockUsuarios.length);
+      if (response.data && response.data.data) {
+        const usuariosAPI = response.data.data.map(user => {
+          // Extrair iniciais para o avatar
+          const iniciais = user.fullName
+            .split(' ')
+            .map(n => n[0])
+            .join('')
+            .substring(0, 2);
+            
+          return {            id: user.id,
+            nome: user.fullName,
+            email: user.email,
+            cargo: user.role,
+            status: user.status ? 'Ativo' : 'Inativo',
+            criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
+            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`
+          };
+        });
+        
+        setUsuarios(usuariosAPI);
+        setTotalUsuarios(usuariosAPI.length);
+      } else {
+        console.error('Formato de resposta inesperado:', response);
+        setUsuarios([]);
+        setTotalUsuarios(0);
+      }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
+      setUsuarios([]);
+      setTotalUsuarios(0);
     } finally {
       setLoading(false);
     }
@@ -91,13 +108,11 @@ const Usuarios = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
-
   const filteredUsuarios = usuarios.filter(
     (item) => 
-      item.nome.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.email.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.cargo.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.departamento.toLowerCase().includes(searchText.toLowerCase())
+      (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
+      (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
+      (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
   );
 
   if (loading) {
@@ -411,9 +426,8 @@ const Usuarios = () => {
                       color: '#333',
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {usuarios.filter(item => item.cargo === 'Administrador').length}
+                      textOverflow: 'ellipsis'                    }}>
+                      {usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length}
                     </Typography>
                     <Typography variant="caption" sx={{ 
                       fontSize: '0.6rem',
@@ -434,12 +448,12 @@ const Usuarios = () => {
             </Card>
           </Box>
         </Box>
-        
-        <Button 
+          <Button 
           size="small" 
           variant="contained" 
           disableElevation
           startIcon={<AddIcon fontSize="small" />}
+          onClick={() => setModalOpen(true)}
           sx={{ 
             height: '38px',
             bgcolor: '#61131A', 
@@ -493,12 +507,10 @@ const Usuarios = () => {
                   }
                 }}>
                   <TableCell align="center">Avatar</TableCell>
-                  <TableCell align="center">Nome</TableCell>
-                  <TableCell align="center">Email</TableCell>
+                  <TableCell align="center">Nome</TableCell>                  <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Cargo</TableCell>
-                  <TableCell align="center">Departamento</TableCell>
                   <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Último Acesso</TableCell>
+                  <TableCell align="center">Criado em</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
@@ -515,8 +527,7 @@ const Usuarios = () => {
                       transition: 'background-color 0.2s',
                       height: '54px' 
                     }}
-                  >
-                    <TableCell align="center" sx={{ py: 0.8 }}>
+                  >                    <TableCell align="center" sx={{ py: 0.8 }}>
                       <Avatar 
                         src={item.avatar} 
                         alt={item.nome}
@@ -524,14 +535,13 @@ const Usuarios = () => {
                           width: 34, 
                           height: 34, 
                           margin: '0 auto',
-                          bgcolor: '#ccc'
+                          bgcolor: '#61131A' // Using brand color as fallback
                         }}
                       />
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
                     <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.departamento}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
                         icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
@@ -543,11 +553,10 @@ const Usuarios = () => {
                           fontWeight: 500,
                           fontSize: '0.75rem',
                           borderRadius: '4px',
-                          '& .MuiChip-icon': { color: 'inherit' }
-                        }}
+                          '& .MuiChip-icon': { color: 'inherit' }                        }}
                       />
                     </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.ultimoAcesso}</TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
                         <IconButton 
@@ -580,12 +589,12 @@ const Usuarios = () => {
                  filteredUsuarios.length < rowsPerPage && 
                  Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
                   <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                    <TableCell colSpan={8} />
+                    <TableCell colSpan={7} />
                   </TableRow>
                 ))}
                 {filteredUsuarios.length === 0 && (
                   <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={8} align="center">
+                    <TableCell colSpan={7} align="center">
                       Nenhum usuário encontrado
                     </TableCell>
                   </TableRow>
@@ -612,11 +621,18 @@ const Usuarios = () => {
               },
               '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
                 fontSize: '0.875rem',
-              }
-            }}
+              }            }}
           />
         </TableContainer>
       </Container>
+        {/* Modal for creating a new user */}
+      <UserFormModal 
+        open={modalOpen} 
+        onClose={() => {
+          setModalOpen(false);
+          fetchUsuarios(); // Recarrega a lista após o cadastro
+        }} 
+      />
     </div>
   );
 };

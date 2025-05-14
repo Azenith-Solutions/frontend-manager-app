@@ -1,0 +1,22 @@
+.formField {
+  margin-bottom: 16px;
+}
+
+.errorText {
+  color: #f44336;
+  margin-top: 4px;
+  font-size: 0.75rem;
+}
+
+.selectField {
+  width: 100%;
+}
+
+.submitButton {
+  margin-top: 8px;
+  background-color: #61131A;
+}
+
+.submitButton:hover {
+  background-color: #4e0f15;
+}

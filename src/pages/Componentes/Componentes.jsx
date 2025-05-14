@@ -1,6 +1,7 @@
 import React, { Component, useEffect, useState } from "react";
 import styles from "./Componentes.module.css";
 import { api } from "../../provider/apiProvider";
+import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
 
 // Material UI Components
 import {
@@ -44,6 +45,8 @@ const Componentes = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalComponents, setTotalComponents] = useState(0);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [componentToEdit, setComponentToEdit] = useState(null);
 
   // Imagem padrão para os componentes TESTE
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
@@ -99,6 +102,24 @@ const Componentes = () => {
       (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
       item.idHardWareTech.toString().includes(searchText.toLowerCase())
   );
+  
+  // Nova função para abrir modal de edição
+  const handleEditComponent = (component) => {
+    setComponentToEdit(component);
+    setModalOpen(true);
+  };
+
+  // Função para abrir modal de criação
+  const handleAddComponent = () => {
+    setComponentToEdit(null);
+    setModalOpen(true);
+  };
+  
+  // Função para fechar modal e recarregar a lista
+  const handleCloseModal = () => {
+    setModalOpen(false);
+    fetchComponents();
+  };
 
   if (loading) {
     return (
@@ -437,6 +458,7 @@ const Componentes = () => {
           variant="contained" 
           disableElevation
           startIcon={<AddIcon fontSize="small" />}
+          onClick={handleAddComponent}
           sx={{ 
             height: '38px',
             bgcolor: '#61131A', 
@@ -452,7 +474,7 @@ const Componentes = () => {
             alignSelf: { xs: 'flex-start', sm: 'center' } 
           }}
         >
-          Criar
+          Adicionar componente
         </Button>
       </Paper>
       <Container 
@@ -567,6 +589,7 @@ const Componentes = () => {
                         <IconButton 
                           size="small" 
                           title="Editar" 
+                          onClick={() => handleEditComponent(item)}
                           sx={{ 
                             color: '#2980b9', 
                             backgroundColor: 'rgba(41, 128, 185, 0.1)',
@@ -631,6 +654,13 @@ const Componentes = () => {
           />
         </TableContainer>
       </Container>
+
+      {/* Modal do formulário de componente */}
+      <ComponentFormModal 
+        open={modalOpen} 
+        onClose={handleCloseModal} 
+        componentToEdit={componentToEdit}
+      />
     </div>
   );
 };
