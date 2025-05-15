@@ -2,14 +2,16 @@ import React, { useEffect, useState } from "react";
 import styles from "./Pedido.module.css";
 import { api } from "../../provider/apiProvider";
 
+// Componentes genéricos para header e filtro
+import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
+import PedidosFilter from "../../components/menuFilter/PedidosFilter";
+
 // Material UI Components
 import {
   Box,
   CircularProgress,
   Typography,
   Container,
-  Button,
-  IconButton,
   Paper,
   Table,
   TableBody,
@@ -19,16 +21,10 @@ import {
   TableRow,
   Chip,
   TablePagination,
-  Divider,
-  Card,
-  CardContent
+  IconButton,
 } from "@mui/material";
 
 // Material UI Icons
-import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -43,6 +39,18 @@ const Pedidos = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalPedidos, setTotalPedidos] = useState(0);
+
+  // Estado para controlar o menu de filtros
+  const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
+  const [availableClientes, setAvailableClientes] = useState([]);
+  
+  // Estado para filtros ativos
+  const [activeFilters, setActiveFilters] = useState({
+    status: [],
+    aprovado: null,
+    periodo: null,
+    clientes: []
+  });
 
   useEffect(() => {
     document.title = "HardwareTech | Pedidos";
@@ -70,6 +78,13 @@ const Pedidos = () => {
       
       setPedidos(mockPedidos);
       setTotalPedidos(mockPedidos.length);
+      
+      // Extrair clientes únicos para filtro
+      const clientes = [...new Set(mockPedidos.map(p => p.cnpjCpf))].map(cnpjCpf => {
+        return { id: cnpjCpf, cnpjCpf };
+      });
+      setAvailableClientes(clientes);
+      
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
@@ -91,12 +106,123 @@ const Pedidos = () => {
     setPage(0);
   };
 
+  // Handlers para o menu de filtros
+  const handleFilterMenuClick = (event) => {
+    setFilterMenuAnchor(event.currentTarget);
+  };
+
+  const handleFilterMenuClose = () => {
+    setFilterMenuAnchor(null);
+  };
+  
+  // Manipuladores de filtros para Pedidos
+  const toggleStatusFilter = (status) => {
+    setActiveFilters(prev => {
+      const updatedStatus = prev.status.includes(status)
+        ? prev.status.filter(s => s !== status)
+        : [...prev.status, status];
+      
+      return { ...prev, status: updatedStatus };
+    });
+    setPage(0);
+  };
+
+  const toggleAprovadoFilter = (value) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      aprovado: prev.aprovado === value ? null : value
+    }));
+    setPage(0);
+  };
+
+  const togglePeriodoFilter = (periodo) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      periodo: prev.periodo === periodo ? null : periodo
+    }));
+    setPage(0);
+  };
+  
+  const toggleClienteFilter = (clienteId) => {
+    setActiveFilters(prev => {
+      const updatedClientes = prev.clientes.includes(clienteId)
+        ? prev.clientes.filter(c => c !== clienteId)
+        : [...prev.clientes, clienteId];
+      
+      return { ...prev, clientes: updatedClientes };
+    });
+    setPage(0);
+  };
+  
+  const clearAllFilters = () => {
+    setActiveFilters({
+      status: [],
+      aprovado: null,
+      periodo: null,
+      clientes: []
+    });
+    setPage(0);
+  };
+
+  // Contagem de filtros ativos
+  const activeFilterCount = [
+    activeFilters.status.length > 0,
+    activeFilters.aprovado !== null,
+    activeFilters.periodo !== null,
+    activeFilters.clientes.length > 0
+  ].filter(Boolean).length;
+  
+  // Filtrar os pedidos baseado nos filtros aplicados
   const filteredPedidos = pedidos.filter(
-    (item) => 
-      item.idSolicitacao.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.cnpjCpf.toLowerCase().includes(searchText.toLowerCase()) ||
-      item.dataPedido.includes(searchText)
+    (item) => {
+      // Filtro de busca/texto
+      const matchesSearch = 
+        item.idSolicitacao.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.cnpjCpf.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.dataPedido.includes(searchText);
+        
+      // Filtro por status
+      const matchesStatus = activeFilters.status.length === 0 ||
+        activeFilters.status.includes(item.status);
+        
+      // Filtro por aprovado
+      const matchesAprovado = activeFilters.aprovado === null ||
+        item.aprovado === activeFilters.aprovado;
+        
+      // Filtro por cliente
+      const matchesCliente = activeFilters.clientes.length === 0 ||
+        activeFilters.clientes.includes(item.cnpjCpf);
+        
+      // Filtro por período (simplificado, em produção usaria datas reais)
+      const matchesPeriodo = activeFilters.periodo === null || true; // Simplificação
+      
+      return matchesSearch && matchesStatus && matchesAprovado && matchesCliente && matchesPeriodo;
+    }
   );
+
+  // Função para abrir formulário de novo pedido
+  const handleAddPedido = () => {
+    console.log("Abrir formulário para novo pedido");
+    // Implementar a abertura do modal de formulário no futuro
+  };
+
+  // Cartões de estatísticas para o header
+  const statsCards = [
+    {
+      icon: <ReceiptIcon sx={{ color: '#61131A', fontSize: 14 }} />,
+      iconBgColor: '#ffeded',
+      color: '#61131A',
+      value: totalPedidos,
+      label: 'Pedidos'
+    },
+    {
+      icon: <ShoppingCartIcon sx={{ color: '#27ae60', fontSize: 14 }} />,
+      iconBgColor: '#eaf7ef',
+      color: '#27ae60',
+      value: pedidos.filter(item => item.aprovado).length,
+      label: 'Aprovados'
+    }
+  ];
 
   if (loading) {
     return (
@@ -111,351 +237,20 @@ const Pedidos = () => {
 
   return (
     <div className={styles.pedidos}>
-      <Paper elevation={1} className={styles.toolbar} sx={{ 
-        p: '10px 16px',
-        display: 'flex',
-        flexWrap: 'wrap', 
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        boxShadow: '0 2px 8px rgba(255, 255, 255, 0.08)',
-        borderRadius: '8px',
-        mb: 2,
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexWrap: 'wrap',
-          alignItems: 'center', 
-          gap: '12px',
-          flex: '1 1 auto', 
-          minWidth: '0', 
-        }}>
-          <Box
-            sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              width: { xs: '100%', sm: '250px' },
-              minWidth: { xs: '100%', sm: '250px' },
-              maxWidth: '300px',
-              height: '38px',
-              backgroundColor: '#f0f2f5',
-              borderRadius: '20px',
-              px: 1.5,
-              overflow: 'hidden',
-              border: '1px solid transparent',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                backgroundColor: '#e9ecf0',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
-              },
-              '&:focus-within': {
-                backgroundColor: '#fff',
-                boxShadow: '0 0 0 2px rgba(97,19,26,0.1)',
-                border: '1px solid #e0e0e0'
-              }
-            }}
-          >
-            <SearchIcon 
-              sx={{ 
-                color: '#61131A', 
-                fontSize: 18,
-                opacity: 0.7,
-                mr: 1,
-                transition: 'transform 0.2s ease',
-                transform: 'rotate(-5deg)',
-                '&:hover': {
-                  transform: 'rotate(0deg) scale(1.1)'
-                }
-              }} 
-            />
-            <input 
-              type="text" 
-              placeholder="Buscar pedido..."
-              value={searchText}
-              onChange={handleSearchChange}
-              style={{
-                border: 'none',
-                outline: 'none',
-                backgroundColor: 'transparent',
-                color: '#333',
-                width: '100%',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                padding: '0px',
-                fontFamily: 'inherit'
-              }}
-            />
-          </Box>
-          
-          <Box sx={{ 
-            display: 'flex', 
-            gap: '10px',
-            flexShrink: 0,
-          }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FilterListIcon 
-                fontSize="small" 
-                sx={{ 
-                  color: '#61131A',
-                  transition: 'transform 0.3s ease',
-                  '&:hover': {
-                    transform: 'rotate(180deg)'
-                  }
-                }} 
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Filtrar
-              </Typography>
-            </Box>
-            
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FileDownloadIcon 
-                fontSize="small" 
-                sx={{ 
-                  color: '#2980b9',
-                  transition: 'transform 0.2s ease',
-                }} 
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Exportar
-              </Typography>
-            </Box>
-          </Box>
-          
-          <Divider orientation="vertical" flexItem sx={{ 
-            height: 28, 
-            mx: 0.5,
-            display: { xs: 'none', md: 'block' } 
-          }} />
-          
-          <Box sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap',
-            alignItems: 'center', 
-            gap: '12px',
-            ml: { xs: 0, md: 0.5 },
-            flexGrow: 1,
-            justifyContent: { xs: 'flex-start', md: 'flex-start' },
-          }}>
-            <Card sx={{ 
-              height: '38px', 
-              flex: '1 1 140px',
-              maxWidth: '180px',
-              minWidth: '140px',
-              borderTop: '3px solid #61131A',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s',
-              overflow: 'visible',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-              }
-            }}>
-              <CardContent sx={{ 
-                p: '4px 8px', 
-                pb: '4px !important', 
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  width: '100%',
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{ 
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    backgroundColor: '#ffeded',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 1,
-                    flexShrink: 0
-                  }}>
-                    <ReceiptIcon sx={{ color: '#61131A', fontSize: 14 }} />
-                  </Box>
-                  <Box sx={{ 
-                    minWidth: 0, 
-                    overflow: 'hidden',
-                  }}>
-                    <Typography variant="h6" sx={{ 
-                      fontSize: '0.85rem',
-                      fontWeight: 700, 
-                      lineHeight: 1,
-                      mb: 0,
-                      color: '#333',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {totalPedidos}
-                    </Typography>
-                    <Typography variant="caption" sx={{ 
-                      fontSize: '0.6rem',
-                      color: '#666',
-                      fontWeight: 500,
-                      lineHeight: 1,
-                      mt: '0px',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      Pedidos
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-
-            <Card sx={{ 
-              height: '38px', 
-              flex: '1 1 170px',
-              maxWidth: '200px',
-              minWidth: '170px',
-              borderTop: '3px solid #27ae60',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s',
-              overflow: 'visible',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-              }
-            }}>
-              <CardContent sx={{ 
-                p: '4px 8px', 
-                pb: '4px !important', 
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  width: '100%',
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{ 
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    backgroundColor: '#eaf7ef',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 1,
-                    flexShrink: 0
-                  }}>
-                    <ShoppingCartIcon sx={{ color: '#27ae60', fontSize: 14 }} />
-                  </Box>
-                  <Box sx={{ 
-                    minWidth: 0, 
-                    overflow: 'hidden', 
-                  }}>
-                    <Typography variant="h6" sx={{ 
-                      fontSize: '0.85rem',
-                      fontWeight: 700, 
-                      lineHeight: 1,
-                      mb: 0,
-                      color: '#333',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {pedidos.filter(item => item.aprovado).length}
-                    </Typography>
-                    <Typography variant="caption" sx={{ 
-                      fontSize: '0.6rem',
-                      color: '#666',
-                      fontWeight: 500,
-                      lineHeight: 1,
-                      mt: '0px',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      Aprovados
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
-        
-        <Button 
-          size="small" 
-          variant="contained" 
-          disableElevation
-          startIcon={<AddIcon fontSize="small" />}
-          sx={{ 
-            height: '38px',
-            bgcolor: '#61131A', 
-            '&:hover': { bgcolor: '#4e0f15' },
-            borderRadius: '4px',
-            textTransform: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            px: 1.5,
-            minWidth: '100px',
-            flexShrink: 0, 
-            ml: { xs: 0, sm: 'auto' }, 
-            alignSelf: { xs: 'flex-start', sm: 'center' } 
-          }}
-        >
-          Novo Pedido
-        </Button>
-      </Paper>
+      {/* Utilizando o componente DatagridHeader genérico */}
+      <DatagridHeader 
+        title="Novo Pedido"
+        searchPlaceholder="Buscar pedido..."
+        searchProps={{
+          value: searchText,
+          onChange: handleSearchChange
+        }}
+        onAddClick={handleAddPedido}
+        activeFilterCount={activeFilterCount}
+        onFilterClick={handleFilterMenuClick}
+        statsCards={statsCards}
+      />
+      
       <Container 
         maxWidth={false} 
         disableGutters 
@@ -624,6 +419,19 @@ const Pedidos = () => {
           />
         </TableContainer>
       </Container>
+
+      {/* Menu de Filtros usando o componente específico */}
+      <PedidosFilter
+        anchorEl={filterMenuAnchor}
+        onClose={handleFilterMenuClose}
+        activeFilters={activeFilters}
+        toggleStatusFilter={toggleStatusFilter}
+        toggleAprovadoFilter={toggleAprovadoFilter}
+        togglePeriodoFilter={togglePeriodoFilter}
+        toggleClienteFilter={toggleClienteFilter}
+        availableClientes={availableClientes}
+        clearAllFilters={clearAllFilters}
+      />
     </div>
   );
 };
