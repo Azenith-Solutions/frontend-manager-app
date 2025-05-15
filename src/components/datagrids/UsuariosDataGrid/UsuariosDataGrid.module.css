@@ -1,0 +1,16 @@
+/* 
+  UsuariosDataGrid.module.css 
+  Estilos para o componente de tabela de usuários
+*/
+
+.usuariosDataGrid {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.tableContainer {
+  flex-grow: 1;
+  overflow: hidden;
+}
