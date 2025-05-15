@@ -23,7 +23,8 @@ import {
   Avatar,
   Divider,
   Card,
-  CardContent
+  CardContent,
+  Tooltip
 } from "@mui/material";
 
 // Material UI Icons
@@ -37,6 +38,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 const Componentes = () => {
   const [loading, setLoading] = useState(true);
@@ -517,7 +519,8 @@ const Componentes = () => {
                   <TableCell align="center">Quantidade</TableCell>
                   <TableCell align="center">Caixa</TableCell>
                   <TableCell align="center">Mercado Livre</TableCell>
-                  <TableCell align="center">Verificado</TableCell>
+                  <TableCell align="center">Status</TableCell>
+                  <TableCell align="center">Condição</TableCell>
                   <TableCell align="center">Ações</TableCell>
                 </TableRow>
               </TableHead>
@@ -572,7 +575,7 @@ const Componentes = () => {
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
                         icon={item.flagVerificado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.flagVerificado ? "Sim" : "Não"}
+                        label={item.flagVerificado ? "Verificado" : "Não verificado"}
                         size="small"
                         sx={{ 
                           backgroundColor: item.flagVerificado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
@@ -583,6 +586,52 @@ const Componentes = () => {
                           '& .MuiChip-icon': { color: 'inherit' }
                         }}
                       />
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>
+                      {item.flagVerificado ? (
+                        item.condicao ? (
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                            <Chip 
+                              label={item.condicao}
+                              size="small"
+                              sx={{ 
+                                backgroundColor: item.condicao === 'Bom Estado' 
+                                  ? 'rgba(46, 204, 113, 0.1)' 
+                                  : (item.condicao === 'Observação' ? 'rgba(231, 76, 60, 0.1)' : 'rgba(52, 152, 219, 0.1)'),
+                                color: item.condicao === 'Bom Estado' 
+                                  ? '#27ae60' 
+                                  : (item.condicao === 'Observação' ? '#e74c3c' : '#3498db'),
+                                fontWeight: 500,
+                                fontSize: '0.75rem',
+                                borderRadius: '4px',
+                              }}
+                            />
+                            {item.condicao === 'Observação' && item.observacao && (
+                              <Tooltip
+                                title={
+                                  <Typography variant="body2" sx={{ p: 1 }}>
+                                    {item.observacao}
+                                  </Typography>
+                                }
+                                arrow
+                                placement="top"
+                              >
+                                <IconButton size="small" sx={{ p: 0.3, ml: 0.2, color: '#e74c3c' }}>
+                                  <InfoOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
+                            )}
+                          </Box>
+                        ) : (
+                          <Typography variant="caption" sx={{ color: '#777', fontStyle: 'italic' }}>
+                            Não informada
+                          </Typography>
+                        )
+                      ) : (
+                        <Typography variant="caption" sx={{ color: '#777', fontStyle: 'italic' }}>
+                          N/A
+                        </Typography>
+                      )}
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
