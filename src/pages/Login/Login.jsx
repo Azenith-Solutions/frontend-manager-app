@@ -38,9 +38,11 @@ const Login = () => {
         })
         .then((response) => {
             if (response.status === 200) {
-                console.log('Response do login:', response.data);
+                console.log('Response do login:', response);
                 localStorage.setItem('isLoggedIn', 'true');
                 localStorage.setItem('token', response.data.data.token);
+                localStorage.setItem('user', JSON.stringify(response.data.data.name));
+                localStorage.setItem('role', response.data.data.fkFuncao.funcao);
                 navigate('/dashboard');
             }
         })

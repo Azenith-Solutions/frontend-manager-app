@@ -5,6 +5,14 @@ import { Outlet, useNavigate, useLocation } from "react-router-dom";
 // Standardized avatar URL
 const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33&name=";
 
+// Function to format name for avatar (first letter of first and last name)
+const formatNameForAvatar = (fullName) => {
+    if (!fullName) return "";
+    const nameParts = fullName.trim().split(" ");
+    if (nameParts.length === 1) return nameParts[0].charAt(0);
+    return `${nameParts[0].charAt(0)}${nameParts[nameParts.length - 1].charAt(0)}`;
+};
+
 import {
     AppBar,
     Box,
@@ -68,6 +76,11 @@ const Layout = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const theme = useTheme();
+
+  const user = localStorage.getItem("user").replace(/"/g, "");
+  const userInitials = formatNameForAvatar(user);
+  const userRole = localStorage.getItem("role");
+
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [mobileOpen, setMobileOpen] = useState(false);
   const [managementOpen, setManagementOpen] = useState(false);
@@ -79,6 +92,7 @@ const Layout = () => {
   const searchInputRef = React.useRef(null);
   
   const drawerWidth = sidebarExpanded ? EXPANDED_DRAWER_WIDTH : COLLAPSED_DRAWER_WIDTH;
+
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
@@ -135,7 +149,8 @@ const Layout = () => {
             subItems: [
                 { text: "Componentes", key: "components", path: "/componentes" },
                 { text: "Pedidos", key: "order", path: "/pedidos" },
-                { text: "Usuários", key: "users", path: "/usuarios" }
+                // Only show Usuários if not Gestor do Estoque
+                ...(userRole !== "Gestor do Estoque" ? [{ text: "Usuários", key: "users", path: "/usuarios" }] : [])
             ]
         },
         { text: "Relatórios e Análise", key: "report", path: "/analise" },
@@ -580,14 +595,14 @@ const Layout = () => {
                                 <NotificationsNoneOutlinedIcon />
                             </IconButton>                            {/* Avatar */}
                             <Avatar 
-                                src={`${STANDARD_AVATAR}JC`}
-                                alt="Jean Charles"
+                                src={`${STANDARD_AVATAR}${userInitials}`}
+                                alt={user}
                                 sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}
                             />
 
                             {/* Username */}
                             <Typography variant="subtitle1" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                Jean Charles
+                                {user ? user : "Usuário"}
                             </Typography>
                         </Box>
                     </ClickAwayListener>
