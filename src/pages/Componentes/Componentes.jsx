@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Componentes.module.css";
-import { api } from "../../provider/apiProvider";
+import { api } from "../../service/api";
 import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
 import ComponentesDataGrid from "../../components/datagrids/ComponentesDataGrid/ComponentesDataGrid";
 
@@ -29,11 +29,11 @@ const Componentes = () => {
   const [totalComponents, setTotalComponents] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [componentToEdit, setComponentToEdit] = useState(null);
-  
+
   // Estados para controlar o menu de filtros
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
   const [availableCaixas, setAvailableCaixas] = useState([]);
-  
+
   // Estado para armazenar filtros ativos
   const [activeFilters, setActiveFilters] = useState({
     caixas: [],
@@ -53,19 +53,19 @@ const Componentes = () => {
   const fetchComponents = async () => {
     try {
       setLoading(true);
-      
+
       // Adicionando um delay artificial para mostrar a tela de carregamento
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       const response = await api.get('/components');
       console.log('Resposta dos componentes:', response);
-      
+
       const responseData = response.data.data || response.data;
-      
+
       if (Array.isArray(responseData)) {
         setComponents(responseData);
         setTotalComponents(responseData.length);
-        
+
         // Extrair caixas únicas para o filtro
         const caixas = [...new Set(responseData
           .filter(item => item.fkCaixa?.nomeCaixa)
@@ -95,7 +95,7 @@ const Componentes = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
-  
+
   // Handlers para o menu de filtros
   const handleFilterMenuClick = (event) => {
     setFilterMenuAnchor(event.currentTarget);
@@ -104,14 +104,14 @@ const Componentes = () => {
   const handleFilterMenuClose = () => {
     setFilterMenuAnchor(null);
   };
-  
+
   // Manipuladores de filtros
   const toggleCaixaFilter = (caixaNome) => {
     setActiveFilters(prev => {
       const updatedCaixas = prev.caixas.includes(caixaNome)
         ? prev.caixas.filter(c => c !== caixaNome)
         : [...prev.caixas, caixaNome];
-      
+
       return { ...prev, caixas: updatedCaixas };
     });
     setPage(0);
@@ -138,12 +138,12 @@ const Componentes = () => {
       const updatedCondicoes = prev.condicao.includes(condicao)
         ? prev.condicao.filter(c => c !== condicao)
         : [...prev.condicao, condicao];
-      
+
       return { ...prev, condicao: updatedCondicoes };
     });
     setPage(0);
   };
-  
+
   const clearAllFilters = () => {
     setActiveFilters({
       caixas: [],
@@ -153,7 +153,7 @@ const Componentes = () => {
     });
     setPage(0);
   };
-  
+
   // Contagem de filtros ativos
   const activeFilterCount = [
     activeFilters.caixas.length > 0,
@@ -170,26 +170,26 @@ const Componentes = () => {
       (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
       item.idHardWareTech.toString().includes(searchText.toLowerCase())
     );
-    
+
     // Filtro por caixa
-    const matchesCaixa = activeFilters.caixas.length === 0 || 
+    const matchesCaixa = activeFilters.caixas.length === 0 ||
       (item.fkCaixa && activeFilters.caixas.includes(item.fkCaixa.nomeCaixa));
-    
+
     // Filtro por Mercado Livre
-    const matchesML = activeFilters.mercadoLivre === null || 
+    const matchesML = activeFilters.mercadoLivre === null ||
       item.flagML === activeFilters.mercadoLivre;
-    
+
     // Filtro por verificado
-    const matchesVerificado = activeFilters.verificado === null || 
+    const matchesVerificado = activeFilters.verificado === null ||
       item.flagVerificado === activeFilters.verificado;
-    
+
     // Filtro por condição
-    const matchesCondicao = activeFilters.condicao.length === 0 || 
+    const matchesCondicao = activeFilters.condicao.length === 0 ||
       (item.condicao && activeFilters.condicao.includes(item.condicao));
-    
+
     return matchesSearch && matchesCaixa && matchesML && matchesVerificado && matchesCondicao;
   });
-  
+
   // Nova função para abrir modal de edição
   const handleEditComponent = (component) => {
     setComponentToEdit(component);
@@ -201,7 +201,7 @@ const Componentes = () => {
     setComponentToEdit(null);
     setModalOpen(true);
   };
-  
+
   // Função para fechar modal e recarregar a lista
   const handleCloseModal = () => {
     setModalOpen(false);
@@ -246,7 +246,7 @@ const Componentes = () => {
   return (
     <div className={styles.componentes}>
       {/* Utilizando o componente DatagridHeader genérico */}
-      <DatagridHeader 
+      <DatagridHeader
         title="Adicionar componente"
         searchPlaceholder="Buscar componente..."
         searchProps={{
@@ -258,11 +258,11 @@ const Componentes = () => {
         onFilterClick={handleFilterMenuClick}
         statsCards={statsCards}
       />
-      
-      <Container 
-        maxWidth={false} 
-        disableGutters 
-        sx={{ 
+
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
           px: 0,
           flexGrow: 1,
           display: 'flex',
@@ -271,7 +271,7 @@ const Componentes = () => {
         }}
       >
         {/* Substituindo a tabela pelo componente ComponentesDataGrid */}
-        <ComponentesDataGrid 
+        <ComponentesDataGrid
           components={components}
           filteredComponents={filteredComponents}
           page={page}
@@ -298,9 +298,9 @@ const Componentes = () => {
       />
 
       {/* Modal do formulário de componente */}
-      <ComponentFormModal 
-        open={modalOpen} 
-        onClose={handleCloseModal} 
+      <ComponentFormModal
+        open={modalOpen}
+        onClose={handleCloseModal}
         componentToEdit={componentToEdit}
       />
     </div>

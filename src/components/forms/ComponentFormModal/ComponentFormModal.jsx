@@ -19,7 +19,7 @@ import {
   IconButton,
   Avatar
 } from '@mui/material';
-import { api } from '../../../provider/apiProvider';
+import { api } from '../../../service/api';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 
@@ -29,7 +29,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-  
+
   // Estados para armazenar dados de dropdowns
   const [caixas, setCaixas] = useState([]);
   const [categorias, setCategorias] = useState([]);
@@ -52,7 +52,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [imageError, setImageError] = useState('');
-  
+
   // Imagem padrão para componentes sem foto
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
 
@@ -104,7 +104,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         condicao: componentToEdit.condicao || '',
         observacao: componentToEdit.observacao || ''
       });
-      
+
       // Carregar imagem se existir
       if (componentToEdit.imagemUrl) {
         setPreviewImage(componentToEdit.imagemUrl);
@@ -153,7 +153,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImageError('');
-    
+
     if (!file) {
       return;
     }
@@ -172,7 +172,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
 
     // Salvar a imagem selecionada
     setSelectedImage(file);
-    
+
     // Criar URL para preview
     const reader = new FileReader();
     reader.onloadend = () => {
@@ -188,7 +188,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     if (!formData.idHardWareTech) {
       newErrors.idHardWareTech = 'O IDH é obrigatório';
     }
-    
+
     if (!formData.partNumber) {
       newErrors.partNumber = 'O Part Number é obrigatório';
     }
@@ -227,17 +227,17 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     try {
       // Se houver imagem selecionada, fazer upload primeiro
       let imageUrl = componentToEdit?.imagemUrl || null;
-      
+
       if (selectedImage) {
         const formDataImage = new FormData();
         formDataImage.append('imagem', selectedImage);
-        
+
         const uploadResponse = await api.post('/upload/component-image', formDataImage);
         if (uploadResponse.data && uploadResponse.data.url) {
           imageUrl = uploadResponse.data.url;
         }
       }
-      
+
       const dataToSend = {
         idHardWareTech: formData.idHardWareTech,
         partNumber: formData.partNumber,
@@ -261,7 +261,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       }
 
       setSuccess(true);
-      
+
       // Fecha o modal após 1.5 segundos
       setTimeout(() => {
         handleClose();
@@ -313,7 +313,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         sx: { borderRadius: 2 }
       }}
     >
-      <DialogTitle sx={{ 
+      <DialogTitle sx={{
         fontWeight: 700,
         color: '#333',
         borderBottom: '1px solid #eee',
@@ -324,7 +324,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       }}>
         {componentToEdit ? 'Editar Componente' : 'Adicionar Novo Componente'}
       </DialogTitle>
-      
+
       <DialogContent sx={{ pt: 3, pb: 1, display: 'flex', flexDirection: 'row', height: 'auto' }}>
         {/* Feedback de sucesso e erro */}
         {success && (
@@ -332,7 +332,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
             Componente {componentToEdit ? 'atualizado' : 'cadastrado'} com sucesso!
           </Alert>
         )}
-        
+
         {loadingDropdowns ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', py: 4 }}>
             <CircularProgress size={40} sx={{ color: '#61131A' }} />
@@ -340,15 +340,15 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         ) : (
           <>
             {/* Área de upload de imagem (lado esquerdo) */}
-            <Box sx={{ 
-              width: '230px', 
-              display: 'flex', 
-              flexDirection: 'column', 
+            <Box sx={{
+              width: '230px',
+              display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               p: 2,
               borderRight: '1px solid #eee'
             }}>
-              <Box sx={{ 
+              <Box sx={{
                 width: '100%',
                 pb: '100%', // Proporção 1:1
                 position: 'relative',
@@ -363,7 +363,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   <img
                     src={previewImage}
                     alt="Preview do componente"
-                    style={{ 
+                    style={{
                       position: 'absolute',
                       top: 0,
                       left: 0,
@@ -373,18 +373,18 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     }}
                   />
                 )}
-                
+
                 {/* Botão de upload sobreposto à imagem */}
-                <IconButton 
+                <IconButton
                   onClick={triggerFileInput}
                   disabled={submitting}
-                  sx={{ 
+                  sx={{
                     position: 'absolute',
                     bottom: 8,
                     right: 8,
                     backgroundColor: 'rgba(97, 19, 26, 0.9)',
                     color: 'white',
-                    '&:hover': { 
+                    '&:hover': {
                       backgroundColor: 'rgba(97, 19, 26, 0.7)'
                     },
                     boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
@@ -403,14 +403,14 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                 onChange={handleImageChange}
                 disabled={submitting}
               />
-              
+
               <Button
                 variant="outlined"
                 component="span"
                 startIcon={<CloudUploadIcon />}
                 onClick={triggerFileInput}
                 disabled={submitting}
-                sx={{ 
+                sx={{
                   mt: 1,
                   color: '#61131A',
                   borderColor: '#61131A',
@@ -422,25 +422,25 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
               >
                 Escolher imagem
               </Button>
-              
+
               {imageError && (
                 <Typography color="error" variant="caption" sx={{ mt: 1, textAlign: 'center' }}>
                   {imageError}
                 </Typography>
               )}
-              
+
               <Typography variant="caption" sx={{ mt: 1, textAlign: 'center', color: '#666' }}>
                 Tamanho máximo: 2MB
                 <br />
                 Formatos: JPEG, PNG
               </Typography>
             </Box>
-            
+
             {/* Campos do formulário (lado direito) */}
-            <Box sx={{ 
-              flex: '1 1 auto', 
-              ml: 3, 
-              display: 'flex', 
+            <Box sx={{
+              flex: '1 1 auto',
+              ml: 3,
+              display: 'flex',
               flexDirection: 'column',
               overflow: 'auto',
               maxHeight: '70vh'
@@ -450,7 +450,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   {error}
                 </Alert>
               )}
-              
+
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
                 {/* IDH */}
                 <TextField
@@ -474,7 +474,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     }
                   }}
                 />
-                
+
                 {/* Part Number */}
                 <TextField
                   label="Part Number"
@@ -497,7 +497,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     }
                   }}
                 />
-                
+
                 {/* Descrição */}
                 <TextField
                   label="Descrição"
@@ -519,7 +519,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     }
                   }}
                 />
-                
+
                 {/* Quantidade */}
                 <TextField
                   label="Quantidade"
@@ -544,11 +544,11 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     }
                   }}
                 />
-                
+
                 {/* Caixa */}
-                <FormControl 
-                  fullWidth 
-                  size="small" 
+                <FormControl
+                  fullWidth
+                  size="small"
                   required
                   error={!!errors.fkCaixa}
                   disabled={submitting || caixas.length === 0}
@@ -582,11 +582,11 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   </Select>
                   {errors.fkCaixa && <FormHelperText>{errors.fkCaixa}</FormHelperText>}
                 </FormControl>
-    
+
                 {/* Categoria */}
-                <FormControl 
-                  fullWidth 
-                  size="small" 
+                <FormControl
+                  fullWidth
+                  size="small"
                   required
                   error={!!errors.categoria}
                   disabled={submitting || categorias.length === 0}
@@ -620,11 +620,11 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   </Select>
                   {errors.categoria && <FormHelperText>{errors.categoria}</FormHelperText>}
                 </FormControl>
-    
+
                 {/* Status de verificação */}
-                <FormControl 
-                  fullWidth 
-                  size="small" 
+                <FormControl
+                  fullWidth
+                  size="small"
                   required
                   disabled={submitting}
                   sx={{
@@ -647,12 +647,12 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     <MenuItem value="Não">Não</MenuItem>
                   </Select>
                 </FormControl>
-    
+
                 {/* Condição (exibido apenas se verificado = Sim) */}
                 {formData.flagVerificado === 'Sim' && (
-                  <FormControl 
-                    fullWidth 
-                    size="small" 
+                  <FormControl
+                    fullWidth
+                    size="small"
                     required
                     error={!!errors.condicao}
                     disabled={submitting}
@@ -678,7 +678,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     {errors.condicao && <FormHelperText>{errors.condicao}</FormHelperText>}
                   </FormControl>
                 )}
-    
+
                 {/* Observação (exibido apenas se condição = Em Observação) */}
                 {formData.condicao === 'Em Observação' && (
                   <TextField
@@ -712,10 +712,10 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #eee', justifyContent: 'flex-end' }}>
-        <Button 
-          onClick={handleClose} 
+        <Button
+          onClick={handleClose}
           disabled={submitting}
-          sx={{ 
+          sx={{
             color: '#666',
             '&:hover': { bgcolor: '#f5f5f5' }
           }}
@@ -729,9 +729,9 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
           sx={{
             bgcolor: '#61131A',
             '&:hover': { bgcolor: '#4e0f15' },
-            '&.Mui-disabled': { 
-              bgcolor: '#e0e0e0', 
-              color: '#a0a0a0' 
+            '&.Mui-disabled': {
+              bgcolor: '#e0e0e0',
+              color: '#a0a0a0'
             },
             textTransform: 'none',
             fontWeight: 600,

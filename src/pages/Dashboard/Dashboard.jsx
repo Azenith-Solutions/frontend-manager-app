@@ -1,7 +1,5 @@
 import { useEffect, useState, useRef } from "react";
 import { useMediaQuery } from "@mui/material";
-
-// material ui components
 import {
   Box,
   Card,
@@ -9,20 +7,15 @@ import {
   Typography,
   CircularProgress
 } from "@mui/material";
-
-// material ui icons
 import WarningIcon from '@mui/icons-material/Warning';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
-
-// graficos do rechart
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
-
-// css
 import styles from "./Dashboard.module.css";
+import { fetchLowStockItems } from "../../service/dashboard/dashboardService";
 
-// mock similando carregamento do fettch de dados
+// mock similando carregamento do fetch de dados
 const fetchKpiData = () => {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -38,6 +31,8 @@ const fetchKpiData = () => {
 
 const Dashboard = () => {
   const [kpiData, setKpiData] = useState(null);
+  const [lowStockComponents, setLowStockComponents] = useState([]);
+  const [quantityLowStockComponents, setQuantityLowStockComponents] = useState(lowStockComponents.length);
   const [loading, setLoading] = useState(true);
   const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:960px)');
@@ -50,20 +45,35 @@ const Dashboard = () => {
     chart3: isTablet ? 300 : 400
   });
 
+  const getLowStockComponents = async () => {
+    try {
+      const response = await fetchLowStockItems();
+
+      const lowStockItems = response.data;
+      console.log("Componentes com baixo estoque:", lowStockItems);
+
+      setLowStockComponents(lowStockItems);
+      setQuantityLowStockComponents(lowStockItems.length);
+      console.log("Quantidade de componentes com baixo estoque:", lowStockItems.length);
+    } catch (error) {
+      console.error("Error fetching low stock components:", error);
+    }
+  };
+
+  const fetchData = async () => {
+    try {
+      const kpiResult = await fetchKpiData();
+      setKpiData(kpiResult);
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
-
-    const fetchData = async () => {
-      try {
-        const kpiResult = await fetchKpiData();
-        setKpiData(kpiResult);
-      } catch (error) {
-        console.error("Error fetching data:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
+    getLowStockComponents();
     fetchData();
   }, []);
 
@@ -75,7 +85,7 @@ const Dashboard = () => {
         const card1Height = chartCard1Ref.current.clientHeight - 40; // subtract title height
         const card2Height = chartCard2Ref.current.clientHeight - 40;
         const card3Height = chartCard3Ref.current.clientHeight - 40;
-        
+
         setChartHeights({
           chart1: Math.max(card1Height, 150),
           chart2: Math.max(card2Height, 150),
@@ -140,7 +150,7 @@ const Dashboard = () => {
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
-                  {kpiData.lowStockItems}
+                  {quantityLowStockComponents}
                 </Typography>
                 <Typography variant="body2" className={styles.kpiLabel}>
                   Produtos com Baixo Estoque
@@ -273,10 +283,10 @@ const Dashboard = () => {
               <BarChart
                 layout="vertical"
                 data={dataBarHorizon}
-                margin={{ 
-                  top: 10, 
-                  right: 10, 
-                  left: 10, 
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: 10,
                   bottom: 10
                 }}
               >

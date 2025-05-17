@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Usuarios.module.css";
-import { api } from "../../provider/apiProvider";
+import { api } from "../../service/api";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
 
 // Componentes genéricos para header e filtro
@@ -46,17 +46,17 @@ const Usuarios = () => {
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
-  
+
   // Estados para controlar o menu de filtros
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
-  
+
   // Estado para armazenar filtros ativos
   const [activeFilters, setActiveFilters] = useState({
     cargo: [],
     status: null, // 'Ativo', 'Inativo', ou null (não filtrado)
     periodo: null, // '7dias', '30dias', '90dias', 'ano', ou null (não filtrado)
   });
-  
+
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
@@ -65,10 +65,10 @@ const Usuarios = () => {
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
-      
+
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
-      
+
       if (response.data && response.data.data) {
         const usuariosAPI = response.data.data.map(user => {
           // Extrair iniciais para o avatar
@@ -77,7 +77,7 @@ const Usuarios = () => {
             .map(n => n[0])
             .join('')
             .substring(0, 2);
-            
+
           return {
             id: user.id,
             nome: user.fullName,
@@ -88,7 +88,7 @@ const Usuarios = () => {
             avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`
           };
         });
-        
+
         setUsuarios(usuariosAPI);
         setTotalUsuarios(usuariosAPI.length);
       } else {
@@ -118,7 +118,7 @@ const Usuarios = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
-  
+
   // Handlers para o menu de filtros
   const handleFilterMenuClick = (event) => {
     setFilterMenuAnchor(event.currentTarget);
@@ -127,14 +127,14 @@ const Usuarios = () => {
   const handleFilterMenuClose = () => {
     setFilterMenuAnchor(null);
   };
-  
+
   // Manipuladores de filtros para Usuários
   const toggleCargoFilter = (cargo) => {
     setActiveFilters(prev => {
       const updatedCargos = prev.cargo.includes(cargo)
         ? prev.cargo.filter(c => c !== cargo)
         : [...prev.cargo, cargo];
-      
+
       return { ...prev, cargo: updatedCargos };
     });
     setPage(0);
@@ -155,7 +155,7 @@ const Usuarios = () => {
     }));
     setPage(0);
   };
-  
+
   const clearAllFilters = () => {
     setActiveFilters({
       cargo: [],
@@ -164,14 +164,14 @@ const Usuarios = () => {
     });
     setPage(0);
   };
-  
+
   // Contagem de filtros ativos
   const activeFilterCount = [
     activeFilters.cargo.length > 0,
     activeFilters.status !== null,
     activeFilters.periodo !== null
   ].filter(Boolean).length;
-  
+
   // Aplicar filtros aos usuários
   const filteredUsuarios = usuarios.filter(item => {
     // Filtro de texto/busca
@@ -180,18 +180,18 @@ const Usuarios = () => {
       (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
       (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
     );
-    
+
     // Filtro por cargo
-    const matchesCargo = activeFilters.cargo.length === 0 || 
+    const matchesCargo = activeFilters.cargo.length === 0 ||
       (item.cargo && activeFilters.cargo.includes(item.cargo));
-    
+
     // Filtro por status
-    const matchesStatus = activeFilters.status === null || 
+    const matchesStatus = activeFilters.status === null ||
       item.status === activeFilters.status;
-    
+
     // Filtro por período (simplificado, em produção usaria datas reais)
     const matchesPeriodo = activeFilters.periodo === null || true; // Simplificação
-    
+
     return matchesSearch && matchesCargo && matchesStatus && matchesPeriodo;
   });
 
@@ -232,7 +232,7 @@ const Usuarios = () => {
   return (
     <div className={styles.usuarios}>
       {/* Utilizando o componente DatagridHeader genérico */}
-      <DatagridHeader 
+      <DatagridHeader
         title="Novo Usuário"
         searchPlaceholder="Buscar usuário..."
         searchProps={{
@@ -244,11 +244,11 @@ const Usuarios = () => {
         onFilterClick={handleFilterMenuClick}
         statsCards={statsCards}
       />
-      
-      <Container 
-        maxWidth={false} 
-        disableGutters 
-        sx={{ 
+
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
           px: 0,
           flexGrow: 1,
           display: 'flex',
@@ -256,8 +256,8 @@ const Usuarios = () => {
           overflow: 'hidden'
         }}
       >
-        <TableContainer component={Paper} sx={{ 
-          boxShadow: '0 3px 10px rgba(0,0,0,0.08)', 
+        <TableContainer component={Paper} sx={{
+          boxShadow: '0 3px 10px rgba(0,0,0,0.08)',
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -269,10 +269,10 @@ const Usuarios = () => {
           <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
             <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de usuários">
               <TableHead>
-                <TableRow sx={{ 
+                <TableRow sx={{
                   backgroundColor: '#f5f5f5',
-                  '& th': { 
-                    fontWeight: 'bold', 
+                  '& th': {
+                    fontWeight: 'bold',
                     color: '#333',
                     fontSize: '0.85rem',
                     borderBottom: '2px solid #61131A',
@@ -292,82 +292,82 @@ const Usuarios = () => {
                 {filteredUsuarios
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
                   .map((item) => (
-                  <TableRow
-                    key={item.id}
-                    hover
-                    sx={{ 
-                      '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                      '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                      transition: 'background-color 0.2s',
-                      height: '54px' 
-                    }}
-                  >
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Avatar 
-                        src={item.avatar} 
-                        alt={item.nome}
-                        sx={{ 
-                          width: 34, 
-                          height: 34, 
-                          margin: '0 auto',
-                          bgcolor: '#61131A' // Using brand color as fallback
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
-                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Chip 
-                        icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.status}
-                        size="small"
-                        sx={{ 
-                          backgroundColor: item.status === 'Ativo' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.status === 'Ativo' ? '#27ae60' : '#e74c3c',
-                          fontWeight: 500,
-                          fontSize: '0.75rem',
-                          borderRadius: '4px',
-                          '& .MuiChip-icon': { color: 'inherit' }
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
-                          title="Editar" 
-                          sx={{ 
-                            color: '#2980b9', 
-                            backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                            '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' } 
+                    <TableRow
+                      key={item.id}
+                      hover
+                      sx={{
+                        '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
+                        '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
+                        transition: 'background-color 0.2s',
+                        height: '54px'
+                      }}
+                    >
+                      <TableCell align="center" sx={{ py: 0.8 }}>
+                        <Avatar
+                          src={item.avatar}
+                          alt={item.nome}
+                          sx={{
+                            width: 34,
+                            height: 34,
+                            margin: '0 auto',
+                            bgcolor: '#61131A' // Using brand color as fallback
                           }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          title="Excluir" 
-                          sx={{ 
-                            color: '#c0392b', 
-                            backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                            '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' } 
+                        />
+                      </TableCell>
+                      <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
+                      <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
+                      <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
+                      <TableCell align="center" sx={{ py: 0.8 }}>
+                        <Chip
+                          icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                          label={item.status}
+                          size="small"
+                          sx={{
+                            backgroundColor: item.status === 'Ativo' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                            color: item.status === 'Ativo' ? '#27ae60' : '#e74c3c',
+                            fontWeight: 500,
+                            fontSize: '0.75rem',
+                            borderRadius: '4px',
+                            '& .MuiChip-icon': { color: 'inherit' }
                           }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredUsuarios.length > 0 && 
-                 filteredUsuarios.length < rowsPerPage && 
-                 Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
-                  <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                    <TableCell colSpan={7} />
-                  </TableRow>
-                ))}
+                        />
+                      </TableCell>
+                      <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
+                      <TableCell align="center" sx={{ py: 0.8 }}>
+                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                          <IconButton
+                            size="small"
+                            title="Editar"
+                            sx={{
+                              color: '#2980b9',
+                              backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                              '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' }
+                            }}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            title="Excluir"
+                            sx={{
+                              color: '#c0392b',
+                              backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                              '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' }
+                            }}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                {filteredUsuarios.length > 0 &&
+                  filteredUsuarios.length < rowsPerPage &&
+                  Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
+                    <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
+                      <TableCell colSpan={7} />
+                    </TableRow>
+                  ))}
                 {filteredUsuarios.length === 0 && (
                   <TableRow sx={{ height: '53px' }}>
                     <TableCell colSpan={7} align="center">
@@ -402,7 +402,7 @@ const Usuarios = () => {
           />
         </TableContainer>
       </Container>
-      
+
       {/* Menu de Filtros usando o componente específico */}
       <UsuariosFilter
         anchorEl={filterMenuAnchor}
@@ -413,14 +413,14 @@ const Usuarios = () => {
         togglePeriodoFilter={togglePeriodoFilter}
         clearAllFilters={clearAllFilters}
       />
-      
+
       {/* Modal for creating a new user */}
-      <UserFormModal 
-        open={modalOpen} 
+      <UserFormModal
+        open={modalOpen}
         onClose={() => {
           setModalOpen(false);
           fetchUsuarios(); // Recarrega a lista após o cadastro
-        }} 
+        }}
       />
     </div>
   );

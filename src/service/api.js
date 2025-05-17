@@ -1,5 +1,5 @@
 import axios from "axios";
- 
+
 export const api = axios.create({
     baseURL: "http://localhost:8080/api/v1",
 });
@@ -18,13 +18,13 @@ api.interceptors.response.use(
     (response) => {
         return response;
     },
-    (error) => { 
+    (error) => {
         if (error.response && error.response.status === 401) {
             localStorage.removeItem('token');
             localStorage.removeItem('isLoggedIn');
             window.location.href = '/';
         }
-        
+
         return Promise.reject(error);
     }
 );
