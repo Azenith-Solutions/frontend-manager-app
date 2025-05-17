@@ -23,7 +23,13 @@ import { api } from '../../../provider/apiProvider';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 
-const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
+const ComponentFormModal = ({
+  open,
+  onClose,
+  componentToEdit = null,
+  caixasOptions = [{ value: 1, label: "CAIXA 1" }],
+  categoriasOptions = [{ value: 1, label: "Resistores" }]
+}) => {
   // Estados iniciais
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -31,9 +37,10 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   const [error, setError] = useState(null);
   
   // Estados para armazenar dados de dropdowns
-  const [caixas, setCaixas] = useState([]);
-  const [categorias, setCategorias] = useState([]);
-  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
+  // Agora inicializa com as opções fixas recebidas por props
+  const [caixas, setCaixas] = useState(caixasOptions);
+  const [categorias, setCategorias] = useState(categoriasOptions);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(false);
 
   // Estado do formulário
   const [formData, setFormData] = useState({
@@ -41,8 +48,8 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     partNumber: '',
     descricao: '',
     quantidade: 1,
-    fkCaixa: '',
-    categoria: '',
+    fkCaixa: caixasOptions[0]?.value ?? '',
+    categoria: categoriasOptions[0]?.value ?? '',
     flagVerificado: 'Não',
     condicao: '',
     observacao: ''
@@ -59,36 +66,16 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   // Erros de validação
   const [errors, setErrors] = useState({});
 
-  // Busca as caixas e categorias para os dropdowns
+  // Atualiza selects se as opções mudarem (ex: ao abrir o modal)
   useEffect(() => {
-    const fetchDropdownData = async () => {
-      setLoadingDropdowns(true);
-      try {
-        // Buscar caixas
-        const caixasResponse = await api.get('/boxes');
-        if (caixasResponse.data && (caixasResponse.data.data || Array.isArray(caixasResponse.data))) {
-          const caixasData = caixasResponse.data.data || caixasResponse.data;
-          setCaixas(Array.isArray(caixasData) ? caixasData : []);
-        }
-
-        // Buscar categorias
-        const categoriasResponse = await api.get('/categories');
-        if (categoriasResponse.data && (categoriasResponse.data.data || Array.isArray(categoriasResponse.data))) {
-          const categoriasData = categoriasResponse.data.data || categoriasResponse.data;
-          setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
-        }
-      } catch (error) {
-        console.error('Erro ao carregar dados para os dropdowns:', error);
-        setError('Falha ao carregar informações necessárias. Por favor, tente novamente.');
-      } finally {
-        setLoadingDropdowns(false);
-      }
-    };
-
-    if (open) {
-      fetchDropdownData();
-    }
-  }, [open]);
+    setCaixas(caixasOptions);
+    setCategorias(categoriasOptions);
+    setFormData(prev => ({
+      ...prev,
+      fkCaixa: caixasOptions[0]?.value ?? '',
+      categoria: categoriasOptions[0]?.value ?? ''
+    }));
+  }, [caixasOptions, categoriasOptions, open]);
 
   // Se for edição, carrega os dados do componente
   useEffect(() => {
@@ -98,8 +85,8 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         partNumber: componentToEdit.partNumber || '',
         descricao: componentToEdit.descricao || '',
         quantidade: componentToEdit.quantidade || 1,
-        fkCaixa: componentToEdit.fkCaixa?.idCaixa || '',
-        categoria: componentToEdit.categoria || '',
+        fkCaixa: (componentToEdit.fkCaixa?.idCaixa || caixasOptions[0]?.value) ?? '',
+        categoria: (componentToEdit.categoria || categoriasOptions[0]?.value) ?? '',
         flagVerificado: componentToEdit.flagVerificado ? 'Sim' : 'Não',
         condicao: componentToEdit.condicao || '',
         observacao: componentToEdit.observacao || ''
@@ -113,8 +100,13 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       }
     } else {
       setPreviewImage(defaultImage);
+      setFormData(prev => ({
+        ...prev,
+        fkCaixa: caixasOptions[0]?.value ?? '',
+        categoria: categoriasOptions[0]?.value ?? ''
+      }));
     }
-  }, [componentToEdit, open]);
+  }, [componentToEdit, open, caixasOptions, categoriasOptions]);
 
   // Função para lidar com mudanças nos campos
   const handleChange = (e) => {
@@ -243,7 +235,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         partNumber: formData.partNumber,
         descricao: formData.descricao,
         quantidade: Number(formData.quantidade),
-        fkCaixa: formData.fkCaixa,
+        caixa: formData.fkCaixa, // <-- alterado de fkCaixa para caixa
         categoria: formData.categoria,
         flagVerificado: formData.flagVerificado === 'Sim',
         condicao: formData.flagVerificado === 'Sim' ? formData.condicao : null,
@@ -570,8 +562,8 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   >
                     {caixas.length > 0 ? (
                       caixas.map((caixa) => (
-                        <MenuItem key={caixa.idCaixa} value={caixa.idCaixa}>
-                          {caixa.nomeCaixa}
+                        <MenuItem key={caixa.value ?? caixa.idCaixa} value={caixa.value ?? caixa.idCaixa}>
+                          {caixa.label ?? caixa.nomeCaixa}
                         </MenuItem>
                       ))
                     ) : (
@@ -608,8 +600,8 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   >
                     {categorias.length > 0 ? (
                       categorias.map((categoria) => (
-                        <MenuItem key={categoria.idCategoria} value={categoria.idCategoria}>
-                          {categoria.nomeCategoria}
+                        <MenuItem key={categoria.value ?? categoria.idCategoria} value={categoria.value ?? categoria.idCategoria}>
+                          {categoria.label ?? categoria.nomeCategoria}
                         </MenuItem>
                       ))
                     ) : (
