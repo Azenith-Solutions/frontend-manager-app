@@ -23,13 +23,7 @@ import { api } from '../../../provider/apiProvider';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
 
-const ComponentFormModal = ({
-  open,
-  onClose,
-  componentToEdit = null,
-  caixasOptions = [{ value: 1, label: "CAIXA 1" }],
-  categoriasOptions = [{ value: 1, label: "Resistores" }]
-}) => {
+const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   // Estados iniciais
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -37,10 +31,9 @@ const ComponentFormModal = ({
   const [error, setError] = useState(null);
   
   // Estados para armazenar dados de dropdowns
-  // Agora inicializa com as opções fixas recebidas por props
-  const [caixas, setCaixas] = useState(caixasOptions);
-  const [categorias, setCategorias] = useState(categoriasOptions);
-  const [loadingDropdowns, setLoadingDropdowns] = useState(false);
+  const [caixas, setCaixas] = useState([]);
+  const [categorias, setCategorias] = useState([]);
+  const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
   // Estado do formulário
   const [formData, setFormData] = useState({
@@ -48,8 +41,8 @@ const ComponentFormModal = ({
     partNumber: '',
     descricao: '',
     quantidade: 1,
-    fkCaixa: caixasOptions[0]?.value ?? '',
-    categoria: categoriasOptions[0]?.value ?? '',
+    fkCaixa: '',
+    categoria: '',
     flagVerificado: 'Não',
     condicao: '',
     observacao: ''
@@ -66,16 +59,53 @@ const ComponentFormModal = ({
   // Erros de validação
   const [errors, setErrors] = useState({});
 
-  // Atualiza selects se as opções mudarem (ex: ao abrir o modal)
+  // Busca as caixas e categorias para os dropdowns
   useEffect(() => {
-    setCaixas(caixasOptions);
-    setCategorias(categoriasOptions);
-    setFormData(prev => ({
-      ...prev,
-      fkCaixa: caixasOptions[0]?.value ?? '',
-      categoria: categoriasOptions[0]?.value ?? ''
-    }));
-  }, [caixasOptions, categoriasOptions, open]);
+    const fetchDropdownData = async () => {
+      setLoadingDropdowns(true);
+      try {
+        // Buscar caixas
+        const caixasResponse = await api.get('/boxes');
+        // Ajuste: garantir que o retorno seja sempre um array de objetos com idCaixa e nomeCaixa
+        let caixasData = caixasResponse.data;
+        if (caixasData && caixasData.data) caixasData = caixasData.data;
+        if (!Array.isArray(caixasData)) caixasData = [];
+        // Log para depuração
+        console.log('Caixas recebidas:', caixasData);
+        // Normalizar campos caso venham com nomes diferentes
+        const caixasNormalizadas = caixasData.map(caixa => ({
+          idCaixa: caixa.idCaixa ?? caixa.id ?? caixa.value ?? '',
+          nomeCaixa: caixa.nomeCaixa ?? caixa.caixa ?? caixa.nome ?? caixa.label ?? ''
+        }));
+        setCaixas(caixasNormalizadas);
+
+        // Buscar categorias
+        const categoriasResponse = await api.get('/categorys');
+        let categoriasData = categoriasResponse.data;
+        if (categoriasData && categoriasData.data) categoriasData = categoriasData.data;
+        if (!Array.isArray(categoriasData)) categoriasData = [];
+        // Normalizar campos para categoria
+        const categoriasNormalizadas = categoriasData.map(categoria => ({
+          idCategoria: categoria.idCategoria ?? categoria.id ?? categoria.value ?? '',
+          nomeCategoria: categoria.nomeCategoria ?? categoria.categoria ?? categoria.nome ?? categoria.label ?? ''
+        }));
+        setCategorias(categoriasNormalizadas);
+      } catch (error) {
+        console.error('Erro ao carregar dados para os dropdowns:', error);
+        alert(
+          `Erro ao buscar dados: ${error.message}\n` +
+          (error.response ? `Status: ${error.response.status}\n${JSON.stringify(error.response.data)}` : '')
+        );
+        setError('Falha ao carregar informações necessárias. Por favor, tente novamente.');
+      } finally {
+        setLoadingDropdowns(false);
+      }
+    };
+
+    if (open) {
+      fetchDropdownData();
+    }
+  }, [open]);
 
   // Se for edição, carrega os dados do componente
   useEffect(() => {
@@ -85,8 +115,8 @@ const ComponentFormModal = ({
         partNumber: componentToEdit.partNumber || '',
         descricao: componentToEdit.descricao || '',
         quantidade: componentToEdit.quantidade || 1,
-        fkCaixa: (componentToEdit.fkCaixa?.idCaixa || caixasOptions[0]?.value) ?? '',
-        categoria: (componentToEdit.categoria || categoriasOptions[0]?.value) ?? '',
+        fkCaixa: componentToEdit.fkCaixa?.idCaixa || '',
+        categoria: componentToEdit.categoria || '',
         flagVerificado: componentToEdit.flagVerificado ? 'Sim' : 'Não',
         condicao: componentToEdit.condicao || '',
         observacao: componentToEdit.observacao || ''
@@ -100,13 +130,8 @@ const ComponentFormModal = ({
       }
     } else {
       setPreviewImage(defaultImage);
-      setFormData(prev => ({
-        ...prev,
-        fkCaixa: caixasOptions[0]?.value ?? '',
-        categoria: categoriasOptions[0]?.value ?? ''
-      }));
     }
-  }, [componentToEdit, open, caixasOptions, categoriasOptions]);
+  }, [componentToEdit, open]);
 
   // Função para lidar com mudanças nos campos
   const handleChange = (e) => {
@@ -217,44 +242,36 @@ const ComponentFormModal = ({
     setError(null);
 
     try {
-      // Se houver imagem selecionada, fazer upload primeiro
+      // Se houver imagem, faça upload antes (mantém sua lógica atual)
       let imageUrl = componentToEdit?.imagemUrl || null;
-      
       if (selectedImage) {
         const formDataImage = new FormData();
         formDataImage.append('imagem', selectedImage);
-        
         const uploadResponse = await api.post('/upload/component-image', formDataImage);
         if (uploadResponse.data && uploadResponse.data.url) {
           imageUrl = uploadResponse.data.url;
         }
       }
-      
+
+      // Corpo conforme o Swagger
       const dataToSend = {
         idHardWareTech: formData.idHardWareTech,
+        caixa: Number(formData.fkCaixa), // id da caixa
+        categoria: Number(formData.categoria), // id da categoria
         partNumber: formData.partNumber,
-        descricao: formData.descricao,
         quantidade: Number(formData.quantidade),
-        caixa: formData.fkCaixa, // <-- alterado de fkCaixa para caixa
-        categoria: formData.categoria,
+        flagML: false, // ou true, conforme sua lógica
+        codigoML: "", // preencha se necessário
         flagVerificado: formData.flagVerificado === 'Sim',
         condicao: formData.flagVerificado === 'Sim' ? formData.condicao : null,
         observacao: formData.condicao === 'Em Observação' ? formData.observacao : null,
-        imagemUrl: imageUrl
+        descricao: formData.descricao,
+        imagemUrl: imageUrl // se sua API aceitar esse campo extra
       };
 
-      // Enviar para API
-      if (componentToEdit) {
-        // Atualização
-        await api.put(`/components/${componentToEdit.idComponente}`, dataToSend);
-      } else {
-        // Criação
-        await api.post('/components', dataToSend);
-      }
+      await api.post('/v1/components', dataToSend);
 
       setSuccess(true);
-      
-      // Fecha o modal após 1.5 segundos
       setTimeout(() => {
         handleClose();
       }, 1500);
@@ -543,7 +560,7 @@ const ComponentFormModal = ({
                   size="small" 
                   required
                   error={!!errors.fkCaixa}
-                  disabled={submitting || caixas.length === 0}
+                  disabled={submitting}
                   sx={{
                     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#61131A',
@@ -560,16 +577,23 @@ const ComponentFormModal = ({
                     label="Caixa"
                     onChange={handleChange}
                   >
-                    {caixas.length > 0 ? (
-                      caixas.map((caixa) => (
-                        <MenuItem key={caixa.value ?? caixa.idCaixa} value={caixa.value ?? caixa.idCaixa}>
-                          {caixa.label ?? caixa.nomeCaixa}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled value="">
-                        Nenhuma caixa disponível
+                    {loadingDropdowns ? (
+                      <MenuItem disabled>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CircularProgress size={20} />
+                          <Typography>Carregando...</Typography>
+                        </Box>
                       </MenuItem>
+                    ) : (
+                      caixas.length > 0 ? (
+                        caixas.map((caixa) => (
+                          <MenuItem key={caixa.idCaixa} value={caixa.idCaixa}>
+                            {caixa.nomeCaixa}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>Nenhuma caixa disponível</MenuItem>
+                      )
                     )}
                   </Select>
                   {errors.fkCaixa && <FormHelperText>{errors.fkCaixa}</FormHelperText>}
@@ -600,8 +624,8 @@ const ComponentFormModal = ({
                   >
                     {categorias.length > 0 ? (
                       categorias.map((categoria) => (
-                        <MenuItem key={categoria.value ?? categoria.idCategoria} value={categoria.value ?? categoria.idCategoria}>
-                          {categoria.label ?? categoria.nomeCategoria}
+                        <MenuItem key={categoria.idCategoria} value={categoria.idCategoria}>
+                          {categoria.nomeCategoria}
                         </MenuItem>
                       ))
                     ) : (
