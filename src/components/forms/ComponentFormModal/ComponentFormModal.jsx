@@ -276,15 +276,25 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         condicao: formData.flagVerificado === 'Sim' ? formData.condicao : "",
         observacao: formData.condicao === 'Em Observação' ? formData.observacao : "",
         descricao: formData.descricao
-        // Não enviar imagemUrl pois o endpoint não espera esse campo
       };
 
-      await api.post('/components', dataToSend);
-
-      setSuccess(true);
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
+      if (componentToEdit && componentToEdit.idComponente) {
+        console.log('componentToEdit:', componentToEdit);
+        console.log('dataToSend:', dataToSend);
+        await api.put(`/components/${componentToEdit.idComponente}`, dataToSend);
+        setSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+        return; // Impede que o fluxo continue para o cadastro
+      } else if (!componentToEdit || !componentToEdit?.idComponente) {
+        // Apenas cadastra se for cadastro
+        await api.post('/components', dataToSend);
+        setSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+      }
 
     } catch (error) {
       console.error('Erro ao salvar componente:', error);
