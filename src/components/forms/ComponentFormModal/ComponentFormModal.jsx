@@ -253,23 +253,22 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         }
       }
 
-      // Corpo conforme o Swagger
       const dataToSend = {
         idHardWareTech: formData.idHardWareTech,
-        caixa: Number(formData.fkCaixa), // id da caixa
-        categoria: Number(formData.categoria), // id da categoria
+        caixa: Number(formData.fkCaixa),
+        categoria: Number(formData.categoria),
         partNumber: formData.partNumber,
         quantidade: Number(formData.quantidade),
-        flagML: false, // ou true, conforme sua lógica
-        codigoML: "", // preencha se necessário
+        flagML: false, // ajuste conforme necessário
+        codigoML: "",  // ajuste conforme necessário
         flagVerificado: formData.flagVerificado === 'Sim',
-        condicao: formData.flagVerificado === 'Sim' ? formData.condicao : null,
-        observacao: formData.condicao === 'Em Observação' ? formData.observacao : null,
-        descricao: formData.descricao,
-        imagemUrl: imageUrl // se sua API aceitar esse campo extra
+        condicao: formData.flagVerificado === 'Sim' ? formData.condicao : "",
+        observacao: formData.condicao === 'Em Observação' ? formData.observacao : "",
+        descricao: formData.descricao
+        // Não enviar imagemUrl pois o endpoint não espera esse campo
       };
 
-      await api.post('/v1/components', dataToSend);
+      await api.post('/components', dataToSend);
 
       setSuccess(true);
       setTimeout(() => {
