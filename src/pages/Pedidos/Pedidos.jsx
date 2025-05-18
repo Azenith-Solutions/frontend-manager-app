@@ -79,6 +79,13 @@ const Pedidos = () => {
         console.error('Dados recebidos não são um array:', responseData);
         setPedidos([]);
       }
+
+      const clientes = [...new Set(mockPedidos.map(p => p.cnpjCpf))].map(cnpjCpf => {
+        return { id: cnpjCpf, cnpjCpf };
+      });
+      setAvailableClientes(clientes);
+      
+
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
@@ -114,6 +121,27 @@ const Pedidos = () => {
     setDeleteDialogOpen(true);
   };
 
+  // Handlers para o menu de filtros
+  const handleFilterMenuClick = (event) => {
+    setFilterMenuAnchor(event.currentTarget);
+  };
+
+  const handleFilterMenuClose = () => {
+    setFilterMenuAnchor(null);
+  };
+  
+  // Manipuladores de filtros para Pedidos
+  const toggleStatusFilter = (status) => {
+    setActiveFilters(prev => {
+      const updatedStatus = prev.status.includes(status)
+        ? prev.status.filter(s => s !== status)
+        : [...prev.status, status];
+      
+      return { ...prev, status: updatedStatus };
+    });
+    setPage(0);
+  };
+
   const handleConfirmDelete = async () => {
     if (pedidoToDelete) {
       await fetchDelete(pedidoToDelete.idPedido);
@@ -127,13 +155,101 @@ const Pedidos = () => {
     setPedidoToDelete(null);
   };
 
+  const toggleAprovadoFilter = (value) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      aprovado: prev.aprovado === value ? null : value
+    }));
+    setPage(0);
+  };
+
+  const togglePeriodoFilter = (periodo) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      periodo: prev.periodo === periodo ? null : periodo
+    }));
+    setPage(0);
+  };
+  
+  const toggleClienteFilter = (clienteId) => {
+    setActiveFilters(prev => {
+      const updatedClientes = prev.clientes.includes(clienteId)
+        ? prev.clientes.filter(c => c !== clienteId)
+        : [...prev.clientes, clienteId];
+      
+      return { ...prev, clientes: updatedClientes };
+    });
+    setPage(0);
+  };
+  
+  const clearAllFilters = () => {
+    setActiveFilters({
+      status: [],
+      aprovado: null,
+      periodo: null,
+      clientes: []
+    });
+    setPage(0);
+  };
+
+  // Contagem de filtros ativos
+  const activeFilterCount = [
+    activeFilters.status.length > 0,
+    activeFilters.aprovado !== null,
+    activeFilters.periodo !== null,
+    activeFilters.clientes.length > 0
+  ].filter(Boolean).length;
+
   const filteredPedidos = pedidos.filter(
-    (item) =>
-      (typeof item.idPedido === 'string' && item.idPedido.toLowerCase().includes(searchText.toLowerCase())) ||
-      (item.fkEmpresa && typeof item.fkEmpresa.cnpj === 'string' && item.fkEmpresa.cnpj.toLowerCase().includes(searchText.toLowerCase())) ||
-      (typeof item.createdAt === 'string' && item.createdAt.includes(searchText)) ||
-      (typeof item.status === 'string' && item.status.toLowerCase().includes(searchText.toLowerCase()))
+    (item) => {
+      // Filtro de busca/texto
+      const matchesSearch = 
+        item.idSolicitacao.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.cnpjCpf.toLowerCase().includes(searchText.toLowerCase()) ||
+        item.dataPedido.includes(searchText);
+        
+      // Filtro por status
+      const matchesStatus = activeFilters.status.length === 0 ||
+        activeFilters.status.includes(item.status);
+        
+      // Filtro por aprovado
+      const matchesAprovado = activeFilters.aprovado === null ||
+        item.aprovado === activeFilters.aprovado;
+        
+      // Filtro por cliente
+      const matchesCliente = activeFilters.clientes.length === 0 ||
+        activeFilters.clientes.includes(item.cnpjCpf);
+        
+      // Filtro por período (simplificado, em produção usaria datas reais)
+      const matchesPeriodo = activeFilters.periodo === null || true; // Simplificação
+      
+      return matchesSearch && matchesStatus && matchesAprovado && matchesCliente && matchesPeriodo;
+    }
   );
+
+  // Função para abrir formulário de novo pedido
+  const handleAddPedido = () => {
+    console.log("Abrir formulário para novo pedido");
+    // Implementar a abertura do modal de formulário no futuro
+  };
+
+  // Cartões de estatísticas para o header
+  const statsCards = [
+    {
+      icon: <ReceiptIcon sx={{ color: '#61131A', fontSize: 14 }} />,
+      iconBgColor: '#ffeded',
+      color: '#61131A',
+      value: totalPedidos,
+      label: 'Pedidos'
+    },
+    {
+      icon: <ShoppingCartIcon sx={{ color: '#27ae60', fontSize: 14 }} />,
+      iconBgColor: '#eaf7ef',
+      color: '#27ae60',
+      value: pedidos.filter(item => item.aprovado).length,
+      label: 'Aprovados'
+    }
+  ];
 
   if (loading) {
     return (
@@ -494,6 +610,7 @@ const Pedidos = () => {
           Novo Pedido
         </Button>
       </Paper>
+      
       <Container
         maxWidth={false}
         disableGutters
@@ -667,6 +784,7 @@ const Pedidos = () => {
           />
         </TableContainer>
       </Container>
+
       <OrderFormModal
         open={orderModalOpen}
         onClose={() => {
