@@ -115,8 +115,19 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         partNumber: componentToEdit.partNumber || '',
         descricao: componentToEdit.descricao || '',
         quantidade: componentToEdit.quantidade || 1,
-        fkCaixa: componentToEdit.fkCaixa?.idCaixa || '',
-        categoria: componentToEdit.categoria || '',
+        fkCaixa:
+          componentToEdit.fkCaixa?.idCaixa ||
+          componentToEdit.caixa?.idCaixa ||
+          componentToEdit.caixa ||
+          '',
+        categoria:
+          componentToEdit.fkCategoria?.idCategoria ||
+          componentToEdit.fkCategoria?.id ||
+          componentToEdit.fkCategoria ||
+          componentToEdit.categoria?.idCategoria ||
+          componentToEdit.categoria?.id ||
+          componentToEdit.categoria ||
+          '',
         flagVerificado: componentToEdit.flagVerificado ? 'Sim' : 'Não',
         condicao: componentToEdit.condicao || '',
         observacao: componentToEdit.observacao || ''
