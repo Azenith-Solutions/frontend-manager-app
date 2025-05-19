@@ -3,6 +3,7 @@ import styles from "./Componentes.module.css";
 import { api } from "../../provider/apiProvider";
 import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
 import ComponentesDataGrid from "../../components/datagrids/ComponentesDataGrid/ComponentesDataGrid";
+import ComponentDeleteModal from "../../components/forms/ComponentDeleteModal/ComponentDeleteModal";
 
 // Componentes genéricos para header e filtro
 import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
@@ -29,6 +30,8 @@ const Componentes = () => {
   const [totalComponents, setTotalComponents] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [componentToEdit, setComponentToEdit] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [componentToDelete, setComponentToDelete] = useState(null);
   
   // Estados para controlar o menu de filtros
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
@@ -208,10 +211,17 @@ const Componentes = () => {
     fetchComponents();
   };
 
-  // Handler para excluir componente (será implementado no futuro)
+  // Handler para excluir componente (abre o modal)
   const handleDeleteComponent = (component) => {
-    console.log('Excluir componente:', component);
-    // Implementação futura
+    setComponentToDelete(component);
+    setDeleteModalOpen(true);
+  };
+
+  // Handler para fechar o modal de deleção e recarregar a lista
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setComponentToDelete(null);
+    fetchComponents();
   };
 
   // Cartões de estatísticas para o header
@@ -302,6 +312,14 @@ const Componentes = () => {
         open={modalOpen} 
         onClose={handleCloseModal} 
         componentToEdit={componentToEdit}
+      />
+
+      {/* Modal de deleção de componente */}
+      <ComponentDeleteModal
+        open={deleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        component={componentToDelete}
+        onComponentDeleted={handleCloseDeleteModal}
       />
     </div>
   );
