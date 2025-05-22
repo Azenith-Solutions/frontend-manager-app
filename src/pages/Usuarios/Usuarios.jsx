@@ -110,8 +110,7 @@ const Usuarios = () => {
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
       
-      if (response.data && response.data.data) {
-        const usuariosAPI = response.data.data.map(user => {
+      if (response.data && response.data.data) {        const usuariosAPI = response.data.data.map(user => {
           // Extrair iniciais para o avatar
           const iniciais = user.fullName
             .split(' ')
@@ -119,12 +118,20 @@ const Usuarios = () => {
             .join('')
             .substring(0, 2);
             
+          // Define status based on the condition
+          let statusDisplay = "Indefinido";
+          if (user.status === true) {
+            statusDisplay = "Ativo";
+          } else if (user.status === false) {
+            statusDisplay = "Inativo";
+          }
+            
           return {
             id: user.id,
             nome: user.fullName,
             email: user.email,
             cargo: user.role,
-            status: user.status ? 'Ativo' : 'Inativo',
+            status: statusDisplay,
             criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
             avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`,
             // Dados originais para facilitar a edição
@@ -186,8 +193,7 @@ const Usuarios = () => {
     if (activeFilters.cargo.length > 0) {
       filtered = filtered.filter(item => activeFilters.cargo.includes(item.cargo));
     }
-    
-    // Aplica filtro de status
+      // Aplica filtro de status
     if (activeFilters.status !== null) {
       filtered = filtered.filter(item => item.status === activeFilters.status);
     }

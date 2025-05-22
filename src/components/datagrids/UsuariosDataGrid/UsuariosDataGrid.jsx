@@ -88,11 +88,8 @@ const UsuariosDataGrid = ({
                 <TableCell align="center">Criado em</TableCell>
                 <TableCell align="center">Ações</TableCell>
               </TableRow>
-            </TableHead>            <TableBody>
-              {usuarios
-                .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                .map((item) => (
-                  <TableRow
+            </TableHead>
+            <TableBody>              {usuarios.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((item) => (<TableRow
                     key={item.id}
                     hover
                     sx={{ 
@@ -138,12 +135,28 @@ const UsuariosDataGrid = ({
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 
-                        icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                        icon={
+                          item.status === 'Ativo' 
+                            ? <CheckCircleIcon fontSize="small" />
+                            : item.status === 'Inativo'
+                              ? <CancelIcon fontSize="small" />
+                              : null
+                        }
                         label={item.status}
                         size="small"
                         sx={{ 
-                          backgroundColor: item.status === 'Ativo' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.status === 'Ativo' ? '#27ae60' : '#e74c3c',
+                          backgroundColor: 
+                            item.status === 'Ativo' 
+                              ? 'rgba(46, 204, 113, 0.1)' 
+                              : item.status === 'Inativo'
+                                ? 'rgba(231, 76, 60, 0.1)'
+                                : 'rgba(142, 142, 142, 0.1)',
+                          color: 
+                            item.status === 'Ativo' 
+                              ? '#27ae60' 
+                              : item.status === 'Inativo'
+                                ? '#e74c3c'
+                                : '#7f8c8d',
                           fontWeight: 500,
                           fontSize: '0.75rem',
                           borderRadius: '4px',
@@ -181,9 +194,8 @@ const UsuariosDataGrid = ({
                       </Box>
                     </TableCell>
                   </TableRow>
-                ))}              {usuarios.length > 0 && 
-               usuarios.length < rowsPerPage && 
-               Array.from({ length: Math.max(0, rowsPerPage - usuarios.length) }).map((_, index) => (
+                ))}
+              {usuarios.length > 0 && usuarios.length < rowsPerPage && Array.from({ length: Math.max(0, rowsPerPage - usuarios.length) }).map((_, index) => (
                 <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
                   <TableCell colSpan={7} />
                 </TableRow>
@@ -197,7 +209,8 @@ const UsuariosDataGrid = ({
               )}
             </TableBody>
           </Table>
-        </Box>        <TablePagination
+        </Box>
+        <TablePagination
           component="div"
           count={usuarios.length}
           page={page}
