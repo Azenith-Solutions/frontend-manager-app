@@ -13,6 +13,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     include: ['react-markdown'],
+    exclude: ['@mui/icons-material/AddAPhoto'], // Exclude the problematic icon from optimization
     esbuildOptions: {
       target: 'esnext'
     }

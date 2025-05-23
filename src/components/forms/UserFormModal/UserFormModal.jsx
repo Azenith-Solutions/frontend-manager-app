@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -16,17 +16,27 @@ import {
   Divider,
   CircularProgress,
   Snackbar,
-  Alert
+  Alert,
+  Avatar,
+  Tooltip
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
+// Import all icons from the package instead of individual imports
+import * as Icons from '@mui/icons-material';
+import PersonIcon from '@mui/icons-material/Person';
 import { api } from '../../../provider/apiProvider';
 
-const UserFormModal = ({ open, onClose }) => {  const [roles, setRoles] = useState([]);
+const UserFormModal = ({ open, onClose }) => {  
+  const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
   const [registrationSuccess, setRegistrationSuccess] = useState(false);
+  const [imageFile, setImageFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const fileInputRef = useRef(null);
   const [formData, setFormData] = useState({
     fullName: '',
     email: '',
@@ -47,6 +57,69 @@ const UserFormModal = ({ open, onClose }) => {  const [roles, setRoles] = useSta
       [name]: value
     });
   };
+
+  // Função para lidar com a seleção de imagem
+  const handleImageSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Verificar tipo de arquivo
+      const validTypes = ['image/jpeg', 'image/png', 'image/jpg', 'image/gif'];
+      if (!validTypes.includes(file.type)) {
+        setSnackbar({
+          open: true,
+          message: 'Formato de imagem inválido. Use JPG, PNG ou GIF.',
+          severity: 'error'
+        });
+        return;
+      }
+      
+      // Verificar tamanho do arquivo (limite de 2MB)
+      if (file.size > 2 * 1024 * 1024) {
+        setSnackbar({
+          open: true,
+          message: 'A imagem deve ter no máximo 2MB.',
+          severity: 'error'
+        });
+        return;
+      }
+
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onload = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // Função para remover a imagem selecionada
+  const handleImageRemove = (e) => {
+    e.stopPropagation(); // Evita trigger do input file
+    setImageFile(null);
+    setImagePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  // Função para acionar o input de arquivo quando clicar no avatar
+  const triggerFileInput = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.click();
+    }
+  };
+  
+  // Limpar a imagem quando o modal é fechado ou resetado
+  useEffect(() => {
+    if (!open) {
+      setImageFile(null);
+      setImagePreview(null);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  }, [open]);
+
   // Função para carregar os cargos da API
   const fetchRoles = async () => {
     try {
@@ -147,10 +220,10 @@ const UserFormModal = ({ open, onClose }) => {  const [roles, setRoles] = useSta
       // Append the Blob as 'data', providing a filename can also be helpful
       formDataToSend.append('data', jsonDataBlob, 'data.json');
 
-      // Se houvesse um arquivo, seria adicionado aqui:
-      // if (fileInput.files[0]) {
-      //   formDataToSend.append('file', fileInput.files[0]);
-      // }
+      // Se houver imagem selecionada, adiciona ao FormData
+      if (imageFile) {
+        formDataToSend.append('file', imageFile);
+      }
 
       console.log('Enviando FormData:', formDataToSend);
       
@@ -181,6 +254,11 @@ const UserFormModal = ({ open, onClose }) => {  const [roles, setRoles] = useSta
           confirmPassword: ''
         });
         setSelectedRole('');
+        setImageFile(null);
+        setImagePreview(null);
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
         
         // Fecha o modal após 3 segundos, permitindo que o usuário veja a mensagem
         setTimeout(() => {
@@ -332,7 +410,84 @@ const UserFormModal = ({ open, onClose }) => {  const [roles, setRoles] = useSta
         
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Preencha os campos abaixo para criar um novo usuário no sistema. Todos os campos são obrigatórios.
-        </Typography><Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        </Typography>
+        
+        {/* Componente de Upload de Imagem */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
+          <Box
+            sx={{
+              position: 'relative',
+              width: '120px',
+              height: '120px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center'
+            }}
+          >
+            {/* Avatar com Preview ou Placeholder */}
+            <Avatar
+              src={imagePreview}
+              alt="Preview do avatar"
+              onClick={triggerFileInput}
+              sx={{
+                width: '100%',
+                height: '100%',
+                bgcolor: imagePreview ? 'transparent' : '#f5f5f5',
+                border: '3px solid #f1f1f1',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                cursor: 'pointer',
+                transition: 'transform 0.2s, box-shadow 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.02)',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+                },
+              }}
+            >
+              {imagePreview ? null : (
+                <Tooltip title="Adicionar foto de perfil">
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                    <Icons.AddAPhoto sx={{ fontSize: 32, color: '#61131A', mb: 0.5 }} />
+                    <Typography variant="caption" sx={{ color: '#666', fontSize: '0.7rem' }}>
+                      Adicionar foto
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              )}
+            </Avatar>
+            
+            {/* Input file oculto */}
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleImageSelect}
+              accept="image/jpeg, image/png, image/jpg, image/gif"
+              style={{ display: 'none' }}
+            />
+            
+            {/* Botão de Remover Imagem */}
+            {imagePreview && (
+              <IconButton
+                size="small"
+                onClick={handleImageRemove}
+                sx={{
+                  position: 'absolute',
+                  bottom: '0',
+                  right: '0',
+                  backgroundColor: '#fff',
+                  boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+                  padding: '5px',
+                  '&:hover': {
+                    backgroundColor: '#f5f5f5',
+                  },
+                }}
+              >
+                <DeleteIcon fontSize="small" sx={{ color: '#61131A' }} />
+              </IconButton>
+            )}
+          </Box>
+        </Box>
+
+        <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>            <TextField
               autoFocus
               label="Nome completo"
