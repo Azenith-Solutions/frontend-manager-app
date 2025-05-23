@@ -138,9 +138,25 @@ const UserFormModal = ({ open, onClose }) => {  const [roles, setRoles] = useSta
         email: formData.email,
         password: formData.password,
         role: selectedRole
-      };      console.log('Enviando dados:', userData);
+      };
+      console.log('Enviando dados (objeto):', userData);
+
+      const formDataToSend = new FormData();
+      // Create a Blob from the JSON string with the correct MIME type
+      const jsonDataBlob = new Blob([JSON.stringify(userData)], { type: 'application/json' });
+      // Append the Blob as 'data', providing a filename can also be helpful
+      formDataToSend.append('data', jsonDataBlob, 'data.json');
+
+      // Se houvesse um arquivo, seria adicionado aqui:
+      // if (fileInput.files[0]) {
+      //   formDataToSend.append('file', fileInput.files[0]);
+      // }
+
+      console.log('Enviando FormData:', formDataToSend);
       
-      const response = await api.post('/auth/register', userData);
+      // Removido o terceiro argumento (objeto de configuração) para permitir que o Axios
+      // e o interceptor gerenciem o Content-Type para FormData automaticamente.
+      const response = await api.post('/auth/register1', formDataToSend);
       
       console.log('Resposta do cadastro:', response.data);
       
