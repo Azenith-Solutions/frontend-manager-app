@@ -35,3 +35,15 @@ export const fetchIcompleteItems = async () => {
         throw error;
     }
 }
+
+export const fetchItemsOutOfLastSaleSLA = async () => {
+    try {
+        const response = await api.get('/components/kpi/out-of-last-sale-sla');
+
+        console.log('Resposta dos componentes fora do SLA da última venda:', response);
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar componentes fora do SLA da última venda:', error);
+        throw error;
+    }
+}

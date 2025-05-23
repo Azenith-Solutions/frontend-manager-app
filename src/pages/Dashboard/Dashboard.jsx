@@ -13,7 +13,7 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
 import styles from "./Dashboard.module.css";
-import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems } from "../../service/dashboard/dashboardService";
+import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA } from "../../service/dashboard/dashboardService";
 
 // mock similando carregamento do fetch de dados
 const fetchKpiData = () => {
@@ -37,6 +37,8 @@ const Dashboard = () => {
   const [quantityInObservationComponents, setQuantityInObservationComponents] = useState(inObservationComponents.length);
   const [incompleteComponents, setIncompleteComponents] = useState([]);
   const [quantityIncompleteComponents, setQuantityIncompleteComponents] = useState(incompleteComponents.length);
+  const [itemsOutOfLastSaleSLA, setItemsOutOfLastSaleSLA] = useState([]);
+  const [quantityItemsOutOfLastSaleSLA, setQuantityItemsOutOfLastSaleSLA] = useState(itemsOutOfLastSaleSLA.length);
   const [loading, setLoading] = useState(true);
   const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:960px)');
@@ -88,6 +90,18 @@ const Dashboard = () => {
     }
   };
 
+  const getItemsOutOfLastSaleSLA = async () => {
+    try {
+      const response = await fetchItemsOutOfLastSaleSLA();
+
+      console.log("Componentes fora do SLA da última venda:", response.data);
+      setItemsOutOfLastSaleSLA(response.data);
+      setQuantityItemsOutOfLastSaleSLA(response.data.length);
+    } catch (error) {
+      console.error("Error fetching items out of last sale SLA:", error);
+    }
+  };
+
   const fetchData = async () => {
     try {
       const kpiResult = await fetchKpiData();
@@ -104,6 +118,7 @@ const Dashboard = () => {
     getLowStockComponents();
     getInObservationComponents();
     getIncompleteComponents();
+    getItemsOutOfLastSaleSLA();
     fetchData();
   }, []);
 
@@ -201,7 +216,7 @@ const Dashboard = () => {
                   {quantityInObservationComponents}
                 </Typography>
                 <Typography variant="body2" className={styles.kpiLabel}>
-                  Componentes Em Observação
+                  Em Observação
                 </Typography>
               </Box>
             </Box>
@@ -219,7 +234,7 @@ const Dashboard = () => {
                   {quantityIncompleteComponents}
                 </Typography>
                 <Typography variant="body2" className={styles.kpiLabel}>
-                  Componentes Incompletos
+                  Incompletos
                 </Typography>
               </Box>
             </Box>
@@ -234,10 +249,10 @@ const Dashboard = () => {
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
-                  {kpiData.obsoleteItems}
+                  {quantityItemsOutOfLastSaleSLA}
                 </Typography>
                 <Typography variant="body2" className={styles.kpiLabel}>
-                  Itens Obsoletos / Parados
+                  30 Dias Não Vendidos
                 </Typography>
               </Box>
             </Box>
