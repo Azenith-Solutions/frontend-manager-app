@@ -13,7 +13,7 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
 import styles from "./Dashboard.module.css";
-import { fetchLowStockItems } from "../../service/dashboard/dashboardService";
+import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems } from "../../service/dashboard/dashboardService";
 
 // mock similando carregamento do fetch de dados
 const fetchKpiData = () => {
@@ -33,6 +33,10 @@ const Dashboard = () => {
   const [kpiData, setKpiData] = useState(null);
   const [lowStockComponents, setLowStockComponents] = useState([]);
   const [quantityLowStockComponents, setQuantityLowStockComponents] = useState(lowStockComponents.length);
+  const [inObservationComponents, setInObservationComponents] = useState([]);
+  const [quantityInObservationComponents, setQuantityInObservationComponents] = useState(inObservationComponents.length);
+  const [incompleteComponents, setIncompleteComponents] = useState([]);
+  const [quantityIncompleteComponents, setQuantityIncompleteComponents] = useState(incompleteComponents.length);
   const [loading, setLoading] = useState(true);
   const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:960px)');
@@ -60,6 +64,30 @@ const Dashboard = () => {
     }
   };
 
+  const getInObservationComponents = async () => {
+    try {
+      const response = await fetchInObservationItems();
+
+      setInObservationComponents(response.data);
+      setQuantityInObservationComponents(response.data.length);
+      console.log("Quantidade de componentes em observação:", response.data.length);
+    } catch (error) {
+      console.error("Error fetching in observation components:", error);
+    }
+  };
+
+  const getIncompleteComponents = async () => {
+    try {
+      const response = await fetchIcompleteItems();
+
+      setIncompleteComponents(response.data);
+      setQuantityIncompleteComponents(response.data.length);
+      console.log("Quantidade de componentes incompletos:", response.data.length);
+    } catch (error) {
+      console.error("Error fetching incomplete components:", error);
+    }
+  };
+
   const fetchData = async () => {
     try {
       const kpiResult = await fetchKpiData();
@@ -74,6 +102,8 @@ const Dashboard = () => {
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
     getLowStockComponents();
+    getInObservationComponents();
+    getIncompleteComponents();
     fetchData();
   }, []);
 
@@ -168,10 +198,10 @@ const Dashboard = () => {
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
-                  R${kpiData.totalStockValue.toLocaleString()}
+                  {quantityInObservationComponents}
                 </Typography>
                 <Typography variant="body2" className={styles.kpiLabel}>
-                  Valor Total do Estoque
+                  Componentes Em Observação
                 </Typography>
               </Box>
             </Box>
@@ -186,10 +216,10 @@ const Dashboard = () => {
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
-                  {kpiData.turnoverRate}x
+                  {quantityIncompleteComponents}
                 </Typography>
                 <Typography variant="body2" className={styles.kpiLabel}>
-                  Taxa de Giro de Estoque
+                  Componentes Incompletos
                 </Typography>
               </Box>
             </Box>
