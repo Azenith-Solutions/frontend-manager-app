@@ -14,6 +14,7 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
 import styles from "./Dashboard.module.css";
 import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA } from "../../service/dashboard/dashboardService";
+import KpiDetailModal from "../../components/modals/KpiDetailModal/KpiDetailModal";
 
 // mock similando carregamento do fetch de dados
 const fetchKpiData = () => {
@@ -29,8 +30,8 @@ const fetchKpiData = () => {
   });
 };
 
-const Dashboard = () => {
-  const [kpiData, setKpiData] = useState(null);
+const Dashboard = () => {  // Dados do dashboard
+  const [kpiData, setKpiData] = useState(null); // Usado para mock data na inicialização
   const [lowStockComponents, setLowStockComponents] = useState([]);
   const [quantityLowStockComponents, setQuantityLowStockComponents] = useState(lowStockComponents.length);
   const [inObservationComponents, setInObservationComponents] = useState([]);
@@ -40,6 +41,13 @@ const Dashboard = () => {
   const [itemsOutOfLastSaleSLA, setItemsOutOfLastSaleSLA] = useState([]);
   const [quantityItemsOutOfLastSaleSLA, setQuantityItemsOutOfLastSaleSLA] = useState(itemsOutOfLastSaleSLA.length);
   const [loading, setLoading] = useState(true);
+
+  // Estados para controle de modal
+  const [modalOpen, setModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState("");
+  const [modalData, setModalData] = useState([]);
+  const [modalLoading, setModalLoading] = useState(false);
+
   const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:960px)');
   const chartCard1Ref = useRef(null);
@@ -50,6 +58,8 @@ const Dashboard = () => {
     chart2: 170,
     chart3: isTablet ? 300 : 400
   });
+  const [openKpiModal, setOpenKpiModal] = useState(false);
+  const [selectedKpi, setSelectedKpi] = useState(null);
 
   const getLowStockComponents = async () => {
     try {
@@ -100,6 +110,43 @@ const Dashboard = () => {
     } catch (error) {
       console.error("Error fetching items out of last sale SLA:", error);
     }
+  };
+  // Função para abrir o modal com detalhes da KPI selecionada
+  const handleKpiClick = (kpiType) => {
+    setModalLoading(true);
+    setModalOpen(true);
+
+    switch (kpiType) {
+      case 'lowStock':
+        setModalTitle("Produtos com Baixo Estoque");
+        setModalData(lowStockComponents);
+        break;
+      case 'observation':
+        setModalTitle("Produtos em Observação");
+        setModalData(inObservationComponents);
+        break;
+      case 'incomplete':
+        setModalTitle("Produtos Incompletos");
+        setModalData(incompleteComponents);
+        break;
+      case 'outOfSla':
+        setModalTitle("Produtos Não Vendidos por 30+ Dias");
+        setModalData(itemsOutOfLastSaleSLA);
+        break;
+      default:
+        setModalTitle("Detalhes");
+        setModalData([]);
+    }
+
+    // Simulando um breve carregamento para demonstração
+    setTimeout(() => {
+      setModalLoading(false);
+    }, 300);
+  };
+
+  // Função para fechar o modal
+  const handleCloseModal = () => {
+    setModalOpen(false);
   };
 
   const fetchData = async () => {
@@ -174,20 +221,61 @@ const Dashboard = () => {
 
 
   if (loading) {
-    return (
-      <Box className={styles.loadingContainer}>
-        <CircularProgress />
-        <Typography variant="h6" sx={{ mt: 2 }}>
-          Carregando dados do dashboard...
-        </Typography>
-      </Box>
+    return (<Box className={styles.loadingContainer}>
+      <CircularProgress color="primary" size={50} thickness={4} />
+      <Typography variant="h6" sx={{ mt: 2, fontWeight: 500, color: '#555' }}>
+        Carregando dados do dashboard...
+      </Typography>
+    </Box>
     );
   }
 
+  // Definição das colunas para o modal
+  const modalColumns = [
+    { field: 'idHardWareTech', headerName: 'ID', width: 100 },
+    { field: 'descricao', headerName: 'Descrição', width: 250 },
+    { field: 'partNumber', headerName: 'Part Number', width: 150 },
+    { field: 'quantidade', headerName: 'Qtde', width: 80 },
+    {
+      field: 'condicao',
+      headerName: 'Condição',
+      width: 130,
+      renderCell: (value) => value?.descricao || value
+    },
+    {
+      field: 'fkCaixa',
+      headerName: 'Caixa',
+      width: 120,
+      valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
+    }
+  ];
   return (
     <div className={styles.dashboard}>
       <Box className={styles.kpiContainer}>
-        <Card className={styles.kpiCard} sx={{ borderTop: '4px solid #61131A' }}>
+        <Card
+          className={styles.kpiCard}
+          sx={{
+            borderTop: '4px solid #61131A',
+            cursor: 'pointer',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #61131A 70%, rgba(97, 19, 26, 0.4) 100%)',
+              borderRadius: '4px 4px 0 0',
+              opacity: 0,
+              transition: 'opacity 0.3s ease-in-out',
+            },
+            '&:hover::after': {
+              opacity: 1,
+            }
+          }}
+          onClick={() => handleKpiClick('lowStock')}
+        >
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#ffeded' }}>
@@ -203,9 +291,30 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>
-
-        <Card className={styles.kpiCard} sx={{ borderTop: '4px solid #0288d1' }}>
+        </Card>        <Card
+          className={styles.kpiCard}
+          sx={{
+            borderTop: '4px solid #0288d1',
+            cursor: 'pointer',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #0288d1 70%, rgba(2, 136, 209, 0.4) 100%)',
+              borderRadius: '4px 4px 0 0',
+              opacity: 0,
+              transition: 'opacity 0.3s ease-in-out',
+            },
+            '&:hover::after': {
+              opacity: 1,
+            }
+          }}
+          onClick={() => handleKpiClick('observation')}
+        >
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#e6f7ff' }}>
@@ -221,9 +330,30 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>
-
-        <Card className={styles.kpiCard} sx={{ borderTop: '4px solid #689f38' }}>
+        </Card>        <Card
+          className={styles.kpiCard}
+          sx={{
+            borderTop: '4px solid #689f38',
+            cursor: 'pointer',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #689f38 70%, rgba(104, 159, 56, 0.4) 100%)',
+              borderRadius: '4px 4px 0 0',
+              opacity: 0,
+              transition: 'opacity 0.3s ease-in-out',
+            },
+            '&:hover::after': {
+              opacity: 1,
+            }
+          }}
+          onClick={() => handleKpiClick('incomplete')}
+        >
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#f0f7e6' }}>
@@ -239,9 +369,30 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>
-
-        <Card className={styles.kpiCard} sx={{ borderTop: '4px solid #7b1fa2' }}>
+        </Card>        <Card
+          className={styles.kpiCard}
+          sx={{
+            borderTop: '4px solid #7b1fa2',
+            cursor: 'pointer',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #7b1fa2 70%, rgba(123, 31, 162, 0.4) 100%)',
+              borderRadius: '4px 4px 0 0',
+              opacity: 0,
+              transition: 'opacity 0.3s ease-in-out',
+            },
+            '&:hover::after': {
+              opacity: 1,
+            }
+          }}
+          onClick={() => handleKpiClick('outOfSla')}
+        >
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#f5f0ff' }}>
@@ -257,12 +408,17 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>
+        </Card>        {/* Instrução ao usuário */}
+        <Typography className={styles.kpiClickInfo} sx={{ fontWeight: 500 }}>
+          Clique nos indicadores para ver detalhes
+        </Typography>
       </Box>
       <Box className={styles.chartsContainer}>
         <Card className={styles.chartCard1} ref={chartCard1Ref}>
-          <h5 className={styles.chartTitle}>📈 Evolução do Valor do Estoque (últimos 6 meses)</h5>
-          <div style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
+          <Typography variant="h6" className={styles.chartTitle}>
+            <span role="img" aria-label="chart" style={{ marginRight: '8px' }}>📈</span>
+            Evolução do Valor do Estoque (últimos 6 meses)
+          </Typography>          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
             <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart1}>
               <LineChart data={dataLine} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -279,14 +435,13 @@ const Dashboard = () => {
                   contentStyle={{ fontSize: isMobile ? 12 : 14 }}
                   labelStyle={{ fontSize: isMobile ? 12 : 14 }}
                   itemStyle={{ fontSize: isMobile ? 12 : 14 }}
-                />
-                <Line
+                />                <Line
                   type="monotone"
                   dataKey="value"
                   stroke="#61131A"
                   strokeWidth={isMobile ? 2 : 3}
-                  dot={{ r: isMobile ? 3 : 4 }}
-                  activeDot={{ r: isMobile ? 5 : 6 }}
+                  dot={{ r: isMobile ? 3 : 4, stroke: '#61131A', strokeWidth: 2, fill: '#fff' }}
+                  activeDot={{ r: isMobile ? 5 : 6, stroke: '#61131A', strokeWidth: 2, fill: '#fff' }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -294,8 +449,10 @@ const Dashboard = () => {
         </Card>
 
         <Card className={styles.chartCard2} ref={chartCard2Ref}>
-          <h5 className={styles.chartTitle}>📊 Entrada vs. Saída de componentes (mensal)</h5>
-          <div style={{ width: '100%', height: '100%', minHeight: chartHeights.chart2 }}>
+          <Typography variant="h6" className={styles.chartTitle}>
+            <span role="img" aria-label="bar chart" style={{ marginRight: '8px' }}>📊</span>
+            Entrada vs. Saída de componentes (mensal)
+          </Typography>          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart2 }}>
             <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart2}>
               <BarChart data={dataBar} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                 <CartesianGrid strokeDasharray="3 3" />
@@ -313,17 +470,30 @@ const Dashboard = () => {
                   labelStyle={{ fontSize: isMobile ? 12 : 14 }}
                   itemStyle={{ fontSize: isMobile ? 12 : 14 }}
                 />
-                <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />
-                <Bar dataKey="entrada" fill="#689F38" />
-                <Bar dataKey="saida" fill="#61131A" />
+                <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />                <Bar
+                  dataKey="entrada"
+                  fill="#689F38"
+                  radius={[4, 4, 0, 0]}
+                  fillOpacity={0.85}
+                  barSize={isMobile ? 12 : 20}
+                />
+                <Bar
+                  dataKey="saida"
+                  fill="#61131A"
+                  radius={[4, 4, 0, 0]}
+                  fillOpacity={0.85}
+                  barSize={isMobile ? 12 : 20}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
 
         <Card className={styles.chartCard3} ref={chartCard3Ref}>
-          <h5 className={styles.chartTitle}>🚨 Produtos com Menor Estoque</h5>
-          <div style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
+          <Typography variant="h6" className={styles.chartTitle}>
+            <span role="img" aria-label="alert" style={{ marginRight: '8px' }}>🚨</span>
+            Produtos com Menor Estoque
+          </Typography>          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
             <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart3}>
               <BarChart
                 layout="vertical"
@@ -355,12 +525,30 @@ const Dashboard = () => {
                   itemStyle={{ fontSize: isMobile ? 12 : 14 }}
                 />
                 <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />
-                <Bar dataKey="quantidade" fill="#61131A" name="Estoque" />
+                <Bar
+                  dataKey="quantidade"
+                  fill="#61131A"
+                  name="Estoque"
+                  radius={[0, 4, 4, 0]}
+                  fillOpacity={0.85}
+                  barSize={isMobile ? 14 : 24}
+                  background={{ fill: '#f5f5f5' }}
+                />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </Card>
       </Box>
+
+      {/* Modal de detalhes da KPI */}
+      <KpiDetailModal
+        open={modalOpen}
+        onClose={handleCloseModal}
+        title={modalTitle}
+        data={modalData}
+        loading={modalLoading}
+        columns={modalColumns}
+      />
     </div>
   );
 };

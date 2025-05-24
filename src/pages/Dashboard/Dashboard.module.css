@@ -17,38 +17,69 @@
 /* kpis */
 .kpiContainer {
   display: flex;
-  gap: 16px;
-  margin-bottom: 16px;
+  flex-wrap: wrap;
+  gap: 20px;
+  margin-bottom: 24px;
   width: 100%;
-  cursor: pointer;
+  position: relative;
 }
 
 .kpiCard {
   flex: 1;
-  min-width: 0;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  transition: transform 0.2s, box-shadow 0.2s;
+  min-width: 210px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
 }
 
 .kpiCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.1);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.kpiCard:active {
+  transform: translateY(-2px);
+  transition: transform 0.1s;
+}
+
+.kpiClickInfo {
+  position: absolute;
+  bottom: -30px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.75rem;
+  color: #666;
+  opacity: 0;
+  transform: translateY(0);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+.kpiContainer:hover .kpiClickInfo {
+  opacity: 0.8;
+  transform: translateY(-24px);
 }
 
 .kpiContent {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
+  padding: 4px;
 }
 
 .kpiIconBox {
-  width: 48px;
-  height: 48px;
-  min-width: 48px;
-  border-radius: 8px;
+  width: 56px;
+  height: 56px;
+  min-width: 56px;
+  border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease-in-out;
 }
 
 .kpiDataBox {
@@ -59,122 +90,253 @@
 }
 
 .kpiValue {
-  font-size: 1.5rem !important;
+  font-size: 1.75rem !important;
   font-weight: 700 !important;
-  line-height: 1.2 !important;
+  line-height: 1.1 !important;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  margin-bottom: 2px !important;
+  transition: color 0.2s;
+}
+
+.kpiCard:hover .kpiValue {
+  color: #000;
 }
 
 .kpiLabel {
   color: #666;
-  font-size: 0.8rem !important;
+  font-size: 0.85rem !important;
   font-weight: 500 !important;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0.85;
+}
+
+.kpiCard:hover .kpiIconBox {
+  transform: scale(1.08);
+}
+
+.kpiClickInfo {
+  font-size: 0.75rem;
+  color: #666;
+  text-align: center;
+  margin-top: 8px;
+  font-style: italic;
+  background-color: rgba(255, 255, 255, 0.8);
+  padding: 4px 0;
+  border-radius: 12px;
+  backdrop-filter: blur(2px);
+}
+
+/* charts */
+.chartsContainer {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 24px;
+  height: calc(100% - 120px);
+  /* Ajustado para o maior espaço dos KPIs */
+  width: 100%;
+  overflow: hidden;
+  padding: 4px;
+  margin-top: 8px;
+}
+
+.chartTitle {
+  text-align: center;
+  font-size: 14px;
+  margin-bottom: 12px;
+  font-weight: 600;
+  color: #333;
+  padding: 0 16px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
-/* charts */
-.chartsContainer {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
-    gap: 16px; 
-    height: calc(100% - 100px);
-    width: 100%;
-    overflow: hidden;
-}
-  
-.chartTitle{
-    text-align: center;
-    font-size: 14px;
-    margin-bottom: 8px;
+.chartCard1 {
+  grid-column: 1 / 2;
+  grid-row: 1 / 2;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
 
-.chartCard1 {
-    grid-column: 1 / 2;
-    grid-row: 1 / 2;
-    background-color: white;
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+.chartCard1:hover,
+.chartCard2:hover,
+.chartCard3:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
-  
+
 .chartCard2 {
-    grid-column: 1 / 2;
-    grid-row: 2 / 3;
-    background-color: white;
-    border: 1px solid rgba(0,0,0,0.1);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  grid-column: 1 / 2;
+  grid-row: 2 / 3;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
 }
-  
+
 .chartCard3 {
-    grid-column: 2 / 3;
-    grid-row: 1 / 3;
-    border: 1px solid rgba(0,0,0,0.1);
-    background-color: white;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-    padding: 10px;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
+  grid-column: 2 / 3;
+  grid-row: 1 / 3;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.chartContent {
+  width: 100%;
+  height: 100%;
+  padding: 8px 4px 4px;
+  position: relative;
+  transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+}
+
+.chartContent:hover {
+  transform: scale(1.01);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dashboard {
+  animation: fadeIn 0.5s ease-in-out;
 }
 
 @media (max-width: 960px) {
-    .dashboard {
-        height: auto;
-        overflow-y: auto;
-        padding-bottom: 20px;
-      }
-    
-      .kpiContainer {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: space-between;
-      }
-    
-      .kpiCard {
-        flex: 1 1 calc(50% - 8px); /* 2 cards por linha */
-        min-width: calc(50% - 8px);
-        margin-bottom: 8px;
-      }
-    
-  
-    .chartsContainer {
-      grid-template-columns: 1fr;
-      grid-template-rows: auto auto auto;
-      gap: 16px;
-      height: auto;
-      overflow-y: auto;
-    }
-  
-    .chartTitle {
-      font-size: 10px;
-    }
-  
-    .chartCard1 {
-      grid-column: 1;
-      grid-row: 1;
-    }
-  
-    .chartCard2 {
-      grid-column: 1;
-      grid-row: 2;
-    }
-  
-    .chartCard3 {
-      grid-column: 1;
-      grid-row: 3;
-      height: 300px;
-    }
+  .dashboard {
+    height: auto;
+    overflow-y: auto;
+    padding-bottom: 20px;
   }
-  
+
+  .kpiContainer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    padding: 0 4px;
+  }
+
+  .kpiCard {
+    flex: 1 1 calc(50% - 12px);
+    /* 2 cards por linha */
+    min-width: calc(50% - 12px);
+    margin-bottom: 16px;
+  }
+
+  .kpiContent {
+    padding: 2px 0;
+  }
+
+  .chartsContainer {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 20px;
+    height: auto;
+    overflow-y: auto;
+    padding: 8px 4px;
+    margin-bottom: 24px;
+  }
+
+  .chartTitle {
+    font-size: 12px;
+    padding: 0 8px;
+    margin-bottom: 8px;
+    white-space: normal;
+  }
+
+  .chartCard1 {
+    grid-column: 1;
+    grid-row: 1;
+    padding: 12px;
+  }
+
+  .chartCard2 {
+    grid-column: 1;
+    padding: 12px;
+    grid-row: 2;
+  }
+
+  .chartCard3 {
+    grid-column: 1;
+    grid-row: 3;
+    padding: 12px;
+    height: 300px;
+  }
+
+  .kpiIconBox {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+  }
+
+  .chartContent {
+    padding: 4px 2px 2px;
+  }
+}
+
+@media (max-width: 600px) {
+  .kpiContainer {
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  .kpiCard {
+    flex: 1 1 100%;
+    min-width: 100%;
+    margin-bottom: 0;
+  }
+
+  .kpiValue {
+    font-size: 1.5rem !important;
+  }
+
+  .kpiContent {
+    padding: 2px;
+  }
+
+  .chartTitle {
+    font-size: 11px;
+    margin-bottom: 6px;
+  }
+
+  .chartCard1,
+  .chartCard2,
+  .chartCard3 {
+    padding: 10px;
+  }
+
+  .kpiIconBox {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+  }
+}
