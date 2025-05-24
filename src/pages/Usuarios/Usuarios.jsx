@@ -8,7 +8,9 @@ import UsuariosFilter from "../../components/menuFilter/UsuariosFilter";
 import UsuariosDataGrid from "../../components/datagrids/UsuariosDataGrid/UsuariosDataGrid";
 import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
 
-// Standardized avatar URL
+// URL base para imagens de perfil
+const API_BASE_URL = "http://localhost:8080/api/uploads/images/";
+// Standardized avatar URL (fallback quando não há imagem de perfil)
 const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
 
 // Material UI Components
@@ -109,9 +111,8 @@ const Usuarios = () => {
       
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
-      
-      if (response.data && response.data.data) {        const usuariosAPI = response.data.data.map(user => {
-          // Extrair iniciais para o avatar
+        if (response.data && response.data.data) {        const usuariosAPI = response.data.data.map(user => {
+          // Extrair iniciais para o avatar (fallback se não houver imagem)
           const iniciais = user.fullName
             .split(' ')
             .map(n => n[0])
@@ -125,6 +126,14 @@ const Usuarios = () => {
           } else if (user.status === false) {
             statusDisplay = "Inativo";
           }
+          
+          // Definir a URL do avatar (imagem de perfil ou fallback com iniciais)
+          let avatarUrl;
+          if (user.profilePicture) {
+            avatarUrl = `${API_BASE_URL}${user.profilePicture}`;
+          } else {
+            avatarUrl = `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`;
+          }
             
           return {
             id: user.id,
@@ -133,7 +142,7 @@ const Usuarios = () => {
             cargo: user.role,
             status: statusDisplay,
             criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
-            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`,
+            avatar: avatarUrl,
             // Dados originais para facilitar a edição
             rawData: user
           };
