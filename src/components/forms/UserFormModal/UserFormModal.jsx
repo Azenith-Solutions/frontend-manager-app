@@ -229,7 +229,7 @@ const UserFormModal = ({ open, onClose }) => {
       
       // Removido o terceiro argumento (objeto de configuração) para permitir que o Axios
       // e o interceptor gerenciem o Content-Type para FormData automaticamente.
-      const response = await api.post('/auth/register1', formDataToSend);
+      const response = await api.post('/auth/register', formDataToSend);
       
       console.log('Resposta do cadastro:', response.data);
       
