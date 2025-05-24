@@ -11,9 +11,57 @@ import WarningIcon from '@mui/icons-material/Warning';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import { XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer, Sector } from 'recharts';
+import { XAxis, YAxis, Tooltip, CartesianGrid, BarCh                <Tooltip 
+                         <Tooltip 
+                  formatter={(value, name) => [`${value} unidades`, name]}
+                  contentStyle={{ 
+                    fontSize: isMobile ? 12 : 14, 
+                    backgroundColor: 'rgba(255,255,255,0.97)', 
+                    borderRadius: '8px', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                    border: 'none',
+                    padding: '8px 12px'
+                  }}
+                  itemStyle={{ padding: '4px 0', fontWeight: 600 }}
+                  labelStyle={{ fontWeight: 600, color: '#333' }}
+                />    formatter={(value, name, props) => {
+                    // Customizar cores e formato do tooltip
+                    return [
+                      <span style={{ 
+                        color: '#333', 
+                        fontWeight: 600 
+                      }}>{`${value} unidades`}</span>, 
+                      <span style={{ 
+                        color: props.payload.fill, 
+                        fontWeight: 600,
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}>
+                        <div style={{ 
+                          width: '10px', 
+                          height: '10px', 
+                          backgroundColor: props.payload.fill,
+                          display: 'inline-block',
+                          marginRight: '5px',
+                          borderRadius: '2px'
+                        }}></div>
+                        {name}
+                      </span>
+                    ];
+                  }}
+                  contentStyle={{ 
+                    fontSize: isMobile ? 12 : 14, 
+                    backgroundColor: 'rgba(255,255,255,0.97)', 
+                    borderRadius: '8px', 
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.18)',
+                    border: 'none',
+                    padding: '8px 12px'
+                  }}
+                  labelStyle={{ fontWeight: 600, color: '#333' }}
+                  itemStyle={{ padding: '4px 0' }}
+                />Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer } from 'recharts';
 import styles from "./Dashboard.module.css";
-import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA, fetchQuantityByMLStatus } from "../../service/dashboard/dashboardService";
+import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA, fetchComponentsMLAds } from "../../service/dashboard/dashboardService";
 import KpiDetailModal from "../../components/modals/KpiDetailModal/KpiDetailModal";
 
 // mock similando carregamento do fetch de dados
@@ -103,31 +151,47 @@ const Dashboard = () => {  // Dados do dashboard
     } catch (error) {
       console.error("Error fetching items out of last sale SLA:", error);
     }
-  }; const getQuantityByMLStatus = async () => {
+  };
+  const getComponentsMLData = async () => {
     try {
-      const response = await fetchQuantityByMLStatus();
-
-      // Atualizando o estado de componentsMLData para uso no gráfico
+      const response = await fetchComponentsMLAds();
+      console.log("Dados de componentes anunciados no ML:", response.data);
+      
+      // Como é uma simulação, vamos criar dados fictícios para o gráfico de pizza
+      // Em uma implementação real, os dados viriam do backend
       const mlData = [
-        {
-          name: 'Anunciados no ML',
-          value: response.data[0] || 0,
-          color: '#689F38'
+        { 
+          name: 'Anunciados no ML', 
+          value: response.data.advertised || 65, 
+          color: '#61131A',  // Vermelho principal do sistema, para manter consistência visual
+          labelColor: '#ffffff' 
         },
-        {
-          name: 'Não anunciados',
-          value: response.data[1] || 0,
-          color: '#61131A'
+        { 
+          name: 'Não anunciados', 
+          value: response.data.notAdvertised || 35, 
+          color: '#689F38',  // Verde do sistema, consistente com outros elementos do dashboard
+          labelColor: '#ffffff' 
         },
       ];
-
+      
       setComponentsMLData(mlData);
     } catch (error) {
       console.error("Erro ao buscar dados de componentes anunciados no ML:", error);
-
+      
+      // Dados fallback em caso de erro
       const fallbackData = [
-        { name: 'Anunciados no ML', value: 0, color: '#61131A' },
-        { name: 'Não anunciados', value: 0, color: '#689F38' },
+        { 
+          name: 'Anunciados no ML', 
+          value: 65, 
+          color: '#61131A', 
+          labelColor: '#ffffff' 
+        },
+        { 
+          name: 'Não anunciados', 
+          value: 35, 
+          color: '#689F38', 
+          labelColor: '#ffffff' 
+        },
       ];
       setComponentsMLData(fallbackData);
     }
@@ -187,7 +251,7 @@ const Dashboard = () => {  // Dados do dashboard
     getInObservationComponents();
     getIncompleteComponents();
     getItemsOutOfLastSaleSLA();
-    getQuantityByMLStatus();
+    getComponentsMLData();
     fetchData();
   }, []);
   // Adjust chart heights based on window resize
@@ -416,118 +480,79 @@ const Dashboard = () => {  // Dados do dashboard
         </Typography>
       </Box>
       <Box className={styles.chartsContainer}>
-        <Card className={styles.chartCard1} ref={chartCard1Ref}>          <Typography variant="h6" className={styles.chartTitle}>
-          Componentes Anunciados no Mercado Livre
-        </Typography>          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
+        <Card className={styles.chartCard1} ref={chartCard1Ref}>
+          <Typography variant="h6" className={styles.chartTitle}>
+            <span role="img" aria-label="pie chart" style={{ marginRight: '8px' }}>📊</span>
+            Componentes Anunciados no Mercado Livre
+          </Typography>
+          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
             <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart1}>
-              <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 30 }}>
+              <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 0 }}>
                 <Pie
                   data={componentsMLData}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={(props) => {
-                    const RADIAN = Math.PI / 180;
-                    const { cx, cy, midAngle, outerRadius, percent } = props;
-
-                    // Calcular posição do texto
-                    const radius = outerRadius * 0.65;
+                  labelLine={false}                  label={({ cx, cy, midAngle, innerRadius, outerRadius, percent, index }) => {
+                    const radius = innerRadius + (outerRadius - innerRadius) * 0.7;
                     const x = cx + radius * Math.cos(-midAngle * RADIAN);
                     const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-                    // Mostrar percentagem apenas se for maior que 1%
-                    if (percent < 0.01) return null;
-
+                      // Usar a cor de rótulo específica para cada segmento
+                    const textColor = componentsMLData[index].labelColor || '#ffffff';
+                    
+                    // Adicionar um contorno/sombra para aumentar a legibilidade
                     return (
-                      <text
-                        x={x}
-                        y={y}
-                        fill="white"
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: isMobile ? '12px' : '14px',
-                          textShadow: '0px 0px 3px rgba(0,0,0,0.7)'
-                        }}
-                      >
-                        {`${(percent * 100).toFixed(0)}%`}
-                      </text>
+                      <g>
+                        {/* Contorno de texto para aumentar a legibilidade */}
+                        <text
+                          x={x}
+                          y={y}
+                          fill="none"
+                          stroke="#000000"
+                          strokeWidth="3"
+                          strokeLinejoin="round"
+                          textAnchor={x > cx ? 'start' : 'end'}
+                          dominantBaseline="central"
+                          style={{ fontWeight: 600, fontSize: isMobile ? '10px' : '12px' }}
+                        >
+                          {`${componentsMLData[index].name}: ${(percent * 100).toFixed(0)}%`}
+                        </text>
+                        {/* Texto principal */}
+                        <text
+                          x={x}
+                          y={y}
+                          fill={textColor}
+                          textAnchor={x > cx ? 'start' : 'end'}
+                          dominantBaseline="central"
+                          style={{ fontWeight: 600, fontSize: isMobile ? '10px' : '12px' }}
+                        >
+                          {`${componentsMLData[index].name}: ${(percent * 100).toFixed(0)}%`}
+                        </text>
+                      </g>
                     );
                   }}
-                  outerRadius={isMobile ? 100 : 140}
-                  innerRadius={0}
-                  paddingAngle={2}
+                  outerRadius={isMobile ? 70 : 100}
+                  innerRadius={isMobile ? 30 : 50}
+                  paddingAngle={5}
                   dataKey="value"
-                >
-                  {componentsMLData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                      stroke="#fff"
-                      strokeWidth={0.5}
+                >                  {componentsMLData.map((entry, index) => (
+                    <Cell 
+                      key={`cell-${index}`} 
+                      fill={entry.color} 
+                      stroke="#ffffff" 
+                      strokeWidth={1} 
                     />
                   ))}
                 </Pie>
                 <Tooltip
                   formatter={(value, name) => [`${value} unidades`, name]}
-                  contentStyle={{
-                    fontSize: isMobile ? 12 : 14,
-                    backgroundColor: 'rgba(255, 255, 255, 0.97)',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    padding: '8px 12px'
-                  }}
-                  itemStyle={{
-                    padding: '4px 0',
-                    color: '#333'
-                  }}
-                  labelStyle={{
-                    fontWeight: 600,
-                    color: '#333',
-                    marginBottom: '6px',
-                    borderBottom: '1px solid rgba(0,0,0,0.1)',
-                    paddingBottom: '4px'
-                  }}
+                  contentStyle={{ fontSize: isMobile ? 12 : 14, backgroundColor: 'rgba(255,255,255,0.95)', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+                  labelStyle={{ fontWeight: 600, color: '#333' }}
                 />
                 <Legend
                   layout="horizontal"
                   verticalAlign="bottom"
                   align="center"
-                  iconSize={10}
-                  iconType="circle"
-                  formatter={(value, entry) => {
-                    const { payload } = entry;
-                    const quantity = payload.value;
-                    const percent = Math.round((quantity / componentsMLData.reduce((sum, item) => sum + item.value, 0)) * 100);
-                    return (
-                      <span style={{
-                        fontSize: isMobile ? '10px' : '11px',
-                        color: '#333',
-                        fontWeight: 500,
-                        display: 'inline-block',
-                        whiteSpace: 'nowrap'
-                      }}>
-                        {`${value}: ${quantity} unidades - ${percent}%`}
-                      </span>
-                    );
-                  }}
-                  wrapperStyle={{
-                    fontSize: isMobile ? 10 : 11,
-                    width: '100%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                    borderRadius: '0 0 8px 8px',
-                    paddingTop: '18px',
-                    margin: '0 auto',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    position: 'absolute',
-                    bottom: 10,
-                    left: 0,
-                    borderTop: '1px solid rgba(0,0,0,0.05)'
-                  }}
+                  wrapperStyle={{ fontSize: isMobile ? 10 : 12, paddingTop: '15px' }}
                 />
               </PieChart>
             </ResponsiveContainer>

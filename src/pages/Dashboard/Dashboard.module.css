@@ -134,7 +134,7 @@
 .chartsContainer {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-rows: 1fr;
   gap: 24px;
   height: calc(100% - 120px);
   /* Ajustado para o maior espaço dos KPIs */
@@ -167,31 +167,29 @@
   flex-direction: column;
   overflow: hidden;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  position: relative;
 }
 
 .chartCard1:hover,
-.chartCard2:hover,
 .chartCard3:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
 }
 
-.chartCard2 {
-  grid-column: 1 / 2;
-  grid-row: 2 / 3;
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
-  padding: 16px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+.chartCard1::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #61131A, #e74c3c);
+  border-radius: 4px 4px 0 0;
 }
 
 .chartCard3 {
   grid-column: 2 / 3;
-  grid-row: 1 / 3;
+  grid-row: 1 / 2;
   background-color: white;
   border-radius: 12px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
@@ -199,7 +197,19 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  position: relative;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.chartCard3::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, #61131A, #689F38);
+  border-radius: 4px 4px 0 0;
 }
 
 .chartContent {

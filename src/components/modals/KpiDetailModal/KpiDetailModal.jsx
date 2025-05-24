@@ -55,7 +55,8 @@ const KpiDetailModal = ({ open, onClose, title, data, loading, columns }) => {
                 }
             }
         }}
-    >            <DialogTitle id="kpi-detail-dialog-title" className={styles.dialogTitle}>
+    >
+        <DialogTitle id="kpi-detail-dialog-title" className={styles.dialogTitle}>
             <Box className={styles.titleContainer}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                     {/* Ícones dinâmicos baseados no tipo de KPI */}

@@ -47,3 +47,15 @@ export const fetchItemsOutOfLastSaleSLA = async () => {
         throw error;
     }
 }
+
+export const fetchQuantityByMLStatus = async () => {
+    try {
+        const response = await api.get('/components/dashboard/flag-ml');
+        console.log('Resposta dos componentes anunciados no ML:', response);
+
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar componentes anunciados no ML:', error);
+        throw error;
+    }
+}
