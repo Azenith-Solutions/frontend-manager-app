@@ -41,6 +41,7 @@ import ReceiptIcon from '@mui/icons-material/Receipt';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 
 const Pedidos = () => {
   const [loading, setLoading] = useState(true);
@@ -53,10 +54,23 @@ const Pedidos = () => {
   const [pedidoToEdit, setPedidoToEdit] = useState(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [pedidoToDelete, setPedidoToDelete] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({
+    status: [],
+    aprovado: null,
+    periodo: null,
+    clientes: []
+  });
+  const [itensModalOpen, setItensModalOpen] = useState(false);
+  const [pedidoItens, setPedidoItens] = useState([]);
+  const [pedidoSelecionado, setPedidoSelecionado] = useState(null);
+  const [debugItensApi, setDebugItensApi] = useState([]);
+  const [componentesEstoque, setComponentesEstoque] = useState([]);
+  const [itensPorPedido, setItensPorPedido] = useState({});
 
   useEffect(() => {
     document.title = "HardwareTech | Pedidos";
     fetchPedidos();
+    fetchComponentesEstoque();
   }, []);
 
   const fetchPedidos = async () => {
@@ -80,12 +94,6 @@ const Pedidos = () => {
         setPedidos([]);
       }
 
-      const clientes = [...new Set(mockPedidos.map(p => p.cnpjCpf))].map(cnpjCpf => {
-        return { id: cnpjCpf, cnpjCpf };
-      });
-      setAvailableClientes(clientes);
-      
-
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
     } finally {
@@ -93,8 +101,27 @@ const Pedidos = () => {
     }
   };
 
+  const fetchComponentesEstoque = async () => {
+    try {
+      const response = await api.get('/components');
+      const data = response.data.data || response.data;
+      setComponentesEstoque(Array.isArray(data) ? data : []);
+    } catch (error) {
+      setComponentesEstoque([]);
+    }
+  };
+
   const fetchDelete = async (id) => {
     try {
+      // Busca todos os itens vinculados ao pedido
+      const itensResp = await api.get('/items');
+      const itens = itensResp.data.data || itensResp.data || [];
+      const itensDoPedido = itens.filter(item => item.fkPedido && String(item.fkPedido.idPedido) === String(id));
+      // Deleta cada item individualmente
+      for (const item of itensDoPedido) {
+        await api.delete(`/items/${item.idItem || item.id}`);
+      }
+      // Agora deleta o pedido
       await api.delete(`/orders/${id}`);
       fetchPedidos();
     } catch (error) {
@@ -203,10 +230,12 @@ const Pedidos = () => {
   const filteredPedidos = pedidos.filter(
     (item) => {
       // Filtro de busca/texto
-      const matchesSearch = 
-        item.idSolicitacao.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.cnpjCpf.toLowerCase().includes(searchText.toLowerCase()) ||
-        item.dataPedido.includes(searchText);
+      const matchesSearch =
+        (item.codigo && item.codigo.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.cnpj && item.cnpj.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.nome_comprador && item.nome_comprador.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.email_comprador && item.email_comprador.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.status && item.status.toLowerCase().includes(searchText.toLowerCase()));
         
       // Filtro por status
       const matchesStatus = activeFilters.status.length === 0 ||
@@ -250,6 +279,54 @@ const Pedidos = () => {
       label: 'Aprovados'
     }
   ];
+
+  // Função para visualizar itens do pedido
+  const handleVerItens = async (pedido) => {
+    setPedidoSelecionado(pedido);
+    setItensModalOpen(true);
+    setPedidoItens([]);
+    setDebugItensApi([]); // Limpa debug
+    try {
+      // Busca todos os itens e filtra pelo pedido selecionado
+      const response = await api.get('/items');
+      const itens = response.data.data || response.data || [];
+      setDebugItensApi(itens); // Salva todos os itens para debug
+      // Filtra os itens que pertencem ao pedido selecionado
+      const id = pedido.idPedido || pedido.id_pedido || pedido.id;
+      const itensPedido = itens.filter(item => {
+        // fkPedido é um objeto, comparar pelo idPedido
+        return item.fkPedido && String(item.fkPedido.idPedido) === String(id);
+      });
+      setPedidoItens(itensPedido);
+    } catch (error) {
+      setPedidoItens([]);
+      setDebugItensApi([]);
+    }
+  };
+
+  // Busca os itens dos pedidos visíveis na página
+  useEffect(() => {
+    const pedidosVisiveis = filteredPedidos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
+    const idsParaBuscar = pedidosVisiveis
+      .filter(p => !itensPorPedido[p.idPedido])
+      .map(p => p.idPedido);
+    if (idsParaBuscar.length === 0) return;
+    const fetchItens = async () => {
+      try {
+        const response = await api.get('/items');
+        const itens = response.data.data || response.data || [];
+        const novoItensPorPedido = { ...itensPorPedido };
+        idsParaBuscar.forEach(id => {
+          novoItensPorPedido[id] = itens.filter(item => item.fkPedido && String(item.fkPedido.idPedido) === String(id));
+        });
+        setItensPorPedido(novoItensPorPedido);
+      } catch (e) {
+        // Em caso de erro, não faz nada
+      }
+    };
+    fetchItens();
+    // eslint-disable-next-line
+  }, [filteredPedidos, page, rowsPerPage]);
 
   if (loading) {
     return (
@@ -564,7 +641,7 @@ const Pedidos = () => {
                       overflow: 'hidden',
                       textOverflow: 'ellipsis'
                     }}>
-                      {pedidos.filter(item => item.status.toLowerCase() === 'aprovado').length}
+                      {pedidos.filter(item => item.status.toLowerCase() === 'concluido').length}
                     </Typography>
                     <Typography variant="caption" sx={{
                       fontSize: '0.6rem',
@@ -647,7 +724,6 @@ const Pedidos = () => {
                 }}>
                   <TableCell align="center">ID Solicitação</TableCell>
                   <TableCell align="center">CNPJ/CPF</TableCell>
-                  <TableCell align="center">Aprovado</TableCell>
                   <TableCell align="center">Data Pedido</TableCell>
                   <TableCell align="center">Valor</TableCell>
                   <TableCell align="center">Status</TableCell>
@@ -657,92 +733,117 @@ const Pedidos = () => {
               <TableBody>
                 {filteredPedidos
                   .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((item) => (
-                    <TableRow
-                      key={item.id}
-                      hover
-                      sx={{
-                        '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                        '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                        transition: 'background-color 0.2s',
-                        height: '54px'
-                      }}
-                    >
-                      <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idPedido}</TableCell>
-                      <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.fkEmpresa.cnpj}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Chip
-                          icon={item.aprovado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                          label={item.aprovado ? "Sim" : "Não"}
-                          size="small"
-                          sx={{
-                            backgroundColor: item.aprovado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                            color: item.aprovado ? '#27ae60' : '#e74c3c',
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                            borderRadius: '4px',
-                            '& .MuiChip-icon': { color: 'inherit' }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>{new Date(item.createdAt).toLocaleDateString('pt-BR')}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor)}
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Chip
-                          label={item.status}
-                          size="small"
-                          sx={{
-                            backgroundColor:
-                              item.status.toLowerCase() === 'aprovado' ? 'rgba(46, 204, 113, 0.1)' :
-                                item.status.toLowerCase() === 'pendente' ? 'rgba(241, 196, 15, 0.1)' :
-                                  item.status.toLowerCase() === 'entregue' ? 'rgba(52, 152, 219, 0.1)' :
-                                    'rgba(231, 76, 60, 0.1)',
-                            color:
-                              item.status.toLowerCase() === 'aprovado' ? '#27ae60' :
-                                item.status.toLowerCase() === 'pendente' ? '#f39c12' :
-                                  item.status.toLowerCase() === 'entregue' ? '#3498db' :
-                                    '#e74c3c',
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                            borderRadius: '4px'
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                          <IconButton
-                            size="small"
-                            title="Editar"
-                            sx={{
-                              color: '#2980b9',
-                              backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                              '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' }
-                            }}
-                            onClick={() => {
-                              setPedidoToEdit(item);
-                              setOrderModalOpen(true);
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            title="Excluir"
-                            sx={{
-                              color: '#c0392b',
-                              backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                              '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' }
-                            }}
-                            onClick={() => handleDeleteClick(item)}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  .map((item) => {
+                    const itensPedido = itensPorPedido[item.idPedido] || [];
+                    let algumExcedeEstoque = false;
+                    if (Array.isArray(itensPedido) && componentesEstoque.length > 0) {
+                      algumExcedeEstoque = itensPedido.some(it => {
+                        const compId = it.fkComponente?.idComponente || it.fk_componente || it.fkComponente;
+                        const comp = componentesEstoque.find(c => String(c.idComponente) === String(compId));
+                        const excede = comp && Number(it.quantidade) > Number(comp.quantidade);
+                        return excede;
+                      });
+                    }
+                    return (
+                      <TableRow
+                        key={item.id}
+                        hover
+                        sx={{
+                          '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
+                          '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
+                          transition: 'background-color 0.2s',
+                          height: '54px'
+                        }}
+                      >
+                        <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idPedido}</TableCell>
+                        <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{formatCnpjCpf(item.cnpj) || ''}</TableCell>
+                        <TableCell align="center" sx={{ py: 0.8 }}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('pt-BR') : ''}</TableCell>
+                        <TableCell align="center" sx={{ py: 0.8 }}>
+                          {item.valor !== undefined ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor) : ''}
+                        </TableCell>
+                        <TableCell align="center" sx={{ py: 0.8, minWidth: 140 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, minHeight: 28 }}>
+                            <Chip
+                              label={formatStatus(item.status)}
+                              size="small"
+                              sx={{
+                                backgroundColor:
+                                  item.status && item.status.toLowerCase() === 'concluido' ? 'rgba(46, 204, 113, 0.1)' :
+                                  item.status && item.status.toLowerCase() === 'em_analise' ? 'rgba(241, 196, 15, 0.1)' :
+                                  item.status && item.status.toLowerCase() === 'em_andamento' ? 'rgba(52, 152, 219, 0.1)' :
+                                  'rgba(231, 76, 60, 0.1)',
+                                color:
+                                  item.status && item.status.toLowerCase() === 'concluido' ? '#27ae60' :
+                                  item.status && item.status.toLowerCase() === 'em_analise' ? '#f39c12' :
+                                  item.status && item.status.toLowerCase() === 'em_andamento' ? '#3498db' :
+                                  '#e74c3c',
+                                fontWeight: 500,
+                                fontSize: '0.75rem',
+                                borderRadius: '4px'
+                              }}
+                            />
+                          </Box>
+                        </TableCell>
+                        <TableCell align="center" sx={{ py: 0.8 }}>
+                          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, alignItems: 'center' }}>
+                            {algumExcedeEstoque ? (
+                              <WarningAmberIcon sx={{ color: '#f39c12', fontSize: 22, verticalAlign: 'middle', mr: 0.5 }} titleAccess="Quantidade solicitada excede o estoque atual do componente!" />
+                            ) : (
+                              <Box sx={{ width: 22, height: 22, mr: 0.5 }} />
+                            )}
+                            <Button
+                              size="small"
+                              variant="outlined"
+                              sx={{
+                                color: '#27ae60',
+                                borderColor: '#27ae60',
+                                fontWeight: 600,
+                                fontSize: '0.75rem',
+                                textTransform: 'none',
+                                px: 1.5,
+                                py: 0.5,
+                                minWidth: '80px',
+                                '&:hover': {
+                                  backgroundColor: 'rgba(39, 174, 96, 0.08)',
+                                  borderColor: '#219150',
+                                },
+                              }}
+                              onClick={() => handleVerItens(item)}
+                            >
+                              Ver Itens
+                            </Button>
+                            <IconButton
+                              size="small"
+                              title="Editar"
+                              sx={{
+                                color: '#2980b9',
+                                backgroundColor: 'rgba(41, 128, 185, 0.1)',
+                                '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' }
+                              }}
+                              onClick={() => {
+                                setPedidoToEdit(item);
+                                setOrderModalOpen(true);
+                              }}
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                            <IconButton
+                              size="small"
+                              title="Excluir"
+                              sx={{
+                                color: '#c0392b',
+                                backgroundColor: 'rgba(192, 57, 43, 0.1)',
+                                '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' }
+                              }}
+                              onClick={() => handleDeleteClick(item)}
+                            >
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Box>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 {filteredPedidos.length > 0 &&
                   filteredPedidos.length < rowsPerPage &&
                   Array.from({ length: Math.max(0, rowsPerPage - filteredPedidos.length) }).map((_, index) => (
@@ -814,8 +915,69 @@ const Pedidos = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Modal de itens do pedido */}
+      <Dialog open={itensModalOpen} onClose={() => setItensModalOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Itens do Pedido {pedidoSelecionado?.idPedido}</DialogTitle>
+        <DialogContent>
+          {pedidoItens.length === 0 ? (
+            <Typography sx={{ color: '#888', mt: 2 }}>Nenhum item encontrado.</Typography>
+          ) : (
+            <>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Componente</TableCell>
+                    <TableCell>Quantidade Solicitada</TableCell>
+                    <TableCell>Quantidade em Estoque</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {pedidoItens.map((item, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{item.fkComponente?.partNumber || item.fkComponente?.idComponente || item.fkComponente?.descricao || '-'}</TableCell>
+                      <TableCell>{item.quantidade}</TableCell>
+                      <TableCell>{item.fkComponente?.quantidade ?? '-'}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setItensModalOpen(false)}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 };
+
+// Função utilitária para formatar CNPJ ou CPF
+function formatCnpjCpf(value) {
+  if (!value) return '';
+  const digits = value.replace(/\D/g, '');
+  if (digits.length === 14) {
+    // CNPJ: 00.000.000/0000-00
+    return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+  } else if (digits.length === 11) {
+    // CPF: 000.000.000-00
+    return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+  }
+  return value;
+}
+
+// Função utilitária para formatar status
+function formatStatus(status) {
+  if (!status) return '';
+  const map = {
+    'concluido': 'CONCLUÍDO',
+    'em_analise': 'EM ANÁLISE',
+    'em_andamento': 'EM ANDAMENTO'
+  };
+  const lower = status.toLowerCase();
+  if (map[lower]) return map[lower];
+  return status.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+}
 
 export default Pedidos;
