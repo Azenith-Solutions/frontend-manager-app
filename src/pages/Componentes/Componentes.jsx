@@ -2,6 +2,12 @@ import React, { Component, useEffect, useState } from "react";
 import styles from "./Componentes.module.css";
 import { api } from "../../provider/apiProvider";
 import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
+import ComponentesDataGrid from "../../components/datagrids/ComponentesDataGrid/ComponentesDataGrid";
+import ComponentDeleteModal from "../../components/forms/ComponentDeleteModal/ComponentDeleteModal";
+
+// Componentes genéricos para header e filtro
+import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
+import ComponentesFilter from "../../components/menuFilter/ComponentesFilter";
 
 // Material UI Components
 import {
@@ -47,6 +53,20 @@ const Componentes = () => {
   const [totalComponents, setTotalComponents] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
   const [componentToEdit, setComponentToEdit] = useState(null);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [componentToDelete, setComponentToDelete] = useState(null);
+  
+  // Estados para controlar o menu de filtros
+  const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
+  const [availableCaixas, setAvailableCaixas] = useState([]);
+  
+  // Estado para armazenar filtros ativos
+  const [activeFilters, setActiveFilters] = useState({
+    caixas: [],
+    mercadoLivre: null, // true, false, ou null (não filtrado)
+    verificado: null, // true, false, ou null (não filtrado)
+    condicao: [] // 'Bom Estado', 'Observação', ou vazio (não filtrado)
+  });
 
   // Imagem padrão para os componentes TESTE
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
@@ -120,6 +140,37 @@ const Componentes = () => {
     setModalOpen(false);
     fetchComponents();
   };
+
+  // Handler para excluir componente (abre o modal)
+  const handleDeleteComponent = (component) => {
+    setComponentToDelete(component);
+    setDeleteModalOpen(true);
+  };
+
+  // Handler para fechar o modal de deleção e recarregar a lista
+  const handleCloseDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setComponentToDelete(null);
+    fetchComponents();
+  };
+
+  // Cartões de estatísticas para o header
+  const statsCards = [
+    {
+      icon: <InventoryIcon sx={{ color: '#61131A', fontSize: 14 }} />,
+      iconBgColor: '#ffeded',
+      color: '#61131A',
+      value: totalComponents,
+      label: 'Cadastrados'
+    },
+    {
+      icon: <StorefrontIcon sx={{ color: '#27ae60', fontSize: 14 }} />,
+      iconBgColor: '#eaf7ef',
+      color: '#27ae60',
+      value: components.filter(item => item.flagML).length,
+      label: 'Anunciados'
+    }
+  ];
 
   if (loading) {
     return (
@@ -660,6 +711,14 @@ const Componentes = () => {
         open={modalOpen} 
         onClose={handleCloseModal} 
         componentToEdit={componentToEdit}
+      />
+
+      {/* Modal de deleção de componente */}
+      <ComponentDeleteModal
+        open={deleteModalOpen}
+        onClose={handleCloseDeleteModal}
+        component={componentToDelete}
+        onComponentDeleted={handleCloseDeleteModal}
       />
     </div>
   );

@@ -66,19 +66,36 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       try {
         // Buscar caixas
         const caixasResponse = await api.get('/boxes');
-        if (caixasResponse.data && (caixasResponse.data.data || Array.isArray(caixasResponse.data))) {
-          const caixasData = caixasResponse.data.data || caixasResponse.data;
-          setCaixas(Array.isArray(caixasData) ? caixasData : []);
-        }
+        // Ajuste: garantir que o retorno seja sempre um array de objetos com idCaixa e nomeCaixa
+        let caixasData = caixasResponse.data;
+        if (caixasData && caixasData.data) caixasData = caixasData.data;
+        if (!Array.isArray(caixasData)) caixasData = [];
+        // Log para depuração
+        console.log('Caixas recebidas:', caixasData);
+        // Normalizar campos caso venham com nomes diferentes
+        const caixasNormalizadas = caixasData.map(caixa => ({
+          idCaixa: caixa.idCaixa ?? caixa.id ?? caixa.value ?? '',
+          nomeCaixa: caixa.nomeCaixa ?? caixa.caixa ?? caixa.nome ?? caixa.label ?? ''
+        }));
+        setCaixas(caixasNormalizadas);
 
         // Buscar categorias
-        const categoriasResponse = await api.get('/categories');
-        if (categoriasResponse.data && (categoriasResponse.data.data || Array.isArray(categoriasResponse.data))) {
-          const categoriasData = categoriasResponse.data.data || categoriasResponse.data;
-          setCategorias(Array.isArray(categoriasData) ? categoriasData : []);
-        }
+        const categoriasResponse = await api.get('/categorys');
+        let categoriasData = categoriasResponse.data;
+        if (categoriasData && categoriasData.data) categoriasData = categoriasData.data;
+        if (!Array.isArray(categoriasData)) categoriasData = [];
+        // Normalizar campos para categoria
+        const categoriasNormalizadas = categoriasData.map(categoria => ({
+          idCategoria: categoria.idCategoria ?? categoria.id ?? categoria.value ?? '',
+          nomeCategoria: categoria.nomeCategoria ?? categoria.categoria ?? categoria.nome ?? categoria.label ?? ''
+        }));
+        setCategorias(categoriasNormalizadas);
       } catch (error) {
         console.error('Erro ao carregar dados para os dropdowns:', error);
+        alert(
+          `Erro ao buscar dados: ${error.message}\n` +
+          (error.response ? `Status: ${error.response.status}\n${JSON.stringify(error.response.data)}` : '')
+        );
         setError('Falha ao carregar informações necessárias. Por favor, tente novamente.');
       } finally {
         setLoadingDropdowns(false);
@@ -98,8 +115,19 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         partNumber: componentToEdit.partNumber || '',
         descricao: componentToEdit.descricao || '',
         quantidade: componentToEdit.quantidade || 1,
-        fkCaixa: componentToEdit.fkCaixa?.idCaixa || '',
-        categoria: componentToEdit.categoria || '',
+        fkCaixa:
+          componentToEdit.fkCaixa?.idCaixa ||
+          componentToEdit.caixa?.idCaixa ||
+          componentToEdit.caixa ||
+          '',
+        categoria:
+          componentToEdit.fkCategoria?.idCategoria ||
+          componentToEdit.fkCategoria?.id ||
+          componentToEdit.fkCategoria ||
+          componentToEdit.categoria?.idCategoria ||
+          componentToEdit.categoria?.id ||
+          componentToEdit.categoria ||
+          '',
         flagVerificado: componentToEdit.flagVerificado ? 'Sim' : 'Não',
         condicao: componentToEdit.condicao || '',
         observacao: componentToEdit.observacao || ''
@@ -225,47 +253,48 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     setError(null);
 
     try {
-      // Se houver imagem selecionada, fazer upload primeiro
+      // Se houver imagem, faça upload antes (mantém sua lógica atual)
       let imageUrl = componentToEdit?.imagemUrl || null;
-      
       if (selectedImage) {
         const formDataImage = new FormData();
         formDataImage.append('imagem', selectedImage);
-        
         const uploadResponse = await api.post('/upload/component-image', formDataImage);
         if (uploadResponse.data && uploadResponse.data.url) {
           imageUrl = uploadResponse.data.url;
         }
       }
-      
+
       const dataToSend = {
         idHardWareTech: formData.idHardWareTech,
+        caixa: Number(formData.fkCaixa),
+        categoria: Number(formData.categoria),
         partNumber: formData.partNumber,
-        descricao: formData.descricao,
         quantidade: Number(formData.quantidade),
-        fkCaixa: formData.fkCaixa,
-        categoria: formData.categoria,
+        flagML: false, // ajuste conforme necessário
+        codigoML: "",  // ajuste conforme necessário
         flagVerificado: formData.flagVerificado === 'Sim',
-        condicao: formData.flagVerificado === 'Sim' ? formData.condicao : null,
-        observacao: formData.condicao === 'Em Observação' ? formData.observacao : null,
-        imagemUrl: imageUrl
+        condicao: formData.flagVerificado === 'Sim' ? formData.condicao : "",
+        observacao: formData.condicao === 'Em Observação' ? formData.observacao : "",
+        descricao: formData.descricao
       };
 
-      // Enviar para API
-      if (componentToEdit) {
-        // Atualização
+      if (componentToEdit && componentToEdit.idComponente) {
+        console.log('componentToEdit:', componentToEdit);
+        console.log('dataToSend:', dataToSend);
         await api.put(`/components/${componentToEdit.idComponente}`, dataToSend);
-      } else {
-        // Criação
+        setSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+        return; // Impede que o fluxo continue para o cadastro
+      } else if (!componentToEdit || !componentToEdit?.idComponente) {
+        // Apenas cadastra se for cadastro
         await api.post('/components', dataToSend);
+        setSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
       }
-
-      setSuccess(true);
-      
-      // Fecha o modal após 1.5 segundos
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
 
     } catch (error) {
       console.error('Erro ao salvar componente:', error);
@@ -551,7 +580,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                   size="small" 
                   required
                   error={!!errors.fkCaixa}
-                  disabled={submitting || caixas.length === 0}
+                  disabled={submitting}
                   sx={{
                     '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
                       borderColor: '#61131A',
@@ -568,16 +597,23 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     label="Caixa"
                     onChange={handleChange}
                   >
-                    {caixas.length > 0 ? (
-                      caixas.map((caixa) => (
-                        <MenuItem key={caixa.idCaixa} value={caixa.idCaixa}>
-                          {caixa.nomeCaixa}
-                        </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled value="">
-                        Nenhuma caixa disponível
+                    {loadingDropdowns ? (
+                      <MenuItem disabled>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <CircularProgress size={20} />
+                          <Typography>Carregando...</Typography>
+                        </Box>
                       </MenuItem>
+                    ) : (
+                      caixas.length > 0 ? (
+                        caixas.map((caixa) => (
+                          <MenuItem key={caixa.idCaixa} value={caixa.idCaixa}>
+                            {caixa.nomeCaixa}
+                          </MenuItem>
+                        ))
+                      ) : (
+                        <MenuItem disabled>Nenhuma caixa disponível</MenuItem>
+                      )
                     )}
                   </Select>
                   {errors.fkCaixa && <FormHelperText>{errors.fkCaixa}</FormHelperText>}

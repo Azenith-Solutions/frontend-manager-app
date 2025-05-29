@@ -3,7 +3,9 @@ import styles from "./Usuarios.module.css";
 import { api } from "../../provider/apiProvider";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
 
-// Standardized avatar URL
+// URL base para imagens de perfil
+const API_BASE_URL = "http://localhost:8080/api/uploads/images/";
+// Standardized avatar URL (fallback quando não há imagem de perfil)
 const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
 
 // Material UI Components
@@ -59,23 +61,40 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
       
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
-      
-      if (response.data && response.data.data) {
-        const usuariosAPI = response.data.data.map(user => {
-          // Extrair iniciais para o avatar
+        if (response.data && response.data.data) {        const usuariosAPI = response.data.data.map(user => {
+          // Extrair iniciais para o avatar (fallback se não houver imagem)
           const iniciais = user.fullName
             .split(' ')
             .map(n => n[0])
             .join('')
             .substring(0, 2);
             
-          return {            id: user.id,
+          // Define status based on the condition
+          let statusDisplay = "Indefinido";
+          if (user.status === true) {
+            statusDisplay = "Ativo";
+          } else if (user.status === false) {
+            statusDisplay = "Inativo";
+          }
+          
+          // Definir a URL do avatar (imagem de perfil ou fallback com iniciais)
+          let avatarUrl;
+          if (user.profilePicture) {
+            avatarUrl = `${API_BASE_URL}${user.profilePicture}`;
+          } else {
+            avatarUrl = `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`;
+          }
+            
+          return {
+            id: user.id,
             nome: user.fullName,
             email: user.email,
             cargo: user.role,
-            status: user.status ? 'Ativo' : 'Inativo',
+            status: statusDisplay,
             criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
-            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`
+            avatar: avatarUrl,
+            // Dados originais para facilitar a edição
+            rawData: user
           };
         });
         
@@ -108,12 +127,78 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
     setSearchText(event.target.value);
     setPage(0);
   };
-  const filteredUsuarios = usuarios.filter(
-    (item) => 
-      (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
-      (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
-      (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
-  );
+    // Função para lidar com o clique no botão de editar
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
+  };
+  
+  // Função para lidar com o clique no botão de excluir
+  const handleDeleteUser = (user) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
+  };
+  // Função para filtrar usuários com base em filtros e texto de busca
+  const filteredUsuarios = useMemo(() => {
+    // Primeiro filtra por texto de busca
+    let filtered = usuarios.filter(
+      (item) => 
+        (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
+    );
+    
+    // Aplica filtro de cargo
+    if (activeFilters.cargo.length > 0) {
+      filtered = filtered.filter(item => activeFilters.cargo.includes(item.cargo));
+    }
+      // Aplica filtro de status
+    if (activeFilters.status !== null) {
+      filtered = filtered.filter(item => item.status === activeFilters.status);
+    }
+    
+    // Aplica filtro de período
+    if (activeFilters.periodo !== null) {
+      const hoje = new Date();
+      const dataLimite = new Date();
+      
+      switch(activeFilters.periodo) {
+        case '7dias':
+          dataLimite.setDate(hoje.getDate() - 7);
+          break;
+        case '30dias':
+          dataLimite.setDate(hoje.getDate() - 30);
+          break;
+        case '90dias':
+          dataLimite.setDate(hoje.getDate() - 90);
+          break;
+        case 'ano':
+          dataLimite.setFullYear(hoje.getFullYear(), 0, 1); // 1º de janeiro do ano atual
+          break;
+        default:
+          break;
+      }
+      
+      filtered = filtered.filter(item => {
+        const dataCriacao = new Date(item.rawData.createdAt);
+        return dataCriacao >= dataLimite;
+      });
+    }
+    
+    return filtered;
+  }, [usuarios, searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
+  
+  // Calculando filteredCount fora da função de filtragem para evitar loops de renderização
+  useEffect(() => {
+    setFilteredCount(usuarios.length - filteredUsuarios.length);
+  }, [usuarios, filteredUsuarios.length]);
+
+  // Recalcular os usuários filtrados quando os filtros mudarem
+  useEffect(() => {
+    // Quando o componente montar, já teremos o lista inicial de usuários
+    // Este efeito é apenas para garantir que a contagem de filtrados seja atualizada
+    // quando os filtros mudarem
+  }, [searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
 
   if (loading) {
     return (

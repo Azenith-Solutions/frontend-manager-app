@@ -17,6 +17,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import CheckBoxOutlineBlankIcon from '@mui/icons-material/CheckBoxOutlineBlank';
 import CheckBoxIcon from '@mui/icons-material/CheckBox';
+import HelpOutlineIcon from '@mui/icons-material/HelpOutline';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 import ClearAllIcon from '@mui/icons-material/ClearAll';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
@@ -233,8 +234,7 @@ const UsuariosFilter = ({
           <ListItemIcon sx={{ minWidth: 'unset' }}>
             <CheckCircleIcon fontSize="small" sx={{ color: '#27ae60' }} />
           </ListItemIcon>
-        </MenuItem>
-        <MenuItem 
+        </MenuItem>        <MenuItem 
           onClick={() => toggleStatusFilter('Inativo')}
           dense
           sx={{ minHeight: '36px' }}
@@ -256,6 +256,30 @@ const UsuariosFilter = ({
           />
           <ListItemIcon sx={{ minWidth: 'unset' }}>
             <CancelIcon fontSize="small" sx={{ color: '#e74c3c' }} />
+          </ListItemIcon>
+        </MenuItem>
+        <MenuItem 
+          onClick={() => toggleStatusFilter('Indefinido')}
+          dense
+          sx={{ minHeight: '36px' }}
+        >
+          <Checkbox 
+            size="small"
+            edge="start"
+            checked={activeFilters.status === 'Indefinido'}
+            icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+            checkedIcon={<CheckBoxIcon fontSize="small" />}
+            sx={{ p: 0.5, mr: 1 }}
+          />
+          <ListItemText 
+            primary="Indefinidos" 
+            primaryTypographyProps={{ 
+              fontSize: '0.8rem',
+              fontWeight: activeFilters.status === 'Indefinido' ? 600 : 400
+            }} 
+          />
+          <ListItemIcon sx={{ minWidth: 'unset' }}>
+            <HelpOutlineIcon fontSize="small" sx={{ color: '#7f8c8d' }} />
           </ListItemIcon>
         </MenuItem>
       </Box>
