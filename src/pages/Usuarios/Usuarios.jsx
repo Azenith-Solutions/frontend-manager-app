@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from "react";
 import styles from "./Usuarios.module.css";
-import { api } from "../../provider/apiProvider";
+import { api } from "../../service/api";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
 import UserEditModal from "../../components/forms/UserFormModal/UserEditModal";
 import UserDeleteModal from "../../components/forms/UserFormModal/UserDeleteModal";
@@ -27,7 +27,7 @@ import {
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Usuarios = () => {  
+const Usuarios = () => {
   const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
@@ -41,7 +41,7 @@ const Usuarios = () => {
   const [updatedUserId, setUpdatedUserId] = useState(null);
   const [deletedUserId, setDeletedUserId] = useState(null);
   const [feedbackMessage, setFeedbackMessage] = useState({ open: false, message: '', severity: 'success' });
-  
+
   // Estado para controle do menu de filtros
   const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [activeFilters, setActiveFilters] = useState({
@@ -50,36 +50,36 @@ const Usuarios = () => {
     periodo: null
   });
   const [filteredCount, setFilteredCount] = useState(0);
-  
+
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
   }, []);
-  
+
   // Atualizar a contagem de usuários quando a lista mudar
   useEffect(() => {
     setTotalUsuarios(usuarios.length);
   }, [usuarios]);
-    // Funções para gerenciar os filtros
+  // Funções para gerenciar os filtros
   const handleOpenFilterMenu = (event) => {
     setFilterAnchorEl(event.currentTarget);
   };
-  
+
   const handleCloseFilterMenu = () => {
     setFilterAnchorEl(null);
   };
-  
+
   const toggleCargoFilter = (cargo) => {
     setActiveFilters(prev => {
       const newCargo = prev.cargo.includes(cargo)
         ? prev.cargo.filter(item => item !== cargo)
         : [...prev.cargo, cargo];
-      
+
       return { ...prev, cargo: newCargo };
     });
     setPage(0); // Reset page when filter changes
   };
-  
+
   const toggleStatusFilter = (status) => {
     setActiveFilters(prev => ({
       ...prev,
@@ -87,7 +87,7 @@ const Usuarios = () => {
     }));
     setPage(0); // Reset page when filter changes
   };
-  
+
   const togglePeriodoFilter = (periodo) => {
     setActiveFilters(prev => ({
       ...prev,
@@ -95,7 +95,7 @@ const Usuarios = () => {
     }));
     setPage(0); // Reset page when filter changes
   };
-  
+
   const clearAllFilters = () => {
     setActiveFilters({
       cargo: [],
@@ -104,21 +104,22 @@ const Usuarios = () => {
     });
     setPage(0); // Reset page when filters are cleared
   };
-  
+
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
-      
+
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
-        if (response.data && response.data.data) {        const usuariosAPI = response.data.data.map(user => {
+      if (response.data && response.data.data) {
+        const usuariosAPI = response.data.data.map(user => {
           // Extrair iniciais para o avatar (fallback se não houver imagem)
           const iniciais = user.fullName
             .split(' ')
             .map(n => n[0])
             .join('')
             .substring(0, 2);
-            
+
           // Define status based on the condition
           let statusDisplay = "Indefinido";
           if (user.status === true) {
@@ -126,7 +127,7 @@ const Usuarios = () => {
           } else if (user.status === false) {
             statusDisplay = "Inativo";
           }
-          
+
           // Definir a URL do avatar (imagem de perfil ou fallback com iniciais)
           let avatarUrl;
           if (user.profilePicture) {
@@ -134,7 +135,7 @@ const Usuarios = () => {
           } else {
             avatarUrl = `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`;
           }
-            
+
           return {
             id: user.id,
             nome: user.fullName,
@@ -147,7 +148,7 @@ const Usuarios = () => {
             rawData: user
           };
         });
-        
+
         setUsuarios(usuariosAPI);
         setTotalUsuarios(usuariosAPI.length);
       } else {
@@ -177,12 +178,12 @@ const Usuarios = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
-    // Função para lidar com o clique no botão de editar
+  // Função para lidar com o clique no botão de editar
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setEditModalOpen(true);
   };
-  
+
   // Função para lidar com o clique no botão de excluir
   const handleDeleteUser = (user) => {
     setSelectedUser(user);
@@ -192,27 +193,27 @@ const Usuarios = () => {
   const filteredUsuarios = useMemo(() => {
     // Primeiro filtra por texto de busca
     let filtered = usuarios.filter(
-      (item) => 
+      (item) =>
         (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
         (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
         (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
     );
-    
+
     // Aplica filtro de cargo
     if (activeFilters.cargo.length > 0) {
       filtered = filtered.filter(item => activeFilters.cargo.includes(item.cargo));
     }
-      // Aplica filtro de status
+    // Aplica filtro de status
     if (activeFilters.status !== null) {
       filtered = filtered.filter(item => item.status === activeFilters.status);
     }
-    
+
     // Aplica filtro de período
     if (activeFilters.periodo !== null) {
       const hoje = new Date();
       const dataLimite = new Date();
-      
-      switch(activeFilters.periodo) {
+
+      switch (activeFilters.periodo) {
         case '7dias':
           dataLimite.setDate(hoje.getDate() - 7);
           break;
@@ -228,16 +229,16 @@ const Usuarios = () => {
         default:
           break;
       }
-      
+
       filtered = filtered.filter(item => {
         const dataCriacao = new Date(item.rawData.createdAt);
         return dataCriacao >= dataLimite;
       });
     }
-    
+
     return filtered;
   }, [usuarios, searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
-  
+
   // Calculando filteredCount fora da função de filtragem para evitar loops de renderização
   useEffect(() => {
     setFilteredCount(usuarios.length - filteredUsuarios.length);
@@ -290,7 +291,7 @@ const Usuarios = () => {
           }
         ]}
       />
-      
+
       {/* Componente UsuariosFilter */}
       <UsuariosFilter
         anchorEl={filterAnchorEl}
@@ -299,12 +300,12 @@ const Usuarios = () => {
         toggleCargoFilter={toggleCargoFilter}
         toggleStatusFilter={toggleStatusFilter}
         togglePeriodoFilter={togglePeriodoFilter}
-        clearAllFilters={clearAllFilters}      />
-      
-      <Container 
-        maxWidth={false} 
-        disableGutters 
-        sx={{ 
+        clearAllFilters={clearAllFilters} />
+
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
           px: 0,
           flexGrow: 1,
           display: 'flex',
@@ -325,15 +326,15 @@ const Usuarios = () => {
           loading={loading}
         />
       </Container>
-        {/* Modal for creating a new user */}
-      <UserFormModal 
-        open={modalOpen} 
+      {/* Modal for creating a new user */}
+      <UserFormModal
+        open={modalOpen}
         onClose={() => {
           setModalOpen(false);
           fetchUsuarios(); // Recarrega a lista após o cadastro
-        }} 
+        }}
       />
-        {/* Modal for editing a user */}
+      {/* Modal for editing a user */}
       <UserEditModal
         open={editModalOpen}
         onClose={() => {
@@ -347,14 +348,14 @@ const Usuarios = () => {
             setUpdatedUserId(selectedUser.id);
           }
           fetchUsuarios();
-          
+
           // Limpar o ID após 2 segundos para remover o efeito de destaque
           setTimeout(() => {
             setUpdatedUserId(null);
           }, 2000);
         }}
       />
-      
+
       {/* Modal for deleting a user */}      <UserDeleteModal
         open={deleteModalOpen}
         onClose={() => {
@@ -366,17 +367,17 @@ const Usuarios = () => {
           // Marcar o ID do usuário excluído antes de buscar os dados
           if (selectedUser) {
             setDeletedUserId(selectedUser.id);
-            
+
             // Atualizar a lista localmente removendo o usuário
             setUsuarios(prev => prev.filter(user => user.id !== selectedUser.id));
-            
+
             // Mostrar mensagem de feedback
             setFeedbackMessage({
               open: true,
               message: `Usuário ${selectedUser.nome} excluído com sucesso!`,
               severity: 'success'
             });
-            
+
             // Limpar o ID após 2 segundos
             setTimeout(() => {
               setDeletedUserId(null);
@@ -384,7 +385,7 @@ const Usuarios = () => {
           }
         }}
       />
-      
+
       {/* Snackbar para feedback */}
       <Snackbar
         open={feedbackMessage.open}
@@ -392,11 +393,11 @@ const Usuarios = () => {
         onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))} 
-          severity={feedbackMessage.severity} 
+        <Alert
+          onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+          severity={feedbackMessage.severity}
           variant="filled"
-          sx={{ 
+          sx={{
             width: '100%',
             maxWidth: '400px',
             fontSize: '0.9rem'

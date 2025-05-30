@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -23,13 +23,13 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import { api } from '../../../provider/apiProvider';
+import { api } from '../../../service/api';
 
 const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
-  const [updateSuccess, setUpdateSuccess] = useState(false);  const [formData, setFormData] = useState({
+  const [updateSuccess, setUpdateSuccess] = useState(false); const [formData, setFormData] = useState({
     fullName: '',
     email: '',
     password: '',
@@ -50,12 +50,12 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
         confirmPassword: '',
         status: user.status === 'Ativo'
       });
-      
+
       // Se tivermos os dados brutos, podemos usá-los diretamente
       if (user.rawData) {
         console.log('Usando dados brutos do usuário:', user.rawData);
       }
-      
+
       // Buscar os cargos se ainda não foram carregados
       if (roles.length === 0) {
         fetchRoles();
@@ -91,10 +91,10 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
     try {
       setLoading(true);
       const response = await api.get('/roles');
-      
+
       if (response.data && Array.isArray(response.data.data)) {
         setRoles(response.data.data);
-        
+
         // Se o usuário tiver um cargo, selecioná-lo
         if (user && user.cargo) {
           const userRole = response.data.data.find(role => role.funcao === user.cargo);
@@ -129,7 +129,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
   // Função para enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
-      // Validações do lado do cliente
+    // Validações do lado do cliente
     if (!formData.fullName || !formData.email || !selectedRole) {
       setSnackbar({
         open: true,
@@ -160,7 +160,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
       });
       return;
     }
-      // Validação das senhas, se fornecidas
+    // Validação das senhas, se fornecidas
     if (formData.password || formData.confirmPassword) {
       if (formData.password !== formData.confirmPassword) {
         setSnackbar({
@@ -170,7 +170,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
         });
         return;
       }
-      
+
       // Validação da senha (8+ caracteres, letras maiúsculas, minúsculas, números e caracteres especiais)
       const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}:;"'<>,.?~`-])[A-Za-z\d!@#$%^&*()_+={}:;"'<>,.?~`-]{8,}$/;
       if (!passwordRegex.test(formData.password)) {
@@ -185,57 +185,57 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
 
     try {
       setLoading(true);
-        const userData = {
+      const userData = {
         fullName: formData.fullName,
         email: formData.email,
         role: selectedRole,
         status: formData.status
       };
-      
+
       // Adicionar senha apenas se foi fornecida
       if (formData.password) {
         userData.password = formData.password;
-      }console.log('Enviando dados para atualização:', userData);
-      
+      } console.log('Enviando dados para atualização:', userData);
+
       // Endpoint de atualização de usuário
       const response = await api.put(`/users/${user.id}`, userData);
-      
+
       console.log('Resposta da atualização:', response.data);
-      
+
       // Indica que a atualização foi bem-sucedida
       setUpdateSuccess(true);
-      
+
       // Exibe mensagem de sucesso
       setSnackbar({
         open: true,
         message: 'Usuário atualizado com sucesso!',
         severity: 'success'
       });
-        // Simula um processo de finalização/sincronização
+      // Simula um processo de finalização/sincronização
       setTimeout(() => {
         // Fecha o modal após 3 segundos, permitindo que o usuário veja a mensagem
         setTimeout(() => {
           setUpdateSuccess(false);
           setLoading(false);
-          
+
           // Chama o callback para atualizar a tabela principal
           if (onUserUpdated) {
             onUserUpdated();
           }
-          
+
           onClose();
         }, 1000);
       }, 2000);
-      
+
     } catch (error) {
       console.error('Erro ao atualizar usuário:', error);
-      
+
       let errorMessage = 'Erro ao atualizar usuário. Tente novamente.';
-      
+
       // Tratamento de diferentes tipos de erros
       if (error.response) {
         const { status, data } = error.response;
-        
+
         if (status === 400) {
           // Verificar se é erro de validação com mensagens específicas
           if (data.message === "Validation Error" && Array.isArray(data.data) && data.data.length > 0) {
@@ -252,7 +252,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
           errorMessage = data.message;
         }
       }
-      
+
       setSnackbar({
         open: true,
         message: errorMessage,
@@ -271,8 +271,8 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
@@ -284,22 +284,22 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
         }
       }}
     >
-      <DialogTitle sx={{ 
-        backgroundColor: '#f5f5f7', 
+      <DialogTitle sx={{
+        backgroundColor: '#f5f5f7',
         p: 2,
-        display: 'flex', 
-        alignItems: 'center', 
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid #e0e0e0'
       }}>        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               backgroundColor: '#61131A', // Cor da marca para consistência visual
               width: '32px',
               height: '32px',
               borderRadius: '6px',
               display: 'flex',
-              alignItems: 'center', 
+              alignItems: 'center',
               justifyContent: 'center'
             }}
           >
@@ -309,15 +309,16 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
             Editar Usuário
           </Typography>
         </Box>
-        <IconButton 
-          edge="end" 
-          onClick={onClose} 
+        <IconButton
+          edge="end"
+          onClick={onClose}
           aria-label="close"
-          sx={{            color: '#666',
-            '&:hover': { 
-              backgroundColor: 'rgba(0,0,0,0.05)', 
-              color: '#61131A' 
-            } 
+          sx={{
+            color: '#666',
+            '&:hover': {
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              color: '#61131A'
+            }
           }}
         >
           <CloseIcon />
@@ -344,9 +345,9 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
               borderRadius: '4px'
             }}
           >
-            <CheckCircleIcon 
-              sx={{ 
-                fontSize: 60, 
+            <CheckCircleIcon
+              sx={{
+                fontSize: 60,
                 color: '#2e7d32',
                 animation: 'pulse 1.5s infinite',
                 '@keyframes pulse': {
@@ -354,7 +355,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
                   '70%': { transform: 'scale(1.1)', opacity: 1 },
                   '100%': { transform: 'scale(0.95)', opacity: 0.8 }
                 }
-              }} 
+              }}
             />
             <Typography variant="h6" sx={{ color: '#2e7d32', fontWeight: 600 }}>
               Usuário atualizado com sucesso!
@@ -364,10 +365,10 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
             <CircularProgress size={24} sx={{ mt: 1, color: '#61131A' }} />
           </Box>
         )}
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Edite as informações do usuário nos campos abaixo. Para alterar a senha, preencha os campos de senha.
         </Typography>
-        
+
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>
             <TextField
@@ -396,7 +397,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
                 sx: { fontSize: '0.7rem' }
               }}
             />
-            
+
             <FormControl variant="outlined" size="small" required sx={{ flex: 1 }}>
               <InputLabel id="cargo-label" sx={{ fontSize: '0.875rem' }}>Cargo</InputLabel>
               <Select
@@ -404,7 +405,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
                 label="Cargo"
                 value={selectedRole}
                 onChange={handleRoleChange}
-                sx={{ 
+                sx={{
                   borderRadius: '6px',
                   fontSize: '0.875rem'
                 }}
@@ -457,9 +458,9 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
               sx: { fontSize: '0.7rem' }
             }}
           />
-          
+
           <Box sx={{ display: 'flex', gap: 2 }}>
-            <TextField              label="Nova senha"
+            <TextField label="Nova senha"
               type="password"
               fullWidth
               variant="outlined"
@@ -483,8 +484,8 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
                 sx: { fontSize: '0.7rem' }
               }}
             />
-            
-            <TextField              label="Confirmar senha"
+
+            <TextField label="Confirmar senha"
               type="password"
               fullWidth
               variant="outlined"
@@ -492,8 +493,8 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
               name="confirmPassword"
               value={formData.confirmPassword}
               onChange={handleChange}
-              helperText={formData.password !== formData.confirmPassword && formData.confirmPassword !== '' 
-                ? "As senhas não coincidem" 
+              helperText={formData.password !== formData.confirmPassword && formData.confirmPassword !== ''
+                ? "As senhas não coincidem"
                 : "Confirme a nova senha"}
               InputProps={{
                 sx: {
@@ -507,7 +508,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
                 }
               }}
               FormHelperTextProps={{
-                sx: { 
+                sx: {
                   fontSize: '0.7rem',
                   color: formData.password !== formData.confirmPassword && formData.confirmPassword !== '' ? 'error.main' : 'text.secondary'
                 }
@@ -518,7 +519,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
 
           <FormControlLabel
             control={
-              <Switch 
+              <Switch
                 checked={formData.status}
                 onChange={handleStatusChange}
                 color="success"
@@ -538,21 +539,21 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
           />
         </Box>
       </DialogContent>
-      
-      <DialogActions sx={{ 
-        p: 2, 
+
+      <DialogActions sx={{
+        p: 2,
         borderTop: '1px solid #e0e0e0',
         backgroundColor: '#f9f9f9',
         display: 'flex',
         justifyContent: 'center',
         gap: 2
       }}>
-        <Button 
-          onClick={onClose} 
+        <Button
+          onClick={onClose}
           variant="outlined"
           size="medium"
           disabled={loading || updateSuccess}
-          sx={{ 
+          sx={{
             textTransform: 'none',
             borderRadius: '6px',
             color: '#666',
@@ -567,15 +568,15 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
         >
           Cancelar
         </Button>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           disableElevation
           size="medium"
           type="button"
-          onClick={handleSubmit}          disabled={loading || updateSuccess}
-          sx={{ 
+          onClick={handleSubmit} disabled={loading || updateSuccess}
+          sx={{
             textTransform: 'none',
-            bgcolor: updateSuccess ? '#2e7d32' : '#61131A', 
+            bgcolor: updateSuccess ? '#2e7d32' : '#61131A',
             '&:hover': { bgcolor: updateSuccess ? '#2e7d32' : '#4e0f15' },
             borderRadius: '6px',
             fontWeight: 600,
@@ -611,7 +612,7 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
           )}
         </Button>
       </DialogActions>
-      
+
       {/* Snackbar para mensagens de sucesso/erro */}
       <Snackbar
         open={snackbar.open}
@@ -619,11 +620,11 @@ const UserEditModal = ({ open, onClose, user, onUserUpdated }) => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           variant="filled"
-          sx={{ 
+          sx={{
             width: '100%',
             whiteSpace: 'pre-wrap',
             maxWidth: '400px',

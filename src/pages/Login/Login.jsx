@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import {api} from "../../provider/apiProvider";
+import { api } from "../../service/api";
 
 // css native
 import './Login.css'; // Certifique-se de que esta linha está correta
@@ -36,19 +36,19 @@ const Login = () => {
             email,
             password
         })
-        .then((response) => {
-            if (response.status === 200) {
-                console.log('Response do login:', response);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('token', response.data.data.token);
-                localStorage.setItem('user', JSON.stringify(response.data.data.name));
-                localStorage.setItem('role', response.data.data.fkFuncao.funcao);
-                navigate('/dashboard');
-            }
-        })
-        .catch((error) => {
-            alert("Login inválido! Verifique seu e-mail e senha.");
-        });
+            .then((response) => {
+                if (response.status === 200) {
+                    console.log('Response do login:', response);
+                    localStorage.setItem('isLoggedIn', 'true');
+                    localStorage.setItem('token', response.data.data.token);
+                    localStorage.setItem('user', JSON.stringify(response.data.data.name));
+                    localStorage.setItem('role', response.data.data.fkFuncao.funcao);
+                    navigate('/dashboard');
+                }
+            })
+            .catch((error) => {
+                alert("Login inválido! Verifique seu e-mail e senha.");
+            });
     };
 
     return (
@@ -65,7 +65,7 @@ const Login = () => {
                     paddingTop: 1,
                     bgcolor: "white",
                 }}
-            >   
+            >
                 <h1>LOGIN</h1>
                 <form onSubmit={handleLogin} style={{ width: '100%' }}>
                     <TextField
@@ -103,9 +103,9 @@ const Login = () => {
                         Entrar
                     </Button>
                 </form>
-                <Divider sx={{ margin: '15px 0' }} /> 
+                <Divider sx={{ margin: '15px 0' }} />
                 <span>
-                   @Copyright 2025 - HardwareTech
+                    @Copyright 2025 - HardwareTech
                 </span>
             </Box>
         </div>

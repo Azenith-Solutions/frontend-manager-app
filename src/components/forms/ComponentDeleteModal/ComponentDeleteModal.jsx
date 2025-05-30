@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -14,7 +15,7 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { api } from '../../../provider/apiProvider';
+import { api } from '../../../service/api';
 
 const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) => {
   const [loading, setLoading] = useState(false);
@@ -97,8 +98,8 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="xs"
       fullWidth
@@ -111,23 +112,23 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
         }
       }}
     >
-      <DialogTitle sx={{ 
-        backgroundColor: '#f5f5f7', 
+      <DialogTitle sx={{
+        backgroundColor: '#f5f5f7',
         p: 1.5,
-        display: 'flex', 
-        alignItems: 'center', 
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid #e0e0e0'
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               backgroundColor: '#61131A',
               width: '28px',
               height: '28px',
               borderRadius: '6px',
               display: 'flex',
-              alignItems: 'center', 
+              alignItems: 'center',
               justifyContent: 'center'
             }}
           >
@@ -137,17 +138,17 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
             Excluir Componente
           </Typography>
         </Box>
-        <IconButton 
-          edge="end" 
-          onClick={onClose} 
+        <IconButton
+          edge="end"
+          onClick={onClose}
           aria-label="close"
           disabled={loading || deleteSuccess}
-          sx={{ 
+          sx={{
             color: '#666',
-            '&:hover': { 
-              backgroundColor: 'rgba(0,0,0,0.05)', 
-              color: '#c0392b' 
-            } 
+            '&:hover': {
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              color: '#c0392b'
+            }
           }}
         >
           <CloseIcon />
@@ -173,16 +174,16 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
               borderRadius: '4px'
             }}
           >
-            <DeleteIcon 
-              sx={{ 
-                fontSize: 36, 
+            <DeleteIcon
+              sx={{
+                fontSize: 36,
                 color: '#61131A',
                 animation: 'fadeIn 1s',
                 '@keyframes fadeIn': {
                   '0%': { opacity: 0 },
                   '100%': { opacity: 1 }
                 }
-              }} 
+              }}
             />
             <Typography variant="subtitle1" sx={{ color: '#61131A', fontWeight: 600, fontSize: '0.85rem' }}>
               Componente excluído com sucesso!
@@ -193,8 +194,8 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
         <Typography variant="body1" color="text.primary" sx={{ mb: 1, mt: 0.75, fontWeight: 500, textAlign: 'center', fontSize: '0.9rem' }}>
           Deseja excluir o componente <strong>{component?.partNumber || component?.idHardWareTech || "selecionado"}</strong>?
         </Typography>
-        <Box 
-          sx={{ 
+        <Box
+          sx={{
             mt: 1.5,
             p: 1.25,
             borderRadius: '6px',
@@ -207,20 +208,20 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
           </Typography>
         </Box>
       </DialogContent>
-      <DialogActions sx={{ 
-        p: 1.5, 
+      <DialogActions sx={{
+        p: 1.5,
         borderTop: '1px solid #e0e0e0',
         backgroundColor: '#f9f9f9',
         display: 'flex',
         justifyContent: 'center',
         gap: 1.5
       }}>
-        <Button 
-          onClick={onClose} 
+        <Button
+          onClick={onClose}
           variant="outlined"
           size="small"
           disabled={loading || deleteSuccess}
-          sx={{ 
+          sx={{
             textTransform: 'none',
             borderRadius: '6px',
             color: '#666',
@@ -236,15 +237,15 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
         >
           Cancelar
         </Button>
-        <Button 
+        <Button
           variant="contained"
           disableElevation
           size="small"
           onClick={handleDelete}
           disabled={loading || deleteSuccess}
-          sx={{ 
+          sx={{
             textTransform: 'none',
-            bgcolor: '#61131A', 
+            bgcolor: '#61131A',
             '&:hover': { bgcolor: '#4e0f15' },
             borderRadius: '6px',
             fontWeight: 600,
@@ -284,11 +285,11 @@ const ComponentDeleteModal = ({ open, onClose, component, onComponentDeleted }) 
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           variant="filled"
-          sx={{ 
+          sx={{
             width: '100%',
             whiteSpace: 'pre-wrap',
             maxWidth: '400px',
