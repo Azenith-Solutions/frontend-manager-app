@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import styles from "./Usuarios.module.css";
 import { api } from "../../service/api";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
-
-// Componentes genéricos para header e filtro
-import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
+import UserEditModal from "../../components/forms/UserFormModal/UserEditModal";
+import UserDeleteModal from "../../components/forms/UserFormModal/UserDeleteModal";
 import UsuariosFilter from "../../components/menuFilter/UsuariosFilter";
+import UsuariosDataGrid from "../../components/datagrids/UsuariosDataGrid/UsuariosDataGrid";
+import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
 
-// Standardized avatar URL
+// URL base para imagens de perfil
+const API_BASE_URL = "http://localhost:8080/api/uploads/images/";
+// Standardized avatar URL (fallback quando não há imagem de perfil)
 const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
 
 // Material UI Components
@@ -16,27 +19,13 @@ import {
   CircularProgress,
   Typography,
   Container,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  TablePagination,
-  Avatar
+  Snackbar,
+  Alert
 } from "@mui/material";
 
 // Material UI Icons
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
-import BadgeIcon from '@mui/icons-material/Badge';
 
 const Usuarios = () => {
   const [loading, setLoading] = useState(true);
@@ -53,14 +42,63 @@ const Usuarios = () => {
   // Estado para armazenar filtros ativos
   const [activeFilters, setActiveFilters] = useState({
     cargo: [],
-    status: null, // 'Ativo', 'Inativo', ou null (não filtrado)
-    periodo: null, // '7dias', '30dias', '90dias', 'ano', ou null (não filtrado)
+    status: null,
+    periodo: null
   });
 
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
   }, []);
+
+  // Atualizar a contagem de usuários quando a lista mudar
+  useEffect(() => {
+    setTotalUsuarios(usuarios.length);
+  }, [usuarios]);
+  // Funções para gerenciar os filtros
+  const handleOpenFilterMenu = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseFilterMenu = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const toggleCargoFilter = (cargo) => {
+    setActiveFilters(prev => {
+      const newCargo = prev.cargo.includes(cargo)
+        ? prev.cargo.filter(item => item !== cargo)
+        : [...prev.cargo, cargo];
+
+      return { ...prev, cargo: newCargo };
+    });
+    setPage(0); // Reset page when filter changes
+  };
+
+  const toggleStatusFilter = (status) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      status: prev.status === status ? null : status
+    }));
+    setPage(0); // Reset page when filter changes
+  };
+
+  const togglePeriodoFilter = (periodo) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      periodo: prev.periodo === periodo ? null : periodo
+    }));
+    setPage(0); // Reset page when filter changes
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({
+      cargo: [],
+      status: null,
+      periodo: null
+    });
+    setPage(0); // Reset page when filters are cleared
+  };
 
   const fetchUsuarios = async () => {
     try {
@@ -83,9 +121,11 @@ const Usuarios = () => {
             nome: user.fullName,
             email: user.email,
             cargo: user.role,
-            status: user.status ? 'Ativo' : 'Inativo',
+            status: statusDisplay,
             criadoEm: user.createdAt ? new Date(user.createdAt).toLocaleDateString('pt-BR') : 'N/A',
-            avatar: `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`
+            avatar: avatarUrl,
+            // Dados originais para facilitar a edição
+            rawData: user
           };
         });
 
@@ -228,7 +268,6 @@ const Usuarios = () => {
       </Box>
     );
   }
-
   return (
     <div className={styles.usuarios}>
       {/* Utilizando o componente DatagridHeader genérico */}
@@ -422,6 +461,78 @@ const Usuarios = () => {
           fetchUsuarios(); // Recarrega a lista após o cadastro
         }}
       />
+      {/* Modal for editing a user */}
+      <UserEditModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUserUpdated={() => {
+          // Marcar o ID do usuário atualizado antes de buscar os dados
+          if (selectedUser) {
+            setUpdatedUserId(selectedUser.id);
+          }
+          fetchUsuarios();
+
+          // Limpar o ID após 2 segundos para remover o efeito de destaque
+          setTimeout(() => {
+            setUpdatedUserId(null);
+          }, 2000);
+        }}
+      />
+
+      {/* Modal for deleting a user */}      <UserDeleteModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUserDeleted={() => {
+          // Marcar o ID do usuário excluído antes de buscar os dados
+          if (selectedUser) {
+            setDeletedUserId(selectedUser.id);
+
+            // Atualizar a lista localmente removendo o usuário
+            setUsuarios(prev => prev.filter(user => user.id !== selectedUser.id));
+
+            // Mostrar mensagem de feedback
+            setFeedbackMessage({
+              open: true,
+              message: `Usuário ${selectedUser.nome} excluído com sucesso!`,
+              severity: 'success'
+            });
+
+            // Limpar o ID após 2 segundos
+            setTimeout(() => {
+              setDeletedUserId(null);
+            }, 2000);
+          }
+        }}
+      />
+
+      {/* Snackbar para feedback */}
+      <Snackbar
+        open={feedbackMessage.open}
+        autoHideDuration={5000}
+        onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+          severity={feedbackMessage.severity}
+          variant="filled"
+          sx={{
+            width: '100%',
+            maxWidth: '400px',
+            fontSize: '0.9rem'
+          }}
+        >
+          {feedbackMessage.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

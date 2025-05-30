@@ -11,6 +11,13 @@ api.interceptors.request.use((config) => {
         config.headers['Authorization'] = `Bearer ${parsedToken}`;
         console.log('Using token:', parsedToken);
     }
+
+    // If the request data is FormData, delete the Content-Type header.
+    // This allows the browser to set it correctly with the boundary.
+    if (config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+    }
+
     return config;
 });
 
