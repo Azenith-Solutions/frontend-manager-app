@@ -14,7 +14,7 @@ import {
   FormControlLabel,
   FormLabel
 } from "@mui/material";
-import { api } from "../../../provider/apiProvider";
+import { api } from "../../../service/api";
 
 const initialForm = {
   codigo: "",
@@ -106,7 +106,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
   };
   // Alterar quantidade
   const handleChangeQuantidade = (fk_componente, quantidade) => {
-    setItensPedido(itensPedido.map(i => i.fk_componente === fk_componente ? { ...i, quantidade: Math.max(1, Number(quantidade)||1) } : i));
+    setItensPedido(itensPedido.map(i => i.fk_componente === fk_componente ? { ...i, quantidade: Math.max(1, Number(quantidade) || 1) } : i));
   };
 
   const handleSubmit = async (e) => {
@@ -236,16 +236,16 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             }}
             disabled={!!pedido} // Desabilita se estiver editando
           >
-            <FormControlLabel 
-              value="empresa" 
-              control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />} 
-              label="Empresa (CNPJ)" 
+            <FormControlLabel
+              value="empresa"
+              control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />}
+              label="Empresa (CNPJ)"
               disabled={!!pedido}
             />
-            <FormControlLabel 
-              value="pf" 
-              control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />} 
-              label="Pessoa Física (CPF)" 
+            <FormControlLabel
+              value="pf"
+              control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />}
+              label="Pessoa Física (CPF)"
               disabled={!!pedido}
             />
           </RadioGroup>

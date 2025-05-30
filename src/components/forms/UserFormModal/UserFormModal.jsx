@@ -27,9 +27,9 @@ import DeleteIcon from '@mui/icons-material/Delete';
 // Import all icons from the package instead of individual imports
 import * as Icons from '@mui/icons-material';
 import PersonIcon from '@mui/icons-material/Person';
-import { api } from '../../../provider/apiProvider';
+import { api } from '../../../service/api';
 
-const UserFormModal = ({ open, onClose }) => {  
+const UserFormModal = ({ open, onClose }) => {
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,7 +72,7 @@ const UserFormModal = ({ open, onClose }) => {
         });
         return;
       }
-      
+
       // Verificar tamanho do arquivo (limite de 2MB)
       if (file.size > 2 * 1024 * 1024) {
         setSnackbar({
@@ -108,7 +108,7 @@ const UserFormModal = ({ open, onClose }) => {
       fileInputRef.current.click();
     }
   };
-  
+
   // Limpar a imagem quando o modal é fechado ou resetado
   useEffect(() => {
     if (!open) {
@@ -126,7 +126,7 @@ const UserFormModal = ({ open, onClose }) => {
       setLoading(true);
       const response = await api.get('/roles');
       console.log('Resposta da API de cargos:', response.data);
-      
+
       if (response.data && Array.isArray(response.data.data)) {
         setRoles(response.data.data);
       } else {
@@ -152,7 +152,7 @@ const UserFormModal = ({ open, onClose }) => {
   // Função para enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     // Validações do lado do cliente
     if (!formData.fullName || !formData.email || !formData.password || !selectedRole) {
       setSnackbar({
@@ -203,9 +203,9 @@ const UserFormModal = ({ open, onClose }) => {
         severity: 'error'
       });
       return;
-    }try {
+    } try {
       setLoading(true);
-      
+
       const userData = {
         fullName: formData.fullName,
         email: formData.email,
@@ -226,23 +226,23 @@ const UserFormModal = ({ open, onClose }) => {
       }
 
       console.log('Enviando FormData:', formDataToSend);
-      
+
       // Removido o terceiro argumento (objeto de configuração) para permitir que o Axios
       // e o interceptor gerenciem o Content-Type para FormData automaticamente.
       const response = await api.post('/auth/register', formDataToSend);
-      
+
       console.log('Resposta do cadastro:', response.data);
-      
+
       // Indica que o registro foi bem-sucedido
       setRegistrationSuccess(true);
-      
+
       // Exibe mensagem de sucesso
       setSnackbar({
         open: true,
         message: 'Usuário cadastrado com sucesso!',
         severity: 'success'
       });
-      
+
       // Simula um processo de finalização/sincronização
       // O modal permanecerá aberto por mais tempo, exibindo um estado de carregamento
       setTimeout(() => {
@@ -259,7 +259,7 @@ const UserFormModal = ({ open, onClose }) => {
         if (fileInputRef.current) {
           fileInputRef.current.value = '';
         }
-        
+
         // Fecha o modal após 3 segundos, permitindo que o usuário veja a mensagem
         setTimeout(() => {
           setRegistrationSuccess(false);
@@ -267,16 +267,16 @@ const UserFormModal = ({ open, onClose }) => {
           onClose();
         }, 1000);
       }, 2000);
-      
+
     } catch (error) {
       console.error('Erro ao cadastrar usuário:', error);
-      
+
       let errorMessage = 'Erro ao cadastrar usuário. Tente novamente.';
-      
+
       // Tratamento de diferentes tipos de erros
       if (error.response) {
         const { status, data } = error.response;
-        
+
         if (status === 400) {
           // Verificar se é erro de validação com mensagens específicas
           if (data.message === "Validation Error" && Array.isArray(data.data) && data.data.length > 0) {
@@ -293,7 +293,7 @@ const UserFormModal = ({ open, onClose }) => {
           errorMessage = data.message;
         }
       }
-      
+
       setSnackbar({
         open: true,
         message: errorMessage,
@@ -313,8 +313,8 @@ const UserFormModal = ({ open, onClose }) => {
   };
 
   return (
-    <Dialog 
-      open={open} 
+    <Dialog
+      open={open}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
@@ -326,23 +326,23 @@ const UserFormModal = ({ open, onClose }) => {
         }
       }}
     >
-      <DialogTitle sx={{ 
-        backgroundColor: '#f5f5f7', 
+      <DialogTitle sx={{
+        backgroundColor: '#f5f5f7',
         p: 2,
-        display: 'flex', 
-        alignItems: 'center', 
+        display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
         borderBottom: '1px solid #e0e0e0'
       }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box 
-            sx={{ 
+          <Box
+            sx={{
               backgroundColor: '#61131A',
               width: '32px',
               height: '32px',
               borderRadius: '6px',
               display: 'flex',
-              alignItems: 'center', 
+              alignItems: 'center',
               justifyContent: 'center'
             }}
           >
@@ -352,16 +352,16 @@ const UserFormModal = ({ open, onClose }) => {
             Novo Usuário
           </Typography>
         </Box>
-        <IconButton 
-          edge="end" 
-          onClick={onClose} 
+        <IconButton
+          edge="end"
+          onClick={onClose}
           aria-label="close"
-          sx={{ 
+          sx={{
             color: '#666',
-            '&:hover': { 
-              backgroundColor: 'rgba(0,0,0,0.05)', 
-              color: '#61131A' 
-            } 
+            '&:hover': {
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              color: '#61131A'
+            }
           }}
         >
           <CloseIcon />
@@ -386,9 +386,9 @@ const UserFormModal = ({ open, onClose }) => {
               borderRadius: '4px'
             }}
           >
-            <CheckCircleIcon 
-              sx={{ 
-                fontSize: 60, 
+            <CheckCircleIcon
+              sx={{
+                fontSize: 60,
                 color: '#2e7d32',
                 animation: 'pulse 1.5s infinite',
                 '@keyframes pulse': {
@@ -396,7 +396,7 @@ const UserFormModal = ({ open, onClose }) => {
                   '70%': { transform: 'scale(1.1)', opacity: 1 },
                   '100%': { transform: 'scale(0.95)', opacity: 0.8 }
                 }
-              }} 
+              }}
             />
             <Typography variant="h6" sx={{ color: '#2e7d32', fontWeight: 600 }}>
               Usuário cadastrado com sucesso!
@@ -407,11 +407,11 @@ const UserFormModal = ({ open, onClose }) => {
             <CircularProgress size={24} sx={{ mt: 1, color: '#61131A' }} />
           </Box>
         )}
-        
+
         <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
           Preencha os campos abaixo para criar um novo usuário no sistema. Todos os campos são obrigatórios.
         </Typography>
-        
+
         {/* Componente de Upload de Imagem */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 3 }}>
           <Box
@@ -454,7 +454,7 @@ const UserFormModal = ({ open, onClose }) => {
                 </Tooltip>
               )}
             </Avatar>
-            
+
             {/* Input file oculto */}
             <input
               type="file"
@@ -463,7 +463,7 @@ const UserFormModal = ({ open, onClose }) => {
               accept="image/jpeg, image/png, image/jpg, image/gif"
               style={{ display: 'none' }}
             />
-            
+
             {/* Botão de Remover Imagem */}
             {imagePreview && (
               <IconButton
@@ -489,59 +489,59 @@ const UserFormModal = ({ open, onClose }) => {
 
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
           <Box sx={{ display: 'flex', gap: 2 }}>            <TextField
-              autoFocus
-              label="Nome completo"
-              variant="outlined"
-              size="small"
-              required
-              name="fullName"
-              value={formData.fullName}
-              onChange={handleChange}
-              helperText="Apenas letras e espaços são permitidos"
-              sx={{ flex: 1 }}
-              InputProps={{
-                sx: {
-                  borderRadius: '6px',
-                  fontSize: '0.875rem'
-                }
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: '0.875rem'
-                }
-              }}
-              FormHelperTextProps={{
-                sx: { fontSize: '0.7rem' }
-              }}
-            /><FormControl variant="outlined" size="small" required sx={{ flex: 1 }}>
+            autoFocus
+            label="Nome completo"
+            variant="outlined"
+            size="small"
+            required
+            name="fullName"
+            value={formData.fullName}
+            onChange={handleChange}
+            helperText="Apenas letras e espaços são permitidos"
+            sx={{ flex: 1 }}
+            InputProps={{
+              sx: {
+                borderRadius: '6px',
+                fontSize: '0.875rem'
+              }
+            }}
+            InputLabelProps={{
+              sx: {
+                fontSize: '0.875rem'
+              }
+            }}
+            FormHelperTextProps={{
+              sx: { fontSize: '0.7rem' }
+            }}
+          /><FormControl variant="outlined" size="small" required sx={{ flex: 1 }}>
               <InputLabel id="cargo-label" sx={{ fontSize: '0.875rem' }}>Cargo</InputLabel>
               <Select
                 labelId="cargo-label"
                 label="Cargo"
                 value={selectedRole}
                 onChange={handleRoleChange}
-                sx={{ 
+                sx={{
                   borderRadius: '6px',
                   fontSize: '0.875rem'
                 }}
               >                {loading ? (
-                  <MenuItem disabled>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <CircularProgress size={20} />
-                      <Typography>Carregando...</Typography>
-                    </Box>
-                  </MenuItem>
+                <MenuItem disabled>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <CircularProgress size={20} />
+                    <Typography>Carregando...</Typography>
+                  </Box>
+                </MenuItem>
+              ) : (
+                roles.length > 0 ? (
+                  roles.map((role) => (
+                    <MenuItem key={role.id} value={role.id}>
+                      {role.funcao}
+                    </MenuItem>
+                  ))
                 ) : (
-                  roles.length > 0 ? (
-                    roles.map((role) => (
-                      <MenuItem key={role.id} value={role.id}>
-                        {role.funcao}
-                      </MenuItem>
-                    ))
-                  ) : (
-                    <MenuItem disabled>Nenhum cargo disponível</MenuItem>
-                  )
-                )}
+                  <MenuItem disabled>Nenhum cargo disponível</MenuItem>
+                )
+              )}
               </Select>
             </FormControl>
           </Box>
@@ -575,33 +575,33 @@ const UserFormModal = ({ open, onClose }) => {
 
           {/* Terceira linha: Senha e Confirmar senha lado a lado */}
           <Box sx={{ display: 'flex', gap: 2 }}>            <TextField
-              label="Senha"
-              type="password"
-              variant="outlined"
-              size="small"
-              required
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              helperText="Mínimo 8 caracteres, com letra maiúscula, minúscula, número e caractere especial"
-              sx={{ flex: 1 }}
-              InputProps={{
-                sx: {
-                  borderRadius: '6px',
-                  fontSize: '0.875rem'
-                }
-              }}
-              InputLabelProps={{
-                sx: {
-                  fontSize: '0.875rem'
-                }
-              }}
-              FormHelperTextProps={{
-                sx: { fontSize: '0.7rem' }
-              }}
-            />
+            label="Senha"
+            type="password"
+            variant="outlined"
+            size="small"
+            required
+            name="password"
+            value={formData.password}
+            onChange={handleChange}
+            helperText="Mínimo 8 caracteres, com letra maiúscula, minúscula, número e caractere especial"
+            sx={{ flex: 1 }}
+            InputProps={{
+              sx: {
+                borderRadius: '6px',
+                fontSize: '0.875rem'
+              }
+            }}
+            InputLabelProps={{
+              sx: {
+                fontSize: '0.875rem'
+              }
+            }}
+            FormHelperTextProps={{
+              sx: { fontSize: '0.7rem' }
+            }}
+          />
 
-            <TextField              label="Confirmar senha"
+            <TextField label="Confirmar senha"
               type="password"
               variant="outlined"
               size="small"
@@ -628,43 +628,43 @@ const UserFormModal = ({ open, onClose }) => {
             />
           </Box>
         </Box>
-      </DialogContent>      <DialogActions sx={{ 
-        p: 2, 
+      </DialogContent>      <DialogActions sx={{
+        p: 2,
         borderTop: '1px solid #e0e0e0',
         backgroundColor: '#f9f9f9',
         display: 'flex',
         justifyContent: 'center',
         gap: 2
-      }}>        <Button 
-          onClick={onClose} 
-          variant="outlined"
-          size="medium"
-          disabled={loading || registrationSuccess}
-          sx={{ 
-            textTransform: 'none',
-            borderRadius: '6px',
-            color: '#666',
-            borderColor: '#d1d1d1',
-            fontSize: '0.875rem',
-            minWidth: '120px',
-            '&:hover': {
-              borderColor: '#999',
-              backgroundColor: 'rgba(0,0,0,0.03)'
-            }
-          }}
-        >
+      }}>        <Button
+        onClick={onClose}
+        variant="outlined"
+        size="medium"
+        disabled={loading || registrationSuccess}
+        sx={{
+          textTransform: 'none',
+          borderRadius: '6px',
+          color: '#666',
+          borderColor: '#d1d1d1',
+          fontSize: '0.875rem',
+          minWidth: '120px',
+          '&:hover': {
+            borderColor: '#999',
+            backgroundColor: 'rgba(0,0,0,0.03)'
+          }
+        }}
+      >
           Cancelar
         </Button>
-        <Button 
-          variant="contained" 
+        <Button
+          variant="contained"
           disableElevation
           size="medium"
           type="button"
           onClick={handleSubmit}
           disabled={loading || registrationSuccess}
-          sx={{ 
+          sx={{
             textTransform: 'none',
-            bgcolor: registrationSuccess ? '#2e7d32' : '#61131A', 
+            bgcolor: registrationSuccess ? '#2e7d32' : '#61131A',
             '&:hover': { bgcolor: registrationSuccess ? '#2e7d32' : '#4e0f15' },
             borderRadius: '6px',
             fontWeight: 600,
@@ -706,11 +706,11 @@ const UserFormModal = ({ open, onClose }) => {
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
-        <Alert 
-          onClose={handleCloseSnackbar} 
-          severity={snackbar.severity} 
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
           variant="filled"
-          sx={{ 
+          sx={{
             width: '100%',
             whiteSpace: 'pre-wrap',
             maxWidth: '400px',

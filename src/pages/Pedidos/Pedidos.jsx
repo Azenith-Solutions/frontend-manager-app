@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Pedido.module.css";
-import { api } from "../../provider/apiProvider";
+import { api } from "../../service/api";
 import OrderFormModal from "../../components/forms/OrderFormModal/OrderFormModal";
 // Material UI Components
 import {
@@ -156,14 +156,14 @@ const Pedidos = () => {
   const handleFilterMenuClose = () => {
     setFilterMenuAnchor(null);
   };
-  
+
   // Manipuladores de filtros para Pedidos
   const toggleStatusFilter = (status) => {
     setActiveFilters(prev => {
       const updatedStatus = prev.status.includes(status)
         ? prev.status.filter(s => s !== status)
         : [...prev.status, status];
-      
+
       return { ...prev, status: updatedStatus };
     });
     setPage(0);
@@ -197,18 +197,18 @@ const Pedidos = () => {
     }));
     setPage(0);
   };
-  
+
   const toggleClienteFilter = (clienteId) => {
     setActiveFilters(prev => {
       const updatedClientes = prev.clientes.includes(clienteId)
         ? prev.clientes.filter(c => c !== clienteId)
         : [...prev.clientes, clienteId];
-      
+
       return { ...prev, clientes: updatedClientes };
     });
     setPage(0);
   };
-  
+
   const clearAllFilters = () => {
     setActiveFilters({
       status: [],
@@ -236,22 +236,22 @@ const Pedidos = () => {
         (item.nome_comprador && item.nome_comprador.toLowerCase().includes(searchText.toLowerCase())) ||
         (item.email_comprador && item.email_comprador.toLowerCase().includes(searchText.toLowerCase())) ||
         (item.status && item.status.toLowerCase().includes(searchText.toLowerCase()));
-        
+
       // Filtro por status
       const matchesStatus = activeFilters.status.length === 0 ||
         activeFilters.status.includes(item.status);
-        
+
       // Filtro por aprovado
       const matchesAprovado = activeFilters.aprovado === null ||
         item.aprovado === activeFilters.aprovado;
-        
+
       // Filtro por cliente
       const matchesCliente = activeFilters.clientes.length === 0 ||
         activeFilters.clientes.includes(item.cnpjCpf);
-        
+
       // Filtro por período (simplificado, em produção usaria datas reais)
       const matchesPeriodo = activeFilters.periodo === null || true; // Simplificação
-      
+
       return matchesSearch && matchesStatus && matchesAprovado && matchesCliente && matchesPeriodo;
     }
   );
@@ -687,7 +687,7 @@ const Pedidos = () => {
           Novo Pedido
         </Button>
       </Paper>
-      
+
       <Container
         maxWidth={false}
         disableGutters
@@ -769,14 +769,14 @@ const Pedidos = () => {
                               sx={{
                                 backgroundColor:
                                   item.status && item.status.toLowerCase() === 'concluido' ? 'rgba(46, 204, 113, 0.1)' :
-                                  item.status && item.status.toLowerCase() === 'em_analise' ? 'rgba(241, 196, 15, 0.1)' :
-                                  item.status && item.status.toLowerCase() === 'em_andamento' ? 'rgba(52, 152, 219, 0.1)' :
-                                  'rgba(231, 76, 60, 0.1)',
+                                    item.status && item.status.toLowerCase() === 'em_analise' ? 'rgba(241, 196, 15, 0.1)' :
+                                      item.status && item.status.toLowerCase() === 'em_andamento' ? 'rgba(52, 152, 219, 0.1)' :
+                                        'rgba(231, 76, 60, 0.1)',
                                 color:
                                   item.status && item.status.toLowerCase() === 'concluido' ? '#27ae60' :
-                                  item.status && item.status.toLowerCase() === 'em_analise' ? '#f39c12' :
-                                  item.status && item.status.toLowerCase() === 'em_andamento' ? '#3498db' :
-                                  '#e74c3c',
+                                    item.status && item.status.toLowerCase() === 'em_analise' ? '#f39c12' :
+                                      item.status && item.status.toLowerCase() === 'em_andamento' ? '#3498db' :
+                                        '#e74c3c',
                                 fontWeight: 500,
                                 fontSize: '0.75rem',
                                 borderRadius: '4px'

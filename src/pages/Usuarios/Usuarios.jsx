@@ -1,7 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import styles from "./Usuarios.module.css";
-import { api } from "../../provider/apiProvider";
+import { api } from "../../service/api";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
+import UserEditModal from "../../components/forms/UserFormModal/UserEditModal";
+import UserDeleteModal from "../../components/forms/UserFormModal/UserDeleteModal";
+import UsuariosFilter from "../../components/menuFilter/UsuariosFilter";
+import UsuariosDataGrid from "../../components/datagrids/UsuariosDataGrid/UsuariosDataGrid";
+import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
 
 // URL base para imagens de perfil
 const API_BASE_URL = "http://localhost:8080/api/uploads/images/";
@@ -14,61 +19,107 @@ import {
   CircularProgress,
   Typography,
   Container,
-  Button,
-  IconButton,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Chip,
-  TablePagination,
-  Divider,
-  Card,
-  CardContent,
-  Avatar
+  Snackbar,
+  Alert
 } from "@mui/material";
 
 // Material UI Icons
-import SearchIcon from '@mui/icons-material/Search';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/Delete';
-import CheckCircleIcon from '@mui/icons-material/CheckCircle';
-import CancelIcon from '@mui/icons-material/Cancel';
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
 
-const Usuarios = () => {  const [loading, setLoading] = useState(true);
+const Usuarios = () => {
+  const [loading, setLoading] = useState(true);
   const [usuarios, setUsuarios] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [updatedUserId, setUpdatedUserId] = useState(null);
+  const [deletedUserId, setDeletedUserId] = useState(null);
+  const [feedbackMessage, setFeedbackMessage] = useState({ open: false, message: '', severity: 'success' });
+
+  // Estado para controle do menu de filtros
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
+  const [activeFilters, setActiveFilters] = useState({
+    cargo: [],
+    status: null,
+    periodo: null
+  });
+  const [filteredCount, setFilteredCount] = useState(0);
+
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
   }, []);
 
+  // Atualizar a contagem de usuários quando a lista mudar
+  useEffect(() => {
+    setTotalUsuarios(usuarios.length);
+  }, [usuarios]);
+  // Funções para gerenciar os filtros
+  const handleOpenFilterMenu = (event) => {
+    setFilterAnchorEl(event.currentTarget);
+  };
+
+  const handleCloseFilterMenu = () => {
+    setFilterAnchorEl(null);
+  };
+
+  const toggleCargoFilter = (cargo) => {
+    setActiveFilters(prev => {
+      const newCargo = prev.cargo.includes(cargo)
+        ? prev.cargo.filter(item => item !== cargo)
+        : [...prev.cargo, cargo];
+
+      return { ...prev, cargo: newCargo };
+    });
+    setPage(0); // Reset page when filter changes
+  };
+
+  const toggleStatusFilter = (status) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      status: prev.status === status ? null : status
+    }));
+    setPage(0); // Reset page when filter changes
+  };
+
+  const togglePeriodoFilter = (periodo) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      periodo: prev.periodo === periodo ? null : periodo
+    }));
+    setPage(0); // Reset page when filter changes
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({
+      cargo: [],
+      status: null,
+      periodo: null
+    });
+    setPage(0); // Reset page when filters are cleared
+  };
+
   const fetchUsuarios = async () => {
     try {
       setLoading(true);
-      
+
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
-        if (response.data && response.data.data) {        const usuariosAPI = response.data.data.map(user => {
+      if (response.data && response.data.data) {
+        const usuariosAPI = response.data.data.map(user => {
           // Extrair iniciais para o avatar (fallback se não houver imagem)
           const iniciais = user.fullName
             .split(' ')
             .map(n => n[0])
             .join('')
             .substring(0, 2);
-            
+
           // Define status based on the condition
           let statusDisplay = "Indefinido";
           if (user.status === true) {
@@ -76,7 +127,7 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
           } else if (user.status === false) {
             statusDisplay = "Inativo";
           }
-          
+
           // Definir a URL do avatar (imagem de perfil ou fallback com iniciais)
           let avatarUrl;
           if (user.profilePicture) {
@@ -84,7 +135,7 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
           } else {
             avatarUrl = `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`;
           }
-            
+
           return {
             id: user.id,
             nome: user.fullName,
@@ -97,7 +148,7 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
             rawData: user
           };
         });
-        
+
         setUsuarios(usuariosAPI);
         setTotalUsuarios(usuariosAPI.length);
       } else {
@@ -127,12 +178,12 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
     setSearchText(event.target.value);
     setPage(0);
   };
-    // Função para lidar com o clique no botão de editar
+  // Função para lidar com o clique no botão de editar
   const handleEditUser = (user) => {
     setSelectedUser(user);
     setEditModalOpen(true);
   };
-  
+
   // Função para lidar com o clique no botão de excluir
   const handleDeleteUser = (user) => {
     setSelectedUser(user);
@@ -142,27 +193,27 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
   const filteredUsuarios = useMemo(() => {
     // Primeiro filtra por texto de busca
     let filtered = usuarios.filter(
-      (item) => 
+      (item) =>
         (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
         (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
         (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
     );
-    
+
     // Aplica filtro de cargo
     if (activeFilters.cargo.length > 0) {
       filtered = filtered.filter(item => activeFilters.cargo.includes(item.cargo));
     }
-      // Aplica filtro de status
+    // Aplica filtro de status
     if (activeFilters.status !== null) {
       filtered = filtered.filter(item => item.status === activeFilters.status);
     }
-    
+
     // Aplica filtro de período
     if (activeFilters.periodo !== null) {
       const hoje = new Date();
       const dataLimite = new Date();
-      
-      switch(activeFilters.periodo) {
+
+      switch (activeFilters.periodo) {
         case '7dias':
           dataLimite.setDate(hoje.getDate() - 7);
           break;
@@ -178,16 +229,16 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
         default:
           break;
       }
-      
+
       filtered = filtered.filter(item => {
         const dataCriacao = new Date(item.rawData.createdAt);
         return dataCriacao >= dataLimite;
       });
     }
-    
+
     return filtered;
   }, [usuarios, searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
-  
+
   // Calculando filteredCount fora da função de filtragem para evitar loops de renderização
   useEffect(() => {
     setFilteredCount(usuarios.length - filteredUsuarios.length);
@@ -210,357 +261,51 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
       </Box>
     );
   }
-
   return (
     <div className={styles.usuarios}>
-      <Paper elevation={1} className={styles.toolbar} sx={{ 
-        p: '10px 16px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        boxShadow: '0 2px 8px rgba(255, 255, 255, 0.08)',
-        borderRadius: '8px',
-        mb: 2,
-      }}>
-        <Box sx={{ 
-          display: 'flex', 
-          flexWrap: 'wrap',
-          alignItems: 'center', 
-          gap: '12px',
-          flex: '1 1 auto',
-          minWidth: '0', 
-        }}>
-          <Box
-            sx={{ 
-              display: 'flex',
-              alignItems: 'center',
-              width: { xs: '100%', sm: '250px' },
-              minWidth: { xs: '100%', sm: '250px' },
-              maxWidth: '300px',
-              height: '38px',
-              backgroundColor: '#f0f2f5',
-              borderRadius: '20px',
-              px: 1.5,
-              overflow: 'hidden',
-              border: '1px solid transparent',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                backgroundColor: '#e9ecf0',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
-              },
-              '&:focus-within': {
-                backgroundColor: '#fff',
-                boxShadow: '0 0 0 2px rgba(97,19,26,0.1)',
-                border: '1px solid #e0e0e0'
-              }
-            }}
-          >
-            <SearchIcon 
-              sx={{ 
-                color: '#61131A', 
-                fontSize: 18,
-                opacity: 0.7,
-                mr: 1,
-                transition: 'transform 0.2s ease',
-                transform: 'rotate(-5deg)',
-                '&:hover': {
-                  transform: 'rotate(0deg) scale(1.1)'
-                }
-              }} 
-            />
-            <input 
-              type="text" 
-              placeholder="Buscar usuário..."
-              value={searchText}
-              onChange={handleSearchChange}
-              style={{
-                border: 'none',
-                outline: 'none',
-                backgroundColor: 'transparent',
-                color: '#333',
-                width: '100%',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                padding: '0px',
-                fontFamily: 'inherit'
-              }}
-            />
-          </Box>
-          
-          <Box sx={{ 
-            display: 'flex', 
-            gap: '10px',
-            flexShrink: 0,
-          }}>
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FilterListIcon 
-                fontSize="small" 
-                sx={{ 
-                  color: '#61131A',
-                  transition: 'transform 0.3s ease',
-                  '&:hover': {
-                    transform: 'rotate(180deg)'
-                  }
-                }} 
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Filtrar
-              </Typography>
-            </Box>
-            
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FileDownloadIcon 
-                fontSize="small" 
-                sx={{ 
-                  color: '#2980b9',
-                  transition: 'transform 0.2s ease',
-                }} 
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Exportar
-              </Typography>
-            </Box>
-          </Box>
-          
-          <Divider orientation="vertical" flexItem sx={{ 
-            height: 28, 
-            mx: 0.5,
-            display: { xs: 'none', md: 'block' } 
-          }} />
-          
-          <Box sx={{ 
-            display: 'flex', 
-            flexWrap: 'wrap',
-            alignItems: 'center', 
-            gap: '12px',
-            ml: { xs: 0, md: 0.5 },
-            flexGrow: 1,
-            justifyContent: { xs: 'flex-start', md: 'flex-start' },
-          }}>
-            <Card sx={{ 
-              height: '38px', 
-              flex: '1 1 140px',
-              maxWidth: '180px',
-              minWidth: '140px',
-              borderTop: '3px solid #61131A',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s',
-              overflow: 'visible',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-              }
-            }}>
-              <CardContent sx={{ 
-                p: '4px 8px', 
-                pb: '4px !important', 
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  width: '100%',
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{ 
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    backgroundColor: '#ffeded',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 1,
-                    flexShrink: 0
-                  }}>
-                    <PeopleIcon sx={{ color: '#61131A', fontSize: 14 }} />
-                  </Box>
-                  <Box sx={{ 
-                    minWidth: 0, 
-                    overflow: 'hidden',
-                  }}>
-                    <Typography variant="h6" sx={{ 
-                      fontSize: '0.85rem',
-                      fontWeight: 700, 
-                      lineHeight: 1,
-                      mb: 0,
-                      color: '#333',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {totalUsuarios}
-                    </Typography>
-                    <Typography variant="caption" sx={{ 
-                      fontSize: '0.6rem',
-                      color: '#666',
-                      fontWeight: 500,
-                      lineHeight: 1,
-                      mt: '0px',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      Usuários
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
+      {/* DatagridHeader para a página de usuários */}
+      <DatagridHeader
+        title="Novo Usuário"
+        searchPlaceholder="Buscar usuário..."
+        searchProps={{
+          value: searchText,
+          onChange: handleSearchChange
+        }}
+        onAddClick={() => setModalOpen(true)}
+        activeFilterCount={Object.values(activeFilters).some(v => Array.isArray(v) ? v.length > 0 : v !== null) ? filteredCount : 0}
+        onFilterClick={handleOpenFilterMenu}
+        statsCards={[
+          {
+            icon: <PeopleIcon fontSize="small" sx={{ color: '#61131A' }} />,
+            value: totalUsuarios,
+            label: 'Usuários',
+            color: '#61131A',
+            iconBgColor: '#ffeded'
+          },
+          {
+            icon: <AdminPanelSettingsIcon fontSize="small" sx={{ color: '#27ae60' }} />,
+            value: usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length,
+            label: 'Administradores',
+            color: '#27ae60',
+            iconBgColor: '#eaf7ef'
+          }
+        ]}
+      />
 
-            <Card sx={{ 
-              height: '38px', 
-              flex: '1 1 170px',
-              maxWidth: '200px',
-              minWidth: '170px',
-              borderTop: '3px solid #27ae60',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s',
-              overflow: 'visible',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-              }
-            }}>
-              <CardContent sx={{ 
-                p: '4px 8px', 
-                pb: '4px !important', 
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <Box sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  width: '100%',
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{ 
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    backgroundColor: '#eaf7ef',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 1,
-                    flexShrink: 0
-                  }}>
-                    <AdminPanelSettingsIcon sx={{ color: '#27ae60', fontSize: 14 }} />
-                  </Box>
-                  <Box sx={{ 
-                    minWidth: 0, 
-                    overflow: 'hidden', 
-                  }}>
-                    <Typography variant="h6" sx={{ 
-                      fontSize: '0.85rem',
-                      fontWeight: 700, 
-                      lineHeight: 1,
-                      mb: 0,
-                      color: '#333',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'                    }}>
-                      {usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length}
-                    </Typography>
-                    <Typography variant="caption" sx={{ 
-                      fontSize: '0.6rem',
-                      color: '#666',
-                      fontWeight: 500,
-                      lineHeight: 1,
-                      mt: '0px',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      Administradores
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
-          <Button 
-          size="small" 
-          variant="contained" 
-          disableElevation
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={() => setModalOpen(true)}
-          sx={{ 
-            height: '38px',
-            bgcolor: '#61131A', 
-            '&:hover': { bgcolor: '#4e0f15' },
-            borderRadius: '4px',
-            textTransform: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            px: 1.5,
-            minWidth: '100px',
-            flexShrink: 0, 
-            ml: { xs: 0, sm: 'auto' }, 
-            alignSelf: { xs: 'flex-start', sm: 'center' } 
-          }}
-        >
-          Novo Usuário
-        </Button>
-      </Paper>
-      <Container 
-        maxWidth={false} 
-        disableGutters 
-        sx={{ 
+      {/* Componente UsuariosFilter */}
+      <UsuariosFilter
+        anchorEl={filterAnchorEl}
+        onClose={handleCloseFilterMenu}
+        activeFilters={activeFilters}
+        toggleCargoFilter={toggleCargoFilter}
+        toggleStatusFilter={toggleStatusFilter}
+        togglePeriodoFilter={togglePeriodoFilter}
+        clearAllFilters={clearAllFilters} />
+
+      <Container
+        maxWidth={false}
+        disableGutters
+        sx={{
           px: 0,
           flexGrow: 1,
           display: 'flex',
@@ -568,156 +313,99 @@ const Usuarios = () => {  const [loading, setLoading] = useState(true);
           overflow: 'hidden'
         }}
       >
-        <TableContainer component={Paper} sx={{ 
-          boxShadow: '0 3px 10px rgba(0,0,0,0.08)', 
-          borderRadius: '8px',
-          overflow: 'hidden',
-          width: '100%',
-          mt: 0,
-          height: 'calc(100vh - 180px)',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-            <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de usuários">
-              <TableHead>
-                <TableRow sx={{ 
-                  backgroundColor: '#f5f5f5',
-                  '& th': { 
-                    fontWeight: 'bold', 
-                    color: '#333',
-                    fontSize: '0.85rem',
-                    borderBottom: '2px solid #61131A',
-                    py: 1.8
-                  }
-                }}>
-                  <TableCell align="center">Avatar</TableCell>
-                  <TableCell align="center">Nome</TableCell>                  <TableCell align="center">Email</TableCell>
-                  <TableCell align="center">Cargo</TableCell>
-                  <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Criado em</TableCell>
-                  <TableCell align="center">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredUsuarios
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((item) => (
-                  <TableRow
-                    key={item.id}
-                    hover
-                    sx={{ 
-                      '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                      '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                      transition: 'background-color 0.2s',
-                      height: '54px' 
-                    }}
-                  >                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Avatar 
-                        src={item.avatar} 
-                        alt={item.nome}
-                        sx={{ 
-                          width: 34, 
-                          height: 34, 
-                          margin: '0 auto',
-                          bgcolor: '#61131A' // Using brand color as fallback
-                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
-                    <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Chip 
-                        icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.status}
-                        size="small"
-                        sx={{ 
-                          backgroundColor: item.status === 'Ativo' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.status === 'Ativo' ? '#27ae60' : '#e74c3c',
-                          fontWeight: 500,
-                          fontSize: '0.75rem',
-                          borderRadius: '4px',
-                          '& .MuiChip-icon': { color: 'inherit' }                        }}
-                      />
-                    </TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
-                    <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
-                          title="Editar" 
-                          sx={{ 
-                            color: '#2980b9', 
-                            backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                            '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' } 
-                          }}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          title="Excluir" 
-                          sx={{ 
-                            color: '#c0392b', 
-                            backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                            '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' } 
-                          }}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filteredUsuarios.length > 0 && 
-                 filteredUsuarios.length < rowsPerPage && 
-                 Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
-                  <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                    <TableCell colSpan={7} />
-                  </TableRow>
-                ))}
-                {filteredUsuarios.length === 0 && (
-                  <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={7} align="center">
-                      Nenhum usuário encontrado
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Box>
-          <TablePagination
-            component="div"
-            count={filteredUsuarios.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            labelRowsPerPage="Linhas por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-            sx={{
-              borderTop: '1px solid rgba(224, 224, 224, 1)',
-              backgroundColor: '#f9f9f9',
-              overflowY: 'hidden',
-              '& .MuiTablePagination-toolbar': {
-                minHeight: '48px',
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                fontSize: '0.875rem',
-              }            }}
-          />
-        </TableContainer>
+        <UsuariosDataGrid
+          usuarios={filteredUsuarios}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUser}
+          updatedUserId={updatedUserId}
+          deletedUserId={deletedUserId}
+          loading={loading}
+        />
       </Container>
-        {/* Modal for creating a new user */}
-      <UserFormModal 
-        open={modalOpen} 
+      {/* Modal for creating a new user */}
+      <UserFormModal
+        open={modalOpen}
         onClose={() => {
           setModalOpen(false);
           fetchUsuarios(); // Recarrega a lista após o cadastro
-        }} 
+        }}
       />
+      {/* Modal for editing a user */}
+      <UserEditModal
+        open={editModalOpen}
+        onClose={() => {
+          setEditModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUserUpdated={() => {
+          // Marcar o ID do usuário atualizado antes de buscar os dados
+          if (selectedUser) {
+            setUpdatedUserId(selectedUser.id);
+          }
+          fetchUsuarios();
+
+          // Limpar o ID após 2 segundos para remover o efeito de destaque
+          setTimeout(() => {
+            setUpdatedUserId(null);
+          }, 2000);
+        }}
+      />
+
+      {/* Modal for deleting a user */}      <UserDeleteModal
+        open={deleteModalOpen}
+        onClose={() => {
+          setDeleteModalOpen(false);
+          setSelectedUser(null);
+        }}
+        user={selectedUser}
+        onUserDeleted={() => {
+          // Marcar o ID do usuário excluído antes de buscar os dados
+          if (selectedUser) {
+            setDeletedUserId(selectedUser.id);
+
+            // Atualizar a lista localmente removendo o usuário
+            setUsuarios(prev => prev.filter(user => user.id !== selectedUser.id));
+
+            // Mostrar mensagem de feedback
+            setFeedbackMessage({
+              open: true,
+              message: `Usuário ${selectedUser.nome} excluído com sucesso!`,
+              severity: 'success'
+            });
+
+            // Limpar o ID após 2 segundos
+            setTimeout(() => {
+              setDeletedUserId(null);
+            }, 2000);
+          }
+        }}
+      />
+
+      {/* Snackbar para feedback */}
+      <Snackbar
+        open={feedbackMessage.open}
+        autoHideDuration={5000}
+        onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+          severity={feedbackMessage.severity}
+          variant="filled"
+          sx={{
+            width: '100%',
+            maxWidth: '400px',
+            fontSize: '0.9rem'
+          }}
+        >
+          {feedbackMessage.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };
