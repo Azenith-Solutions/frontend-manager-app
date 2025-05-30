@@ -27,7 +27,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 // Import all icons from the package instead of individual imports
 import * as Icons from '@mui/icons-material';
 import PersonIcon from '@mui/icons-material/Person';
-import { api } from '../../../provider/apiProvider';
+import { api } from '../../../service/api';
 
 const UserFormModal = ({ open, onClose }) => {
   const [roles, setRoles] = useState([]);

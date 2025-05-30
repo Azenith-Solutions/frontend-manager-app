@@ -36,33 +36,19 @@ const Login = () => {
             email,
             password
         })
-<<<<<<< HEAD
             .then((response) => {
                 if (response.status === 200) {
-                    console.log('Response do login:', response.data);
+                    console.log('Response do login:', response);
                     localStorage.setItem('isLoggedIn', 'true');
                     localStorage.setItem('token', response.data.data.token);
+                    localStorage.setItem('user', JSON.stringify(response.data.data.name));
+                    localStorage.setItem('role', response.data.data.fkFuncao.funcao);
                     navigate('/dashboard');
                 }
             })
             .catch((error) => {
                 alert("Login inválido! Verifique seu e-mail e senha.");
             });
-=======
-        .then((response) => {
-            if (response.status === 200) {
-                console.log('Response do login:', response);
-                localStorage.setItem('isLoggedIn', 'true');
-                localStorage.setItem('token', response.data.data.token);
-                localStorage.setItem('user', JSON.stringify(response.data.data.name));
-                localStorage.setItem('role', response.data.data.fkFuncao.funcao);
-                navigate('/dashboard');
-            }
-        })
-        .catch((error) => {
-            alert("Login inválido! Verifique seu e-mail e senha.");
-        });
->>>>>>> 97732c38a398447d22b1c535ac25e5cad3cc9d06
     };
 
     return (

@@ -59,8 +59,8 @@ import { alpha } from '@mui/material/styles';
 import Logo from "../../assets/Logo.svg";
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
 import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
-import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined'; 
-import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined'; 
+import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
+import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import PsychologyIcon from '@mui/icons-material/Psychology';
 import PeopleIcon from '@mui/icons-material/People';
 import HeadsetMicIcon from '@mui/icons-material/HeadsetMic';
@@ -73,25 +73,25 @@ const EXPANDED_DRAWER_WIDTH = 240;
 const COLLAPSED_DRAWER_WIDTH = 65;
 
 const Layout = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const theme = useTheme();
+    const navigate = useNavigate();
+    const location = useLocation();
+    const theme = useTheme();
 
-  const user = localStorage.getItem("user").replace(/"/g, "");
-  const userInitials = formatNameForAvatar(user);
-  const userRole = localStorage.getItem("role");
+    const user = localStorage.getItem("user").replace(/"/g, "");
+    const userInitials = formatNameForAvatar(user);
+    const userRole = localStorage.getItem("role");
 
-  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [managementOpen, setManagementOpen] = useState(false);
-  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+    const isMobile = useMediaQuery(theme.breakpoints.down("md"));
+    const [mobileOpen, setMobileOpen] = useState(false);
+    const [managementOpen, setManagementOpen] = useState(false);
+    const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [searchResults, setSearchResults] = useState([]);
-  const [searchAnchorEl, setSearchAnchorEl] = useState(null);
-  const searchInputRef = React.useRef(null);
-  
-  const drawerWidth = sidebarExpanded ? EXPANDED_DRAWER_WIDTH : COLLAPSED_DRAWER_WIDTH;
+    const [searchTerm, setSearchTerm] = useState("");
+    const [searchResults, setSearchResults] = useState([]);
+    const [searchAnchorEl, setSearchAnchorEl] = useState(null);
+    const searchInputRef = React.useRef(null);
+
+    const drawerWidth = sidebarExpanded ? EXPANDED_DRAWER_WIDTH : COLLAPSED_DRAWER_WIDTH;
 
 
     const handleDrawerToggle = () => {
@@ -106,45 +106,45 @@ const Layout = () => {
         }
     };
     const redAndWhiteIcons = {
-        dashboard: { 
-            red: <DashboardOutlinedIcon sx={{ color: "#61131A" }} />, 
+        dashboard: {
+            red: <DashboardOutlinedIcon sx={{ color: "#61131A" }} />,
             white: <DashboardOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
         management: {
             red: <SettingsIcon sx={{ color: "#61131A" }} />,
             white: <SettingsIcon sx={{ color: "#FFFFFF" }} />
         },
-        components: { 
-            red: <MemoryIcon sx={{ color: "#61131A" }} />, 
+        components: {
+            red: <MemoryIcon sx={{ color: "#61131A" }} />,
             white: <MemoryIcon sx={{ color: "#FFFFFF" }} />
         },
-        order: { 
-            red: <ShoppingCartOutlinedIcon sx={{ color: "#61131A" }} />, 
+        order: {
+            red: <ShoppingCartOutlinedIcon sx={{ color: "#61131A" }} />,
             white: <ShoppingCartOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
-        users: { 
-            red: <PeopleIcon sx={{ color: "#61131A" }} />, 
+        users: {
+            red: <PeopleIcon sx={{ color: "#61131A" }} />,
             white: <PeopleIcon sx={{ color: "#FFFFFF" }} />
         },
-        report: { 
-            red: <BarChartOutlinedIcon sx={{ color: "#61131A" }} />, 
+        report: {
+            red: <BarChartOutlinedIcon sx={{ color: "#61131A" }} />,
             white: <BarChartOutlinedIcon sx={{ color: "#FFFFFF" }} />
         },
-        assistentIa: { 
-            red: <PsychologyIcon sx={{ color: "#61131A" }} />, 
+        assistentIa: {
+            red: <PsychologyIcon sx={{ color: "#61131A" }} />,
             white: <PsychologyIcon sx={{ color: "#FFFFFF" }} />
         },
-        suport: { 
-            red: <HeadsetMicIcon sx={{ color: "#61131A" }} />, 
+        suport: {
+            red: <HeadsetMicIcon sx={{ color: "#61131A" }} />,
             white: <HeadsetMicIcon sx={{ color: "#FFFFFF" }} />
         },
     };
 
     const menuItems = [
         { text: "Dashboard", key: "dashboard", path: "/dashboard" },
-        { 
-            text: "Gerenciamento", 
-            key: "management", 
+        {
+            text: "Gerenciamento",
+            key: "management",
             isExpandable: true,
             subItems: [
                 { text: "Componentes", key: "components", path: "/componentes" },
@@ -165,7 +165,7 @@ const Layout = () => {
         if (currentRoute) {
             return currentRoute.text;
         }
-        
+
         // Se não encontrar nos itens principais, procurar nos subitens
         for (const item of menuItems) {
             if (item.subItems) {
@@ -175,14 +175,14 @@ const Layout = () => {
                 }
             }
         }
-        
+
         return "Página Desconhecida";
     };
 
     const [hoveredItem, setHoveredItem] = useState(null);
 
     const handleToggleSidebar = () => {
-      setSidebarExpanded(!sidebarExpanded);
+        setSidebarExpanded(!sidebarExpanded);
     };
 
     const handleSearchChange = (event) => {
@@ -227,264 +227,264 @@ const Layout = () => {
             setSearchAnchorEl(event.currentTarget);
         }
     };
-    
+
     const handleClickAwaySearch = () => {
         setSearchAnchorEl(null);
     };
 
     const drawer = (
-      <Box sx={{ 
-        position: 'relative', 
-        height: '100%', 
-        display: 'flex', 
-        flexDirection: 'column',
-        transition: theme.transitions.create(['width'], {
-          easing: theme.transitions.easing.sharp,
-          duration: theme.transitions.duration.enteringScreen,
-        }),
-      }}>
-        <Toolbar sx={{
-            display: "flex", 
-            flexDirection: "column", 
-            alignItems: "center",
-            py: 1.5,
-            height: 'auto',
-            mb: 1,
-            }}>
-            <img 
-              src={Logo} 
-              alt="Logo" 
-              style={{ 
-                display: sidebarExpanded ? 'flex' : 'none',  
-                maxWidth: sidebarExpanded ? '100%' : '70%', 
+        <Box sx={{
+            position: 'relative',
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            transition: theme.transitions.create(['width'], {
+                easing: theme.transitions.easing.sharp,
+                duration: theme.transitions.duration.enteringScreen,
+            }),
+        }}>
+            <Toolbar sx={{
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                py: 1.5,
                 height: 'auto',
-                transition: 'max-width 0.3s, margin-top 0.3s',
-                minWidth: sidebarExpanded ? 'auto' : '50px',
-                marginTop: sidebarExpanded ? 0 : '50px',  
-              }} 
-            />
-        </Toolbar>
-        
-        <IconButton
-            onClick={handleToggleSidebar}
-            sx={{
-                position: 'absolute',
-                right: 20, 
-                top: 20,
-                zIndex: 1200,
-                bgcolor: 'background.paper',
-                border: '1px solid rgba(0, 0, 0, 0.12)',
-                borderRadius: '50%',
-                width: 24,
-                height: 24,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                '&:hover': {
-                    bgcolor: 'rgba(0,0,0,0.04)',
+                mb: 1,
+            }}>
+                <img
+                    src={Logo}
+                    alt="Logo"
+                    style={{
+                        display: sidebarExpanded ? 'flex' : 'none',
+                        maxWidth: sidebarExpanded ? '100%' : '70%',
+                        height: 'auto',
+                        transition: 'max-width 0.3s, margin-top 0.3s',
+                        minWidth: sidebarExpanded ? 'auto' : '50px',
+                        marginTop: sidebarExpanded ? 0 : '50px',
+                    }}
+                />
+            </Toolbar>
+
+            <IconButton
+                onClick={handleToggleSidebar}
+                sx={{
+                    position: 'absolute',
+                    right: 20,
+                    top: 20,
+                    zIndex: 1200,
+                    bgcolor: 'background.paper',
+                    border: '1px solid rgba(0, 0, 0, 0.12)',
+                    borderRadius: '50%',
+                    width: 24,
+                    height: 24,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    '&:hover': {
+                        bgcolor: 'rgba(0,0,0,0.04)',
+                    }
+                }}
+            >
+                {sidebarExpanded ? <ArrowBackIosNewIcon sx={{ fontSize: '0.8rem' }} /> : <ArrowForwardIosIcon sx={{ fontSize: '0.8rem' }} />}
+            </IconButton>
+
+            <List sx={{
+                marginTop: 0,
+                justifyContent: "center",
+                alignItems: "center",
+                flexGrow: 1,
+                '& .MuiTypography-root': {
+                    fontSize: '0.95rem',
+                    fontWeight: 500
+                },
+                '& .MuiSvgIcon-root': {
+                    fontSize: '1.35rem'
                 }
-            }}
-        >
-            {sidebarExpanded ? <ArrowBackIosNewIcon sx={{ fontSize: '0.8rem' }} /> : <ArrowForwardIosIcon sx={{ fontSize: '0.8rem' }} />}
-        </IconButton>
-        
-        <List sx={{
-            marginTop: 0,
-            justifyContent: "center",
-            alignItems: "center",
-            flexGrow: 1,
-            '& .MuiTypography-root': {
-                fontSize: '0.95rem',
-                fontWeight: 500
-            },
-            '& .MuiSvgIcon-root': {
-                fontSize: '1.35rem'
-            }
-        }}>
-            {menuItems.map((item) => {
-                // Verificar se o item atual ou algum de seus subitens está ativo
-                const isActive = location.pathname === item.path;
-                const hasActiveSubItem = item.subItems?.some(sub => location.pathname === sub.path);
-                
-                // Determinar qual ícone mostrar
-                const iconColor = (isActive || hasActiveSubItem || hoveredItem === item.key) ? 'white' : 'red';
-                const iconSrc = redAndWhiteIcons[item.key][iconColor];
-                
-                const listItem = (
-                    <ListItemButton
-                        onClick={() => {
-                            if (item.isExpandable) {
-                                if (sidebarExpanded) {
-                                    setManagementOpen(!managementOpen);
+            }}>
+                {menuItems.map((item) => {
+                    // Verificar se o item atual ou algum de seus subitens está ativo
+                    const isActive = location.pathname === item.path;
+                    const hasActiveSubItem = item.subItems?.some(sub => location.pathname === sub.path);
+
+                    // Determinar qual ícone mostrar
+                    const iconColor = (isActive || hasActiveSubItem || hoveredItem === item.key) ? 'white' : 'red';
+                    const iconSrc = redAndWhiteIcons[item.key][iconColor];
+
+                    const listItem = (
+                        <ListItemButton
+                            onClick={() => {
+                                if (item.isExpandable) {
+                                    if (sidebarExpanded) {
+                                        setManagementOpen(!managementOpen);
+                                    } else {
+                                        setSidebarExpanded(true);
+                                        setManagementOpen(true);
+                                    }
                                 } else {
-                                    setSidebarExpanded(true);
-                                    setManagementOpen(true);
+                                    navigate(item.path);
+                                    if (isMobile) setMobileOpen(false);
                                 }
-                            } else {
-                                navigate(item.path);
-                                if (isMobile) setMobileOpen(false);
-                            }
-                        }}
-                        onMouseEnter={() => setHoveredItem(item.key)}
-                        onMouseLeave={() => setHoveredItem(null)}
-                        sx={{
-                            color: (isActive || hasActiveSubItem) ? "#FFFFFF" : "#61131A",
-                            paddingLeft: sidebarExpanded ? 2 : 0,
-                            paddingRight: 1,
-                            height: 42,
-                            backgroundColor: (isActive || hasActiveSubItem) ? "#8B1E26" : "transparent",
-                            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
-                            "&:hover": {
-                                backgroundColor: "#8B1E26",
-                                color: "#FFFFFF",
-                                transition: "background-color 0.3s, color 0.3s",
-                            },
-                        }}
-                    >
-                      <ListItemIcon
-                          sx={{
-                              minWidth: sidebarExpanded ? 35 : 0,
-                              color: "inherit",
-                              mr: sidebarExpanded ? 0 : 'auto',
-                              ml: sidebarExpanded ? 0 : 'auto',
-                              pl: sidebarExpanded ? 0 : 0, // Added left padding when collapsed
-                          }}
-                      >
-                          {iconSrc}
-                      </ListItemIcon>
-                      {sidebarExpanded && <ListItemText primary={item.text} />}
-                      {sidebarExpanded && item.isExpandable && (
-                          managementOpen ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />
-                      )}
-                    </ListItemButton>
-                );
-                
-                return (
-                    <React.Fragment key={item.text}>
-                        <ListItem disablePadding>
-                            {sidebarExpanded ? 
-                                listItem : 
-                                <Tooltip title={item.text} placement="right">
-                                    {listItem}
-                                </Tooltip>
-                            }
-                        </ListItem>
-                        
-                        {/* Renderizar subitens caso o item seja expandível */}
-                        {item.isExpandable && sidebarExpanded && (
-                            <Collapse in={managementOpen} timeout="auto" unmountOnExit>
-                                <List component="div" disablePadding>
-                                    {item.subItems.map((subItem) => {
-                                        const isSubActive = location.pathname === subItem.path;
-                                        const subIconColor = isSubActive || hoveredItem === subItem.key ? 'white' : 'red';
-                                        const subIconSrc = redAndWhiteIcons[subItem.key][subIconColor];
-                                        
-                                        return (
-                                            <ListItem key={subItem.text} disablePadding>
-                                                <ListItemButton
-                                                    onClick={() => {
-                                                        navigate(subItem.path);
-                                                        if (isMobile) setMobileOpen(false);
-                                                    }}
-                                                    onMouseEnter={() => setHoveredItem(subItem.key)}
-                                                    onMouseLeave={() => setHoveredItem(null)}
-                                                    sx={{
-                                                        color: isSubActive ? "#FFFFFF" : "#61131A",
-                                                        paddingLeft: 4.5,
-                                                        paddingRight: 1,
-                                                        height: 38,
-                                                        backgroundColor: isSubActive ? "#8B1E26" : "transparent",
-                                                        "&:hover": {
-                                                            backgroundColor: "#8B1E26",
-                                                            color: "#FFFFFF",
-                                                            transition: "background-color 0.3s, color 0.3s",
-                                                        },
-                                                        '& .MuiTypography-root': {
-                                                            fontSize: '0.85rem'
-                                                        },
-                                                    }}
-                                                >
-                                                  <ListItemIcon
-                                                      sx={{
-                                                          minWidth: 30,
-                                                          color: "inherit",
-                                                          pl: sidebarExpanded ? 0 : '10px', // Added left padding when collapseds
-                                                      }}m
-                                                  >
-                                                      {subIconSrc}
-                                                  </ListItemIcon>
-                                                  <ListItemText primary={subItem.text} />
-                                                </ListItemButton>
-                                            </ListItem>
-                                        );
-                                    })}
-                                </List>
-                            </Collapse>
-                        )}
-                    </React.Fragment>
-                );
-            })}
-        </List>
-        <Box sx={{ 
-            position: 'absolute', 
-            bottom: 0, 
-            left: 0, 
-            right: 0, 
-            bgcolor: 'background.paper',
-            borderTop: '1px solid rgba(0, 0, 0, 0.12)',
-            overflow: 'hidden'
-        }}>
-            <List>
-                <ListItem disablePadding>
-                    <ListItemButton
-                        onClick={handleLogout}
-                        sx={{
-                            color: "#61131A",
-                            height: 40,
-                            transition: "all 0.3s",
-                            justifyContent: sidebarExpanded ? 'flex-start' : 'center',
-                            "&:hover": {
-                                backgroundColor: "transparent"
-                            }
-                        }}
-                    >
-                        <div style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "center",
-                            width: sidebarExpanded ? "100%" : "auto",
-                            gap: sidebarExpanded ? "8px" : "0",
-                            transition: "transform 0.3s",
-                        }}
-                        className="logout-container"
+                            }}
+                            onMouseEnter={() => setHoveredItem(item.key)}
+                            onMouseLeave={() => setHoveredItem(null)}
+                            sx={{
+                                color: (isActive || hasActiveSubItem) ? "#FFFFFF" : "#61131A",
+                                paddingLeft: sidebarExpanded ? 2 : 0,
+                                paddingRight: 1,
+                                height: 42,
+                                backgroundColor: (isActive || hasActiveSubItem) ? "#8B1E26" : "transparent",
+                                justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+                                "&:hover": {
+                                    backgroundColor: "#8B1E26",
+                                    color: "#FFFFFF",
+                                    transition: "background-color 0.3s, color 0.3s",
+                                },
+                            }}
                         >
                             <ListItemIcon
                                 sx={{
-                                    minWidth: 0,
-                                    display: "flex",
-                                    alignItems: "center",
-                                    justifyContent: "center",
+                                    minWidth: sidebarExpanded ? 35 : 0,
                                     color: "inherit",
+                                    mr: sidebarExpanded ? 0 : 'auto',
+                                    ml: sidebarExpanded ? 0 : 'auto',
+                                    pl: sidebarExpanded ? 0 : 0, // Added left padding when collapsed
                                 }}
                             >
-                                <LogoutIcon fontSize="small" />
+                                {iconSrc}
                             </ListItemIcon>
-                            {sidebarExpanded && (
-                                <ListItemText sx={{
-                                    flex: "none",
-                                    textAlign: "center",
-                                    '& .MuiTypography-root': {
-                                        fontSize: '0.9rem',
-                                        fontWeight: 500
-                                    }
-                                }} primary="Logout" />
+                            {sidebarExpanded && <ListItemText primary={item.text} />}
+                            {sidebarExpanded && item.isExpandable && (
+                                managementOpen ? <ExpandLess fontSize="small" /> : <ExpandMore fontSize="small" />
                             )}
-                        </div>
-                    </ListItemButton>
-                </ListItem>
+                        </ListItemButton>
+                    );
+
+                    return (
+                        <React.Fragment key={item.text}>
+                            <ListItem disablePadding>
+                                {sidebarExpanded ?
+                                    listItem :
+                                    <Tooltip title={item.text} placement="right">
+                                        {listItem}
+                                    </Tooltip>
+                                }
+                            </ListItem>
+
+                            {/* Renderizar subitens caso o item seja expandível */}
+                            {item.isExpandable && sidebarExpanded && (
+                                <Collapse in={managementOpen} timeout="auto" unmountOnExit>
+                                    <List component="div" disablePadding>
+                                        {item.subItems.map((subItem) => {
+                                            const isSubActive = location.pathname === subItem.path;
+                                            const subIconColor = isSubActive || hoveredItem === subItem.key ? 'white' : 'red';
+                                            const subIconSrc = redAndWhiteIcons[subItem.key][subIconColor];
+
+                                            return (
+                                                <ListItem key={subItem.text} disablePadding>
+                                                    <ListItemButton
+                                                        onClick={() => {
+                                                            navigate(subItem.path);
+                                                            if (isMobile) setMobileOpen(false);
+                                                        }}
+                                                        onMouseEnter={() => setHoveredItem(subItem.key)}
+                                                        onMouseLeave={() => setHoveredItem(null)}
+                                                        sx={{
+                                                            color: isSubActive ? "#FFFFFF" : "#61131A",
+                                                            paddingLeft: 4.5,
+                                                            paddingRight: 1,
+                                                            height: 38,
+                                                            backgroundColor: isSubActive ? "#8B1E26" : "transparent",
+                                                            "&:hover": {
+                                                                backgroundColor: "#8B1E26",
+                                                                color: "#FFFFFF",
+                                                                transition: "background-color 0.3s, color 0.3s",
+                                                            },
+                                                            '& .MuiTypography-root': {
+                                                                fontSize: '0.85rem'
+                                                            },
+                                                        }}
+                                                    >
+                                                        <ListItemIcon
+                                                            sx={{
+                                                                minWidth: 30,
+                                                                color: "inherit",
+                                                                pl: sidebarExpanded ? 0 : '10px', // Added left padding when collapseds
+                                                            }} m
+                                                        >
+                                                            {subIconSrc}
+                                                        </ListItemIcon>
+                                                        <ListItemText primary={subItem.text} />
+                                                    </ListItemButton>
+                                                </ListItem>
+                                            );
+                                        })}
+                                    </List>
+                                </Collapse>
+                            )}
+                        </React.Fragment>
+                    );
+                })}
             </List>
+            <Box sx={{
+                position: 'absolute',
+                bottom: 0,
+                left: 0,
+                right: 0,
+                bgcolor: 'background.paper',
+                borderTop: '1px solid rgba(0, 0, 0, 0.12)',
+                overflow: 'hidden'
+            }}>
+                <List>
+                    <ListItem disablePadding>
+                        <ListItemButton
+                            onClick={handleLogout}
+                            sx={{
+                                color: "#61131A",
+                                height: 40,
+                                transition: "all 0.3s",
+                                justifyContent: sidebarExpanded ? 'flex-start' : 'center',
+                                "&:hover": {
+                                    backgroundColor: "transparent"
+                                }
+                            }}
+                        >
+                            <div style={{
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                width: sidebarExpanded ? "100%" : "auto",
+                                gap: sidebarExpanded ? "8px" : "0",
+                                transition: "transform 0.3s",
+                            }}
+                                className="logout-container"
+                            >
+                                <ListItemIcon
+                                    sx={{
+                                        minWidth: 0,
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        color: "inherit",
+                                    }}
+                                >
+                                    <LogoutIcon fontSize="small" />
+                                </ListItemIcon>
+                                {sidebarExpanded && (
+                                    <ListItemText sx={{
+                                        flex: "none",
+                                        textAlign: "center",
+                                        '& .MuiTypography-root': {
+                                            fontSize: '0.9rem',
+                                            fontWeight: 500
+                                        }
+                                    }} primary="Logout" />
+                                )}
+                            </div>
+                        </ListItemButton>
+                    </ListItem>
+                </List>
+            </Box>
         </Box>
-      </Box>
     );
 
     return (
@@ -538,7 +538,7 @@ const Layout = () => {
                                     placeholder="Pesquisar…"
                                     value={searchTerm}
                                     onChange={handleSearchChange}
-                                    onFocus={handleSearchFocus} 
+                                    onFocus={handleSearchFocus}
                                     ref={searchInputRef}
                                     sx={{
                                         color: 'inherit',
@@ -555,14 +555,14 @@ const Layout = () => {
                                 />
                                 <Popper
                                     open={Boolean(searchAnchorEl && searchResults.length > 0)}
-                                    anchorEl={searchAnchorEl}                                   
+                                    anchorEl={searchAnchorEl}
                                     placement="bottom-start"
                                     modifiers={[
                                         {
-                                          name: 'offset',
-                                          options: {
-                                            offset: [0, 8], // Add some offset from the anchor
-                                          },
+                                            name: 'offset',
+                                            options: {
+                                                offset: [0, 8], // Add some offset from the anchor
+                                            },
                                         },
                                         {
                                             name: 'preventOverflow',
@@ -570,7 +570,7 @@ const Layout = () => {
                                                 boundary: 'viewport',
                                             },
                                         }
-                                      ]}
+                                    ]}
                                     sx={{ zIndex: theme.zIndex.modal + 1, width: searchInputRef.current ? searchInputRef.current.offsetWidth : 'auto' }}
                                 >
                                     <Paper elevation={3} sx={{ maxHeight: 300, overflow: 'auto' }}>
@@ -594,7 +594,7 @@ const Layout = () => {
                             <IconButton color="inherit">
                                 <NotificationsNoneOutlinedIcon />
                             </IconButton>                            {/* Avatar */}
-                            <Avatar 
+                            <Avatar
                                 src={`${STANDARD_AVATAR}${userInitials}`}
                                 alt={user}
                                 sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}
@@ -610,8 +610,8 @@ const Layout = () => {
             </AppBar>
             <Box
                 component="nav"
-                sx={{ 
-                    width: { sm: drawerWidth }, 
+                sx={{
+                    width: { sm: drawerWidth },
                     flexShrink: { sm: 0 },
                     transition: theme.transitions.create('width', {
                         easing: theme.transitions.easing.sharp,
@@ -629,8 +629,8 @@ const Layout = () => {
                     }}
                     sx={{
                         display: { xs: "block", sm: "none" },
-                        "& .MuiDrawer-paper": { 
-                            boxSizing: "border-box", 
+                        "& .MuiDrawer-paper": {
+                            boxSizing: "border-box",
                             width: EXPANDED_DRAWER_WIDTH
                         }
                     }}
@@ -641,8 +641,8 @@ const Layout = () => {
                     variant="permanent"
                     sx={{
                         display: { xs: "none", sm: "block" },
-                        "& .MuiDrawer-paper": { 
-                            boxSizing: "border-box", 
+                        "& .MuiDrawer-paper": {
+                            boxSizing: "border-box",
                             width: drawerWidth,
                             transition: theme.transitions.create('width', {
                                 easing: theme.transitions.easing.sharp,

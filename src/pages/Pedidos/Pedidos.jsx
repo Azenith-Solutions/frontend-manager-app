@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Pedido.module.css";
-import { api } from "../../provider/apiProvider";
+import { api } from "../../service/api";
 import OrderFormModal from "../../components/forms/OrderFormModal/OrderFormModal";
 // Material UI Components
 import {

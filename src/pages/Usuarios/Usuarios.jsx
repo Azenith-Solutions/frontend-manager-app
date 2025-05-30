@@ -35,16 +35,21 @@ const Usuarios = () => {
   const [searchText, setSearchText] = useState("");
   const [totalUsuarios, setTotalUsuarios] = useState(0);
   const [modalOpen, setModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState(null);
+  const [updatedUserId, setUpdatedUserId] = useState(null);
+  const [deletedUserId, setDeletedUserId] = useState(null);
+  const [feedbackMessage, setFeedbackMessage] = useState({ open: false, message: '', severity: 'success' });
 
-  // Estados para controlar o menu de filtros
-  const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
-
-  // Estado para armazenar filtros ativos
+  // Estado para controle do menu de filtros
+  const [filterAnchorEl, setFilterAnchorEl] = useState(null);
   const [activeFilters, setActiveFilters] = useState({
     cargo: [],
     status: null,
     periodo: null
   });
+  const [filteredCount, setFilteredCount] = useState(0);
 
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
@@ -106,15 +111,30 @@ const Usuarios = () => {
 
       const response = await api.get('/users');
       console.log('Resposta da API:', response.data);
-
       if (response.data && response.data.data) {
         const usuariosAPI = response.data.data.map(user => {
-          // Extrair iniciais para o avatar
+          // Extrair iniciais para o avatar (fallback se não houver imagem)
           const iniciais = user.fullName
             .split(' ')
             .map(n => n[0])
             .join('')
             .substring(0, 2);
+
+          // Define status based on the condition
+          let statusDisplay = "Indefinido";
+          if (user.status === true) {
+            statusDisplay = "Ativo";
+          } else if (user.status === false) {
+            statusDisplay = "Inativo";
+          }
+
+          // Definir a URL do avatar (imagem de perfil ou fallback com iniciais)
+          let avatarUrl;
+          if (user.profilePicture) {
+            avatarUrl = `${API_BASE_URL}${user.profilePicture}`;
+          } else {
+            avatarUrl = `${STANDARD_AVATAR}&name=${encodeURIComponent(iniciais)}`;
+          }
 
           return {
             id: user.id,
@@ -158,105 +178,78 @@ const Usuarios = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
-
-  // Handlers para o menu de filtros
-  const handleFilterMenuClick = (event) => {
-    setFilterMenuAnchor(event.currentTarget);
+  // Função para lidar com o clique no botão de editar
+  const handleEditUser = (user) => {
+    setSelectedUser(user);
+    setEditModalOpen(true);
   };
 
-  const handleFilterMenuClose = () => {
-    setFilterMenuAnchor(null);
+  // Função para lidar com o clique no botão de excluir
+  const handleDeleteUser = (user) => {
+    setSelectedUser(user);
+    setDeleteModalOpen(true);
   };
-
-  // Manipuladores de filtros para Usuários
-  const toggleCargoFilter = (cargo) => {
-    setActiveFilters(prev => {
-      const updatedCargos = prev.cargo.includes(cargo)
-        ? prev.cargo.filter(c => c !== cargo)
-        : [...prev.cargo, cargo];
-
-      return { ...prev, cargo: updatedCargos };
-    });
-    setPage(0);
-  };
-
-  const toggleStatusFilter = (status) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      status: prev.status === status ? null : status
-    }));
-    setPage(0);
-  };
-
-  const togglePeriodoFilter = (periodo) => {
-    setActiveFilters(prev => ({
-      ...prev,
-      periodo: prev.periodo === periodo ? null : periodo
-    }));
-    setPage(0);
-  };
-
-  const clearAllFilters = () => {
-    setActiveFilters({
-      cargo: [],
-      status: null,
-      periodo: null
-    });
-    setPage(0);
-  };
-
-  // Contagem de filtros ativos
-  const activeFilterCount = [
-    activeFilters.cargo.length > 0,
-    activeFilters.status !== null,
-    activeFilters.periodo !== null
-  ].filter(Boolean).length;
-
-  // Aplicar filtros aos usuários
-  const filteredUsuarios = usuarios.filter(item => {
-    // Filtro de texto/busca
-    const matchesSearch = (
-      (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
-      (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
-      (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
+  // Função para filtrar usuários com base em filtros e texto de busca
+  const filteredUsuarios = useMemo(() => {
+    // Primeiro filtra por texto de busca
+    let filtered = usuarios.filter(
+      (item) =>
+        (item.nome && item.nome.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.email && item.email.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.cargo && item.cargo.toLowerCase().includes(searchText.toLowerCase()))
     );
 
-    // Filtro por cargo
-    const matchesCargo = activeFilters.cargo.length === 0 ||
-      (item.cargo && activeFilters.cargo.includes(item.cargo));
-
-    // Filtro por status
-    const matchesStatus = activeFilters.status === null ||
-      item.status === activeFilters.status;
-
-    // Filtro por período (simplificado, em produção usaria datas reais)
-    const matchesPeriodo = activeFilters.periodo === null || true; // Simplificação
-
-    return matchesSearch && matchesCargo && matchesStatus && matchesPeriodo;
-  });
-
-  // Função para abrir formulário de novo usuário
-  const handleAddUsuario = () => {
-    setModalOpen(true);
-  };
-
-  // Cartões de estatísticas para o header
-  const statsCards = [
-    {
-      icon: <PeopleIcon sx={{ color: '#61131A', fontSize: 14 }} />,
-      iconBgColor: '#ffeded',
-      color: '#61131A',
-      value: totalUsuarios,
-      label: 'Usuários'
-    },
-    {
-      icon: <AdminPanelSettingsIcon sx={{ color: '#27ae60', fontSize: 14 }} />,
-      iconBgColor: '#eaf7ef',
-      color: '#27ae60',
-      value: usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length,
-      label: 'Administradores'
+    // Aplica filtro de cargo
+    if (activeFilters.cargo.length > 0) {
+      filtered = filtered.filter(item => activeFilters.cargo.includes(item.cargo));
     }
-  ];
+    // Aplica filtro de status
+    if (activeFilters.status !== null) {
+      filtered = filtered.filter(item => item.status === activeFilters.status);
+    }
+
+    // Aplica filtro de período
+    if (activeFilters.periodo !== null) {
+      const hoje = new Date();
+      const dataLimite = new Date();
+
+      switch (activeFilters.periodo) {
+        case '7dias':
+          dataLimite.setDate(hoje.getDate() - 7);
+          break;
+        case '30dias':
+          dataLimite.setDate(hoje.getDate() - 30);
+          break;
+        case '90dias':
+          dataLimite.setDate(hoje.getDate() - 90);
+          break;
+        case 'ano':
+          dataLimite.setFullYear(hoje.getFullYear(), 0, 1); // 1º de janeiro do ano atual
+          break;
+        default:
+          break;
+      }
+
+      filtered = filtered.filter(item => {
+        const dataCriacao = new Date(item.rawData.createdAt);
+        return dataCriacao >= dataLimite;
+      });
+    }
+
+    return filtered;
+  }, [usuarios, searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
+
+  // Calculando filteredCount fora da função de filtragem para evitar loops de renderização
+  useEffect(() => {
+    setFilteredCount(usuarios.length - filteredUsuarios.length);
+  }, [usuarios, filteredUsuarios.length]);
+
+  // Recalcular os usuários filtrados quando os filtros mudarem
+  useEffect(() => {
+    // Quando o componente montar, já teremos o lista inicial de usuários
+    // Este efeito é apenas para garantir que a contagem de filtrados seja atualizada
+    // quando os filtros mudarem
+  }, [searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
 
   if (loading) {
     return (
@@ -270,7 +263,7 @@ const Usuarios = () => {
   }
   return (
     <div className={styles.usuarios}>
-      {/* Utilizando o componente DatagridHeader genérico */}
+      {/* DatagridHeader para a página de usuários */}
       <DatagridHeader
         title="Novo Usuário"
         searchPlaceholder="Buscar usuário..."
@@ -278,11 +271,36 @@ const Usuarios = () => {
           value: searchText,
           onChange: handleSearchChange
         }}
-        onAddClick={handleAddUsuario}
-        activeFilterCount={activeFilterCount}
-        onFilterClick={handleFilterMenuClick}
-        statsCards={statsCards}
+        onAddClick={() => setModalOpen(true)}
+        activeFilterCount={Object.values(activeFilters).some(v => Array.isArray(v) ? v.length > 0 : v !== null) ? filteredCount : 0}
+        onFilterClick={handleOpenFilterMenu}
+        statsCards={[
+          {
+            icon: <PeopleIcon fontSize="small" sx={{ color: '#61131A' }} />,
+            value: totalUsuarios,
+            label: 'Usuários',
+            color: '#61131A',
+            iconBgColor: '#ffeded'
+          },
+          {
+            icon: <AdminPanelSettingsIcon fontSize="small" sx={{ color: '#27ae60' }} />,
+            value: usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length,
+            label: 'Administradores',
+            color: '#27ae60',
+            iconBgColor: '#eaf7ef'
+          }
+        ]}
       />
+
+      {/* Componente UsuariosFilter */}
+      <UsuariosFilter
+        anchorEl={filterAnchorEl}
+        onClose={handleCloseFilterMenu}
+        activeFilters={activeFilters}
+        toggleCargoFilter={toggleCargoFilter}
+        toggleStatusFilter={toggleStatusFilter}
+        togglePeriodoFilter={togglePeriodoFilter}
+        clearAllFilters={clearAllFilters} />
 
       <Container
         maxWidth={false}
@@ -295,164 +313,19 @@ const Usuarios = () => {
           overflow: 'hidden'
         }}
       >
-        <TableContainer component={Paper} sx={{
-          boxShadow: '0 3px 10px rgba(0,0,0,0.08)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          width: '100%',
-          mt: 0,
-          height: 'calc(100vh - 180px)',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-            <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de usuários">
-              <TableHead>
-                <TableRow sx={{
-                  backgroundColor: '#f5f5f5',
-                  '& th': {
-                    fontWeight: 'bold',
-                    color: '#333',
-                    fontSize: '0.85rem',
-                    borderBottom: '2px solid #61131A',
-                    py: 1.8
-                  }
-                }}>
-                  <TableCell align="center">Avatar</TableCell>
-                  <TableCell align="center">Nome</TableCell>
-                  <TableCell align="center">Email</TableCell>
-                  <TableCell align="center">Cargo</TableCell>
-                  <TableCell align="center">Status</TableCell>
-                  <TableCell align="center">Criado em</TableCell>
-                  <TableCell align="center">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredUsuarios
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((item) => (
-                    <TableRow
-                      key={item.id}
-                      hover
-                      sx={{
-                        '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                        '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                        transition: 'background-color 0.2s',
-                        height: '54px'
-                      }}
-                    >
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Avatar
-                          src={item.avatar}
-                          alt={item.nome}
-                          sx={{
-                            width: 34,
-                            height: 34,
-                            margin: '0 auto',
-                            bgcolor: '#61131A' // Using brand color as fallback
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nome}</TableCell>
-                      <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.email}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>{item.cargo}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Chip
-                          icon={item.status === 'Ativo' ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                          label={item.status}
-                          size="small"
-                          sx={{
-                            backgroundColor: item.status === 'Ativo' ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                            color: item.status === 'Ativo' ? '#27ae60' : '#e74c3c',
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                            borderRadius: '4px',
-                            '& .MuiChip-icon': { color: 'inherit' }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>{item.criadoEm}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                          <IconButton
-                            size="small"
-                            title="Editar"
-                            sx={{
-                              color: '#2980b9',
-                              backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                              '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            title="Excluir"
-                            sx={{
-                              color: '#c0392b',
-                              backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                              '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' }
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                {filteredUsuarios.length > 0 &&
-                  filteredUsuarios.length < rowsPerPage &&
-                  Array.from({ length: Math.max(0, rowsPerPage - filteredUsuarios.length) }).map((_, index) => (
-                    <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                      <TableCell colSpan={7} />
-                    </TableRow>
-                  ))}
-                {filteredUsuarios.length === 0 && (
-                  <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={7} align="center">
-                      Nenhum usuário encontrado
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Box>
-          <TablePagination
-            component="div"
-            count={filteredUsuarios.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            labelRowsPerPage="Linhas por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-            sx={{
-              borderTop: '1px solid rgba(224, 224, 224, 1)',
-              backgroundColor: '#f9f9f9',
-              overflowY: 'hidden',
-              '& .MuiTablePagination-toolbar': {
-                minHeight: '48px',
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                fontSize: '0.875rem',
-              }
-            }}
-          />
-        </TableContainer>
+        <UsuariosDataGrid
+          usuarios={filteredUsuarios}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+          onEditUser={handleEditUser}
+          onDeleteUser={handleDeleteUser}
+          updatedUserId={updatedUserId}
+          deletedUserId={deletedUserId}
+          loading={loading}
+        />
       </Container>
-
-      {/* Menu de Filtros usando o componente específico */}
-      <UsuariosFilter
-        anchorEl={filterMenuAnchor}
-        onClose={handleFilterMenuClose}
-        activeFilters={activeFilters}
-        toggleCargoFilter={toggleCargoFilter}
-        toggleStatusFilter={toggleStatusFilter}
-        togglePeriodoFilter={togglePeriodoFilter}
-        clearAllFilters={clearAllFilters}
-      />
-
       {/* Modal for creating a new user */}
       <UserFormModal
         open={modalOpen}
