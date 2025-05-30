@@ -4,6 +4,7 @@ import { api } from "../../provider/apiProvider";
 import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
 import ComponentesDataGrid from "../../components/datagrids/ComponentesDataGrid/ComponentesDataGrid";
 import ComponentDeleteModal from "../../components/forms/ComponentDeleteModal/ComponentDeleteModal";
+import CatalogVisibilityModal from "../../components/forms/CatalogVisibilityModal/CatalogVisibilityModal";
 
 // Componentes genéricos para header e filtro
 import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
@@ -32,6 +33,10 @@ const Componentes = () => {
   const [componentToEdit, setComponentToEdit] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState(null);
+  const [visibilityModalOpen, setVisibilityModalOpen] = useState(false);
+  const [componentToToggleVisibility, setComponentToToggleVisibility] = useState(null);
+  const [newVisibilityValue, setNewVisibilityValue] = useState(false);
+  const [toggleVisibilityLoading, setToggleVisibilityLoading] = useState(false);
   
   // Estados para controlar o menu de filtros
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
@@ -42,7 +47,7 @@ const Componentes = () => {
     caixas: [],
     mercadoLivre: null, // true, false, ou null (não filtrado)
     verificado: null, // true, false, ou null (não filtrado)
-    condicao: [] // 'Bom Estado', 'Observação', ou vazio (não filtrado)
+    condicao: [] // 'Bom Estado', 'Em Observação', ou vazio (não filtrado)
   });
 
   // Imagem padrão para os componentes
@@ -224,6 +229,81 @@ const Componentes = () => {
     fetchComponents();
   };
 
+  // Handler para abrir o modal de visibilidade
+  const handleToggleVisibility = (component) => {
+    setComponentToToggleVisibility(component);
+    setVisibilityModalOpen(true);
+  };
+
+  // Função para lidar com o início do processo de toggle de visibilidade
+  const handleToggleCatalog = (componentId, newVisibility) => {
+    // Encontra o componente pelo ID
+    const component = components.find(c => c.idComponente === componentId);
+    if (component) {
+      setComponentToToggleVisibility(component);
+      setNewVisibilityValue(newVisibility);
+      setVisibilityModalOpen(true);
+    }
+  };
+
+  // Função para confirmar e realizar a alteração de visibilidade
+  const handleConfirmVisibilityChange = async () => {
+    if (!componentToToggleVisibility) return;
+    
+    try {
+      setToggleVisibilityLoading(true);
+      
+      const componentId = componentToToggleVisibility.idComponente;
+      
+      const updatedComponent = {
+        idComponente: componentToToggleVisibility.idComponente,
+        idHardWareTech: componentToToggleVisibility.idHardWareTech,
+        nomeComponente: componentToToggleVisibility.nomeComponente || "Nome",
+        fkCaixa: componentToToggleVisibility.fkCaixa.idCaixa || null,
+        fkCategoria: componentToToggleVisibility.fkCategoria,
+        partNumber: componentToToggleVisibility.partNumber,
+        quantidade: componentToToggleVisibility.quantidade,
+        flagML: componentToToggleVisibility.flagML,
+        codigoML: componentToToggleVisibility.codigoML || "",
+        flagVerificado: componentToToggleVisibility.flagVerificado,
+        condicao: componentToToggleVisibility.condicao,
+        observacao: componentToToggleVisibility.observacao || "",
+        descricao: componentToToggleVisibility.descricao || "",
+        dataUltimaVenda: componentToToggleVisibility.dataUltimaVenda,
+        createdAt: componentToToggleVisibility.createdAt,
+        updatedAt: componentToToggleVisibility.updatedAt,
+        quantidadeVendido: componentToToggleVisibility.quantidadeVendido,
+        // Aqui está a única alteração real
+        isVisibleCatalog: newVisibilityValue
+      };
+      
+      await api.put(`/components/${componentId}`, updatedComponent);
+      
+      // Atualiza o estado local para feedback imediato
+      const updatedComponents = components.map(comp => {
+        if (comp.idComponente === componentId) {
+          return { ...comp, isVisibleCatalog: newVisibilityValue };
+        }
+        return comp;
+      });
+      
+      setComponents(updatedComponents);
+      
+      // Fecha o modal e limpa os estados
+      setVisibilityModalOpen(false);
+      setComponentToToggleVisibility(null);
+      
+      // Recarregar os dados do servidor
+      fetchComponents();
+      
+    } catch (error) {
+      console.error("Erro ao alterar visibilidade no catálogo:", error);
+      // Você pode adicionar um toast/snackbar de erro aqui
+    } finally {
+      setToggleVisibilityLoading(false);
+    }
+  };
+
   // Cartões de estatísticas para o header
   const statsCards = [
     {
@@ -289,6 +369,7 @@ const Componentes = () => {
           defaultImage={defaultImage}
           onEditComponent={handleEditComponent}
           onDeleteComponent={handleDeleteComponent}
+          onToggleCatalog={handleToggleCatalog}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
@@ -320,6 +401,16 @@ const Componentes = () => {
         onClose={handleCloseDeleteModal}
         component={componentToDelete}
         onComponentDeleted={handleCloseDeleteModal}
+      />
+
+      {/* Modal de visibilidade do catálogo */}
+      <CatalogVisibilityModal
+        open={visibilityModalOpen}
+        onClose={() => setVisibilityModalOpen(false)}
+        component={componentToToggleVisibility}
+        newVisibility={newVisibilityValue}
+        onConfirm={handleConfirmVisibilityChange}
+        isLoading={toggleVisibilityLoading}
       />
     </div>
   );
