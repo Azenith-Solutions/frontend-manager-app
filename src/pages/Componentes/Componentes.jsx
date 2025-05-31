@@ -77,7 +77,84 @@ const Componentes = () => {
   useEffect(() => {
     document.title = "HardwareTech | Componentes";
     fetchComponents();
+    fetchAvailableCaixas();
   }, []);
+
+  // Função para buscar as caixas disponíveis para filtro
+  const fetchAvailableCaixas = async () => {
+    try {
+      // Extrai as caixas únicas dos componentes
+      const caixas = components
+        .filter(comp => comp.fkCaixa?.nomeCaixa)
+        .map(comp => comp.fkCaixa.nomeCaixa);
+      
+      // Remove duplicatas
+      const uniqueCaixas = [...new Set(caixas)];
+      setAvailableCaixas(uniqueCaixas);
+    } catch (error) {
+      console.error('Erro ao buscar caixas:', error);
+      setAvailableCaixas([]);
+    }
+  };
+
+  // Funções para gerenciar os filtros
+  const handleOpenFilterMenu = (event) => {
+    setFilterMenuAnchor(event.currentTarget);
+  };
+
+  const handleCloseFilterMenu = () => {
+    setFilterMenuAnchor(null);
+  };
+
+  const toggleCaixaFilter = (caixa) => {
+    setActiveFilters(prev => {
+      const newCaixas = prev.caixas.includes(caixa)
+        ? prev.caixas.filter(item => item !== caixa)
+        : [...prev.caixas, caixa];
+
+      return { ...prev, caixas: newCaixas };
+    });
+    setPage(0); // Reset page when filter changes
+  };
+
+  const toggleMercadoLivreFilter = (value) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      mercadoLivre: prev.mercadoLivre === value ? null : value
+    }));
+    setPage(0); // Reset page when filter changes
+  };
+
+  const toggleVerificadoFilter = (value) => {
+    setActiveFilters(prev => ({
+      ...prev,
+      verificado: prev.verificado === value ? null : value,
+      // Limpar os filtros de condição se verificado for falso
+      condicao: value === false ? [] : prev.condicao
+    }));
+    setPage(0); // Reset page when filter changes
+  };
+
+  const toggleCondicaoFilter = (condicao) => {
+    setActiveFilters(prev => {
+      const newCondicao = prev.condicao.includes(condicao)
+        ? prev.condicao.filter(item => item !== condicao)
+        : [...prev.condicao, condicao];
+
+      return { ...prev, condicao: newCondicao };
+    });
+    setPage(0); // Reset page when filter changes
+  };
+
+  const clearAllFilters = () => {
+    setActiveFilters({
+      caixas: [],
+      mercadoLivre: null,
+      verificado: null,
+      condicao: []
+    });
+    setPage(0); // Reset page when filters are cleared
+  };
 
   const fetchComponents = async () => {
     try {
@@ -118,12 +195,54 @@ const Componentes = () => {
     setPage(0);
   };
 
+  // Atualiza o fetchAvailableCaixas quando os componentes são carregados
+  useEffect(() => {
+    fetchAvailableCaixas();
+  }, [components]);
+
+  // Função para filtrar componentes com base em filtros e texto de busca
   const filteredComponents = components.filter(
-    (item) =>
-      item.partNumber.toLowerCase().includes(searchText.toLowerCase()) ||
-      (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
-      item.idHardWareTech.toString().includes(searchText.toLowerCase())
+    (item) => {
+      // Filtro de texto de busca
+      const matchesSearch = 
+        (item.partNumber && item.partNumber.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
+        (item.idHardWareTech && item.idHardWareTech.toString().includes(searchText.toLowerCase())) ||
+        (item.nomeComponente && item.nomeComponente.toLowerCase().includes(searchText.toLowerCase()));
+      
+      // Filtro por caixa
+      const matchesCaixa = activeFilters.caixas.length === 0 || 
+        (item.fkCaixa && activeFilters.caixas.includes(item.fkCaixa.nomeCaixa));
+      
+      // Filtro por mercado livre
+      const matchesMercadoLivre = activeFilters.mercadoLivre === null || 
+        item.flagML === activeFilters.mercadoLivre;
+      
+      // Filtro por verificado
+      const matchesVerificado = activeFilters.verificado === null || 
+        item.flagVerificado === activeFilters.verificado;
+      
+      // Filtro por condição (só se aplica se verificado for true)
+      let matchesCondicao = true;
+      if (item.flagVerificado && activeFilters.condicao.length > 0) {
+        const condicaoFormatada = item.condicao ? item.condicao.toLowerCase() : '';
+        
+        // Verifica se a condição do item corresponde a algum dos filtros selecionados
+        matchesCondicao = (
+          (activeFilters.condicao.includes('Bom Estado') && 
+            (condicaoFormatada === 'bom_estado' || condicaoFormatada === 'bomestado')) ||
+          (activeFilters.condicao.includes('Observação') && 
+            (condicaoFormatada === 'em_observacao' || condicaoFormatada === 'emobservacao' || 
+             condicaoFormatada === 'observacao' || condicaoFormatada === 'observação'))
+        );
+      }
+      
+      return matchesSearch && matchesCaixa && matchesMercadoLivre && matchesVerificado && matchesCondicao;
+    }
   );
+
+  // Calculando a contagem de itens filtrados para mostrar o badge
+  const filteredCount = components.length - filteredComponents.length;
 
   const handleEditComponent = (component) => {
     setComponentToEdit(component);
@@ -290,6 +409,7 @@ const Componentes = () => {
             flexShrink: 0,
           }}>
             <Box
+              onClick={handleOpenFilterMenu}
               sx={{
                 display: 'flex',
                 alignItems: 'center',
@@ -300,6 +420,7 @@ const Componentes = () => {
                 cursor: 'pointer',
                 transition: 'all 0.3s ease',
                 border: '1px solid transparent',
+                position: 'relative',
                 '&:hover': {
                   backgroundColor: '#e2e6eb',
                   transform: 'scale(1.02)',
@@ -326,6 +447,25 @@ const Componentes = () => {
               >
                 Filtrar
               </Typography>
+              {filteredCount > 0 && (
+                <Chip
+                  label={filteredCount}
+                  size="small"
+                  color="error"
+                  sx={{
+                    position: 'absolute',
+                    top: -8,
+                    right: -8,
+                    height: 18,
+                    minWidth: 18,
+                    fontSize: '0.65rem',
+                    fontWeight: 600,
+                    '& .MuiChip-label': {
+                      px: 1
+                    }
+                  }}
+                />
+              )}
             </Box>
 
             <Box
@@ -603,6 +743,19 @@ const Componentes = () => {
         newVisibility={newVisibilityValue}
         onConfirm={handleConfirmVisibilityChange}
         isLoading={toggleVisibilityLoading}
+      />
+
+      {/* Menu de filtros */}
+      <ComponentesFilter
+        anchorEl={filterMenuAnchor}
+        onClose={handleCloseFilterMenu}
+        availableCaixas={availableCaixas}
+        activeFilters={activeFilters}
+        toggleCaixaFilter={toggleCaixaFilter}
+        toggleMercadoLivreFilter={toggleMercadoLivreFilter}
+        toggleVerificadoFilter={toggleVerificadoFilter}
+        toggleCondicaoFilter={toggleCondicaoFilter}
+        clearAllFilters={clearAllFilters}
       />
     </div>
   );
