@@ -15,6 +15,7 @@ import { XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cel
 import styles from "./Dashboard.module.css";
 import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA, fetchQuantityByMLStatus } from "../../service/dashboard/dashboardService";
 import KpiDetailModal from "../../components/modals/KpiDetailModal/KpiDetailModal";
+import LowStockChart from './LowStockChart';
 
 // mock similando carregamento do fetch de dados
 const fetchKpiData = () => {
@@ -41,11 +42,11 @@ const Dashboard = () => {  // Dados do dashboard
   const [itemsOutOfLastSaleSLA, setItemsOutOfLastSaleSLA] = useState([]); const [quantityItemsOutOfLastSaleSLA, setQuantityItemsOutOfLastSaleSLA] = useState(itemsOutOfLastSaleSLA.length);
   const [componentsMLData, setComponentsMLData] = useState([]);
   const [loading, setLoading] = useState(true);
-
   // Estados para controle de modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalData, setModalData] = useState([]);
+  const [modalColumns, setModalColumns] = useState([]);
   const [modalLoading, setModalLoading] = useState(false); const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:960px)');
   const chartCard1Ref = useRef(null);
@@ -132,33 +133,101 @@ const Dashboard = () => {  // Dados do dashboard
       setComponentsMLData(fallbackData);
     }
   };
-
   // Função para abrir o modal com detalhes da KPI selecionada
   const handleKpiClick = (kpiType) => {
     setModalLoading(true);
     setModalOpen(true);
 
+    let modalColumns = [];
+
     switch (kpiType) {
       case 'lowStock':
         setModalTitle("Produtos com Baixo Estoque");
         setModalData(lowStockComponents);
-        break;
-      case 'observation':
+        modalColumns = [
+          { field: 'idHardWareTech', headerName: 'ID', width: 100 },
+          { field: 'descricao', headerName: 'Descrição', width: 250 },
+          { field: 'partNumber', headerName: 'Part Number', width: 150 },
+          { field: 'quantidade', headerName: 'Qtde', width: 80 },
+          {
+            field: 'condicao',
+            headerName: 'Condição',
+            width: 130,
+            renderCell: (value) => value?.descricao || value
+          },
+          {
+            field: 'fkCaixa',
+            headerName: 'Caixa',
+            width: 120,
+            valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
+          }
+        ];
+        break; case 'observation':
         setModalTitle("Produtos em Observação");
         setModalData(inObservationComponents);
+        // Colunas específicas para o caso "observation" conforme o ComponentObservationDTO
+        modalColumns = [
+          { field: 'idHardWareTech', headerName: 'IDH', width: 100 },
+          { field: 'partNumber', headerName: 'Part Number', width: 150 },
+          { field: 'observacao', headerName: 'Descrição', width: 250 },
+          { field: 'descricao', headerName: 'Observação', width: 300 }
+        ];
         break;
       case 'incomplete':
         setModalTitle("Produtos Incompletos");
         setModalData(incompleteComponents);
+        modalColumns = [
+          { field: 'idHardWareTech', headerName: 'ID', width: 100 },
+          { field: 'descricao', headerName: 'Descrição', width: 250 },
+          { field: 'partNumber', headerName: 'Part Number', width: 150 },
+          { field: 'quantidade', headerName: 'Qtde', width: 80 },
+          {
+            field: 'condicao',
+            headerName: 'Condição',
+            width: 130,
+            renderCell: (value) => value?.descricao || value
+          },
+          {
+            field: 'fkCaixa',
+            headerName: 'Caixa',
+            width: 120,
+            valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
+          }
+        ];
         break;
       case 'outOfSla':
         setModalTitle("Produtos Não Vendidos por 30+ Dias");
         setModalData(itemsOutOfLastSaleSLA);
+        modalColumns = [
+          { field: 'idHardWareTech', headerName: 'ID', width: 100 },
+          { field: 'descricao', headerName: 'Descrição', width: 250 },
+          { field: 'partNumber', headerName: 'Part Number', width: 150 },
+          { field: 'quantidade', headerName: 'Qtde', width: 80 },
+          {
+            field: 'condicao',
+            headerName: 'Condição',
+            width: 130,
+            renderCell: (value) => value?.descricao || value
+          },
+          {
+            field: 'fkCaixa',
+            headerName: 'Caixa',
+            width: 120,
+            valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
+          }
+        ];
         break;
       default:
         setModalTitle("Detalhes");
         setModalData([]);
+        modalColumns = [
+          { field: 'idHardWareTech', headerName: 'ID', width: 100 },
+          { field: 'descricao', headerName: 'Descrição', width: 250 },
+        ];
     }
+
+    // Definindo as colunas no estado para uso no modal
+    setModalColumns(modalColumns);
 
     // Simulando um breve carregamento para demonstração
     setTimeout(() => {
@@ -210,13 +279,14 @@ const Dashboard = () => {  // Dados do dashboard
     return () => window.removeEventListener('resize', handleResize);
   }, [isTablet]);  // Configuração para o gráfico de pizza (componentes ML)
   const RADIAN = Math.PI / 180;
-
   const dataBarHorizon = [
-    { produto: 'Resistor 220Ω', quantidade: 5 },
-    { produto: 'Capacitor 10uF', quantidade: 3 },
-    { produto: 'Transistor BC548', quantidade: 2 },
-    { produto: 'LED Vermelho', quantidade: 6 },
-    { produto: 'Microcontrolador ATmega328', quantidade: 2 },
+    { produto: 'Resistor 220Ω', quantidade: 5 },        // Acima do limite
+    { produto: 'Capacitor 10uF', quantidade: 3 },       // Exatamente no limite
+    { produto: 'Transistor BC548', quantidade: 2 },     // Abaixo do limite
+    { produto: 'LED Vermelho', quantidade: 6 },         // Acima do limite
+    { produto: 'Microcontrolador ATmega328', quantidade: 1 }, // Bem abaixo do limite
+    { produto: 'Sensor DHT11', quantidade: 4 },         // Acima do limite
+    { produto: 'Diodo 1N4007', quantidade: 3 },         // Exatamente no limite
   ];
 
 
@@ -230,25 +300,6 @@ const Dashboard = () => {  // Dados do dashboard
     );
   }
 
-  // Definição das colunas para o modal
-  const modalColumns = [
-    { field: 'idHardWareTech', headerName: 'ID', width: 100 },
-    { field: 'descricao', headerName: 'Descrição', width: 250 },
-    { field: 'partNumber', headerName: 'Part Number', width: 150 },
-    { field: 'quantidade', headerName: 'Qtde', width: 80 },
-    {
-      field: 'condicao',
-      headerName: 'Condição',
-      width: 130,
-      renderCell: (value) => value?.descricao || value
-    },
-    {
-      field: 'fkCaixa',
-      headerName: 'Caixa',
-      width: 120,
-      valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
-    }
-  ];
   return (
     <div className={styles.dashboard}>
       <Box className={styles.kpiContainer}>
@@ -416,9 +467,11 @@ const Dashboard = () => {  // Dados do dashboard
         </Typography>
       </Box>
       <Box className={styles.chartsContainer}>
-        <Card className={styles.chartCard1} ref={chartCard1Ref}>          <Typography variant="h6" className={styles.chartTitle}>
-          Componentes Anunciados no Mercado Livre
-        </Typography>          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
+        <Card className={styles.chartCard1} ref={chartCard1Ref}>
+          <Typography variant="h6" className={styles.chartTitle}>
+            Componentes Anunciados no Mercado Livre
+          </Typography>
+          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
             <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart1}>
               <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 30 }}>
                 <Pie
@@ -538,49 +591,13 @@ const Dashboard = () => {  // Dados do dashboard
           <Typography variant="h6" className={styles.chartTitle}>
             <span role="img" aria-label="alert" style={{ marginRight: '8px' }}>🚨</span>
             Produtos com Menor Estoque
-          </Typography>          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
-            <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart3}>
-              <BarChart
-                layout="vertical"
-                data={dataBarHorizon}
-                margin={{
-                  top: 10,
-                  right: 10,
-                  left: 10,
-                  bottom: 10
-                }}
-              >
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis
-                  reversed={true}
-                  type="number"
-                  tick={{ fontSize: isMobile ? 8 : 10 }}
-                  label={{ value: 'Quantidade', position: 'insideBottom', offset: 0, fontSize: isMobile ? 8 : 10 }}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="produto"
-                  tick={{ fontSize: isMobile ? 8 : 10 }}
-                  width={isMobile ? 60 : 75}
-                  label={{ value: 'Produto', angle: -90, position: 'insideLeft', offset: 5, fontSize: isMobile ? 8 : 10 }}
-                />
-                <Tooltip
-                  contentStyle={{ fontSize: isMobile ? 12 : 14 }}
-                  labelStyle={{ fontSize: isMobile ? 12 : 14 }}
-                  itemStyle={{ fontSize: isMobile ? 12 : 14 }}
-                />
-                <Legend wrapperStyle={{ fontSize: isMobile ? 10 : 12 }} />
-                <Bar
-                  dataKey="quantidade"
-                  fill="#61131A"
-                  name="Estoque"
-                  radius={[0, 4, 4, 0]}
-                  fillOpacity={0.85}
-                  barSize={isMobile ? 14 : 24}
-                  background={{ fill: '#f5f5f5' }}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+          </Typography>
+          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
+            <LowStockChart
+              data={dataBarHorizon}
+              isMobile={isMobile}
+              chartHeight={chartHeights.chart3}
+            />
           </div>
         </Card>
       </Box>
