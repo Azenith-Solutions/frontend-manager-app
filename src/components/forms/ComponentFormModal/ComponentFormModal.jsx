@@ -17,27 +17,28 @@ import {
   Divider,
   Alert,
   IconButton,
-  Avatar
+  Avatar,
+  Tooltip
 } from '@mui/material';
 import { api } from '../../../service/api';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import PhotoCameraIcon from '@mui/icons-material/PhotoCamera';
+import CloseIcon from '@mui/icons-material/Close';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import DeleteIcon from '@mui/icons-material/Delete';
+import InventoryIcon from '@mui/icons-material/Inventory';
 
-const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
-  // Estados iniciais
+const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes = [] }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState(null);
-
-  // Estados para armazenar dados de dropdowns
   const [caixas, setCaixas] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loadingDropdowns, setLoadingDropdowns] = useState(true);
 
-  // Estado do formulário
   const [formData, setFormData] = useState({
-    idHardWareTech: '',
+    idHardWareTech: '1801-',
     nomeComponente: '',  
     partNumber: '',
     descricao: '',
@@ -49,15 +50,12 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     observacao: ''
   });
 
-  // Estados para gerenciamento da imagem
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [imageError, setImageError] = useState('');
 
-  // Imagem padrão para componentes sem foto
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
 
-  // Erros de validação
   const [errors, setErrors] = useState({});
 
   // Busca as caixas e categorias para os dropdowns
@@ -65,32 +63,32 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     const fetchDropdownData = async () => {
       setLoadingDropdowns(true);
       try {
-        // Buscar caixas
         const caixasResponse = await api.get('/boxes');
-        // Ajuste: garantir que o retorno seja sempre um array de objetos com idCaixa e nomeCaixa
+
         let caixasData = caixasResponse.data;
         if (caixasData && caixasData.data) caixasData = caixasData.data;
         if (!Array.isArray(caixasData)) caixasData = [];
-        // Log para depuração
-        console.log('Caixas recebidas:', caixasData);
-        // Normalizar campos caso venham com nomes diferentes
+
         const caixasNormalizadas = caixasData.map(caixa => ({
           idCaixa: caixa.idCaixa ?? caixa.id ?? caixa.value ?? '',
           nomeCaixa: caixa.nomeCaixa ?? caixa.caixa ?? caixa.nome ?? caixa.label ?? ''
         }));
+
         setCaixas(caixasNormalizadas);
 
-        // Buscar categorias
         const categoriasResponse = await api.get('/categorys');
+
         let categoriasData = categoriasResponse.data;
         if (categoriasData && categoriasData.data) categoriasData = categoriasData.data;
         if (!Array.isArray(categoriasData)) categoriasData = [];
-        // Normalizar campos para categoria
+
         const categoriasNormalizadas = categoriasData.map(categoria => ({
           idCategoria: categoria.idCategoria ?? categoria.id ?? categoria.value ?? '',
           nomeCategoria: categoria.nomeCategoria ?? categoria.categoria ?? categoria.nome ?? categoria.label ?? ''
         }));
+
         setCategorias(categoriasNormalizadas);
+
       } catch (error) {
         console.error('Erro ao carregar dados para os dropdowns:', error);
         alert(
@@ -113,7 +111,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     if (componentToEdit) {
       setFormData({
         idHardWareTech: componentToEdit.idHardWareTech || '',
-        nomeComponente: componentToEdit.nomeComponente || '',  // Incluindo o nome na edição
+        nomeComponente: componentToEdit.nomeComponente || '',  
         partNumber: componentToEdit.partNumber || '',
         descricao: componentToEdit.descricao || '',
         quantidade: componentToEdit.quantidade || 1,
@@ -135,18 +133,14 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
         observacao: componentToEdit.observacao || ''
       });
 
-      // Carregar imagem se existir
       if (componentToEdit.imagemUrl) {
         setPreviewImage(componentToEdit.imagemUrl);
       } else {
         setPreviewImage(defaultImage);
       }
-    } else {
-      setPreviewImage(defaultImage);
     }
   }, [componentToEdit, open]);
 
-  // Função para lidar com mudanças nos campos
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -154,7 +148,6 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       [name]: value
     }));
 
-    // Limpar erros quando o campo é preenchido
     if (errors[name]) {
       setErrors(prev => ({
         ...prev,
@@ -162,7 +155,6 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       }));
     }
 
-    // Lógica condicional para campos dependentes
     if (name === 'flagVerificado' && value === 'Não') {
       setFormData(prev => ({
         ...prev,
@@ -179,7 +171,6 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     }
   };
 
-  // Função para lidar com o upload de imagem
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImageError('');
@@ -200,10 +191,8 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       return;
     }
 
-    // Salvar a imagem selecionada
     setSelectedImage(file);
 
-    // Criar URL para preview
     const reader = new FileReader();
     reader.onloadend = () => {
       setPreviewImage(reader.result);
@@ -211,7 +200,6 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     reader.readAsDataURL(file);
   };
 
-  // Validação do formulário
   const validateForm = () => {
     const newErrors = {};
 
@@ -243,88 +231,157 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       newErrors.condicao = 'Selecione a condição do componente';
     }
 
-    if (formData.condicao === 'Em Observação' && !formData.observacao) {
+    if (formData.condicao === 'EM_OBSERVACAO' && !formData.observacao) {
       newErrors.observacao = 'Insira uma observação sobre o componente';
+    }
+    
+    // Validação obrigatória da imagem (apenas para novos componentes)
+    if (!componentToEdit && !selectedImage) {
+      newErrors.imagem = 'A imagem do componente é obrigatória';
+      setImageError('A imagem do componente é obrigatória');
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Função para salvar o componente
+  const checkDuplicateIDH = (idh) => {
+    // Verifica primeiro no array de componentes recebido como prop
+    if (componentes && componentes.length > 0) {
+      // Itera sobre todos os componentes existentes
+      const isDuplicate = componentes.some(comp => {
+        // Se estamos editando, só é duplicado se o IDH for igual a outro componente que não seja o atual
+        if (componentToEdit) {
+          return comp.idHardWareTech === idh && comp.idComponente !== componentToEdit.idComponente;
+        }
+        // Se estamos criando, qualquer IDH igual é duplicado
+        return comp.idHardWareTech === idh;
+      });
+      
+      if (isDuplicate) {
+        return true;
+      }
+    }
+    return false;
+  };
+
   const handleSubmit = async () => {
     if (!validateForm()) return;
+
+    const isDuplicate = checkDuplicateIDH(formData.idHardWareTech);
+    if (isDuplicate) {
+      setError(`Já existe um componente com o IDH "${formData.idHardWareTech}" no estoque.`);
+      setErrors(prev => ({
+        ...prev,
+        idHardWareTech: `Este IDH já está sendo usado por outro componente`
+      }));
+      return; 
+    }
 
     setSubmitting(true);
     setError(null);
 
     try {
-      // Se houver imagem, faça upload antes (mantém sua lógica atual)
-      let imageUrl = componentToEdit?.imagemUrl || null;
-
-      if (selectedImage) {
-        const formDataImage = new FormData();
-        formDataImage.append('imagem', selectedImage);
-
-        const uploadResponse = await api.post('/upload/component-image', formDataImage);
-        if (uploadResponse.data && uploadResponse.data.url) {
-          imageUrl = uploadResponse.data.url;
-        }
-      }
-
-      const dataToSend = {
+      const componentData = {
         idHardWareTech: formData.idHardWareTech,
-        nomeComponente: formData.nomeComponente,  // Incluindo o nome nos dados enviados
-        caixa: Number(formData.fkCaixa),
-        categoria: Number(formData.categoria),
+        nomeComponente: formData.nomeComponente,
+        fkCaixa: Number(formData.fkCaixa),
+        fkCategoria: Number(formData.categoria),
         partNumber: formData.partNumber,
         quantidade: Number(formData.quantidade),
-        flagML: false, // ajuste conforme necessário
-        codigoML: "",  // ajuste conforme necessário
+        flagML: false, 
+        codigoML: "",  
         flagVerificado: formData.flagVerificado === 'Sim',
-        condicao: formData.flagVerificado === 'Sim' ? formData.condicao : "",
-        observacao: formData.condicao === 'Em Observação' ? formData.observacao : "",
-        descricao: formData.descricao
+        condicao: formData.flagVerificado === 'Sim' ? formData.condicao : null,
+        observacao: formData.condicao === 'EM_OBSERVACAO' ? formData.observacao : "",
+        descricao: formData.descricao,
+        isVisibleCatalog: false
       };
 
-      if (componentToEdit && componentToEdit.idComponente) {
-        console.log('componentToEdit:', componentToEdit);
-        console.log('dataToSend:', dataToSend);
-        await api.put(`/components/${componentToEdit.idComponente}`, dataToSend);
-        setSuccess(true);
-        setTimeout(() => {
-          handleClose();
-        }, 1500);
-        return; // Impede que o fluxo continue para o cadastro
-      } else if (!componentToEdit || !componentToEdit?.idComponente) {
-        // Apenas cadastra se for cadastro
-        await api.post('/components', dataToSend);
-        setSuccess(true);
-        setTimeout(() => {
-          handleClose();
-        }, 1500);
+      let responseData;
+
+      const formDataToSend = new FormData();
+      
+      const jsonDataBlob = new Blob([JSON.stringify(componentData)], { type: 'application/json' });
+      formDataToSend.append('data', jsonDataBlob, 'data.json');
+
+      if (selectedImage) {
+        formDataToSend.append('file', selectedImage);
       }
-
-      setSuccess(true);
-
-      // Fecha o modal após 1.5 segundos
-      setTimeout(() => {
-        handleClose();
-      }, 1500);
-
+      
+      if (componentToEdit && componentToEdit.idComponente) {
+        console.log('Atualizando componente:', componentToEdit.idComponente);
+        console.log('Dados enviados:', componentData);
+        
+        const response = await api.put(`/components/${componentToEdit.idComponente}`, formDataToSend);
+        
+        responseData = response.data;
+        
+        setSuccess(true);
+        setTimeout(() => {
+          handleClose();
+        }, 1500);
+      } else {
+        console.log('Cadastrando novo componente com FormData');
+        
+        try {
+          const response = await api.post('/components', formDataToSend);
+          
+          responseData = response.data;
+          
+          setSuccess(true);
+          setTimeout(() => {
+            handleClose();
+          }, 1500);
+        } catch (err) {
+          console.error('Erro ao cadastrar:', err);
+          
+          // Fiz para debuggar erro de permisão
+          if (err.response && err.response.status === 403) {
+            setError('Acesso negado. Você não tem permissão para realizar esta operação.');
+          }
+          else if (err.response && err.response.data) {
+            if (err.response.data.message && err.response.data.message.includes("já existe")) {
+              setError(`Já existe um componente com o IDH "${formData.idHardWareTech}" no estoque.`);
+              setErrors(prev => ({
+                ...prev,
+                idHardWareTech: `Este IDH já está sendo usado por outro componente`
+              }));
+            } else if (err.response.status === 409) {
+              setError(`Já existe um componente com o IDH "${formData.idHardWareTech}" no estoque.`);
+              setErrors(prev => ({
+                ...prev,
+                idHardWareTech: `Este IDH já está sendo usado por outro componente`
+              }));
+            } else {
+              setError(err.response.data.message || 'Erro ao cadastrar componente. Tente novamente.');
+            }
+          } else {
+            setError('Erro ao cadastrar componente. Tente novamente.');
+          }
+        }
+      }
     } catch (error) {
       console.error('Erro ao salvar componente:', error);
-      setError(error.response?.data?.message || 'Ocorreu um erro. Tente novamente.');
+      
+      // Verifica se é um erro de autorização
+      if (error.response && error.response.status === 403) {
+        setError('Acesso negado. Você não tem permissão para realizar esta operação.');
+      } else {
+        const errorMessage = error.response?.data?.message || 
+                          error.response?.data?.error || 
+                          'Ocorreu um erro ao salvar o componente. Tente novamente.';
+        setError(errorMessage);
+      }
     } finally {
       setSubmitting(false);
     }
   };
 
-  // Função para fechar o modal e limpar estados
   const handleClose = () => {
     setFormData({
       idHardWareTech: '',
-      nomeComponente: '',  // Incluindo o campo nome ao limpar
+      nomeComponente: '',  
       partNumber: '',
       descricao: '',
       quantidade: 1,
@@ -343,7 +400,6 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     onClose();
   };
 
-  // Acionar input de arquivo oculto
   const triggerFileInput = () => {
     document.getElementById('component-image-upload').click();
   };
@@ -356,56 +412,139 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
       maxWidth="md"
       PaperProps={{
         elevation: 3,
-        sx: { borderRadius: 2 }
+        sx: { 
+          borderRadius: '8px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+          overflow: 'hidden'
+        }
       }}
     >
       <DialogTitle sx={{
-        fontWeight: 700,
-        color: '#333',
-        borderBottom: '1px solid #eee',
-        bgcolor: '#f9f9f9',
+        backgroundColor: '#f5f5f7',
+        p: 2,
         display: 'flex',
+        alignItems: 'center',
         justifyContent: 'space-between',
-        alignItems: 'center'
+        borderBottom: '1px solid #e0e0e0'
       }}>
-        {componentToEdit ? 'Editar Componente' : 'Adicionar Novo Componente'}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Box
+            sx={{
+              backgroundColor: '#61131A',
+              width: '32px',
+              height: '32px',
+              borderRadius: '6px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <InventoryIcon sx={{ color: 'white', fontSize: '18px' }} />
+          </Box>
+          <Typography variant="h6" sx={{ fontWeight: 600, fontSize: '1rem', color: '#333' }}>
+            {componentToEdit ? 'Editar Componente' : 'Novo Componente'}
+          </Typography>
+        </Box>
+        <IconButton
+          edge="end"
+          onClick={handleClose}
+          aria-label="close"
+          sx={{
+            color: '#666',
+            '&:hover': {
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              color: '#61131A'
+            }
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
       </DialogTitle>
 
-      <DialogContent sx={{ pt: 3, pb: 1, display: 'flex', flexDirection: 'row', height: 'auto' }}>
-        {/* Feedback de sucesso e erro */}
+      <DialogContent sx={{ pt: 3, pb: 1, position: 'relative' }}>
+        {/* Overlay de sucesso */}
         {success && (
-          <Alert severity="success" sx={{ mb: 2, width: '100%', position: 'absolute', top: '70px', left: 0, zIndex: 1 }}>
-            Componente {componentToEdit ? 'atualizado' : 'cadastrado'} com sucesso!
+          <Box
+            sx={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(255, 255, 255, 0.9)',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 10,
+              gap: 2,
+              borderRadius: '4px'
+            }}
+          >
+            <CheckCircleIcon
+              sx={{
+                fontSize: 60,
+                color: '#2e7d32',
+                animation: 'pulse 1.5s infinite',
+                '@keyframes pulse': {
+                  '0%': { transform: 'scale(0.95)', opacity: 0.8 },
+                  '70%': { transform: 'scale(1.1)', opacity: 1 },
+                  '100%': { transform: 'scale(0.95)', opacity: 0.8 }
+                }
+              }}
+            />
+            <Typography variant="h6" sx={{ color: '#2e7d32', fontWeight: 600 }}>
+              Componente {componentToEdit ? 'atualizado' : 'cadastrado'} com sucesso!
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Atualizando informações...
+            </Typography>
+            <CircularProgress size={24} sx={{ mt: 1, color: '#61131A' }} />
+          </Box>
+        )}
+
+        {error && (
+          <Alert severity="error" sx={{ mb: 2, width: '100%' }}>
+            {error}
           </Alert>
         )}
+
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          {componentToEdit 
+            ? 'Edite as informações do componente nos campos abaixo.' 
+            : 'Preencha os campos abaixo para cadastrar um novo componente no sistema.'}
+        </Typography>
 
         {loadingDropdowns ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%', py: 4 }}>
             <CircularProgress size={40} sx={{ color: '#61131A' }} />
           </Box>
         ) : (
-          <>
+          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 3 }}>
             {/* Área de upload de imagem (lado esquerdo) */}
             <Box sx={{
-              width: '230px',
+              width: { xs: '100%', md: '200px' }, 
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
-              p: 2,
-              borderRight: '1px solid #eee'
+              p: 2
             }}>
               <Box sx={{
-                width: '100%',
-                pb: '100%', 
+                width: '160px', 
+                height: '160px', 
                 position: 'relative',
                 overflow: 'hidden',
                 borderRadius: '8px',
-                border: '1px dashed #ccc',
+                border: `2px dashed ${imageError ? '#d32f2f' : '#61131A'}`,
                 backgroundColor: '#f9f9f9',
-                mb: 2
-              }}>
+                mb: 2,
+                cursor: 'pointer',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }} onClick={triggerFileInput}>
                 {/* Preview da imagem */}
-                {previewImage && (
+                {previewImage ? (
                   <img
                     src={previewImage}
                     alt="Preview do componente"
@@ -415,29 +554,43 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                       left: 0,
                       width: '100%',
                       height: '100%',
-                      objectFit: 'contain'
+                      objectFit: 'cover'
                     }}
                   />
+                ) : (
+                  <Tooltip title="Adicionar imagem do componente">
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <CloudUploadIcon sx={{ fontSize: 42, color: '#61131A', mb: 1 }} />
+                      <Typography variant="caption" sx={{ color: '#666', fontSize: '0.8rem', textAlign: 'center' }}>
+                        {componentToEdit ? 'Trocar imagem' : 'Adicionar imagem *'}
+                      </Typography>
+                    </Box>
+                  </Tooltip>
                 )}
 
                 {/* Botão de upload sobreposto à imagem */}
-                <IconButton
-                  onClick={triggerFileInput}
-                  disabled={submitting}
-                  sx={{
-                    position: 'absolute',
-                    bottom: 8,
-                    right: 8,
-                    backgroundColor: 'rgba(97, 19, 26, 0.9)',
-                    color: 'white',
-                    '&:hover': {
-                      backgroundColor: 'rgba(97, 19, 26, 0.7)'
-                    },
-                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
-                  }}
-                >
-                  <PhotoCameraIcon />
-                </IconButton>
+                {previewImage && (
+                  <IconButton
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      triggerFileInput();
+                    }}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      bottom: 8,
+                      right: 8,
+                      backgroundColor: 'rgba(97, 19, 26, 0.9)',
+                      color: 'white',
+                      '&:hover': {
+                        backgroundColor: 'rgba(97, 19, 26, 0.7)'
+                      },
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                    }}
+                  >
+                    <PhotoCameraIcon fontSize="small" />
+                  </IconButton>
+                )}
               </Box>
 
               {/* Input oculto para upload de arquivo */}
@@ -445,29 +598,9 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                 id="component-image-upload"
                 type="file"
                 accept="image/*"
-                style={{ display: 'none' }}
                 onChange={handleImageChange}
-                disabled={submitting}
+                style={{ display: 'none' }}
               />
-
-              <Button
-                variant="outlined"
-                component="span"
-                startIcon={<CloudUploadIcon />}
-                onClick={triggerFileInput}
-                disabled={submitting}
-                sx={{
-                  mt: 1,
-                  color: '#61131A',
-                  borderColor: '#61131A',
-                  '&:hover': {
-                    borderColor: '#4e0f15',
-                    backgroundColor: 'rgba(97, 19, 26, 0.04)'
-                  }
-                }}
-              >
-                Escolher imagem
-              </Button>
 
               {imageError && (
                 <Typography color="error" variant="caption" sx={{ mt: 1, textAlign: 'center' }}>
@@ -476,346 +609,280 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
               )}
 
               <Typography variant="caption" sx={{ mt: 1, textAlign: 'center', color: '#666' }}>
+                {!componentToEdit && <span style={{ color: '#d32f2f' }}>* Obrigatório</span>}
+                <br />
                 Tamanho máximo: 2MB
                 <br />
                 Formatos: JPEG, PNG
               </Typography>
             </Box>
 
-            {/* Campos do formulário (lado direito) */}
-            <Box sx={{
-              flex: '1 1 auto',
-              ml: 3,
-              display: 'flex',
-              flexDirection: 'column',
-              overflow: 'auto',
-              maxHeight: '70vh'
-            }}>
-              {error && (
-                <Alert severity="error" sx={{ mb: 2 }}>
-                  {error}
-                </Alert>
-              )}
-
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                {/* IDH */}
-                <TextField
-                  label="IDH (ID HardwareTech)"
-                  name="idHardWareTech"
-                  value={formData.idHardWareTech}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  required
-                  error={!!errors.idHardWareTech}
-                  helperText={errors.idHardWareTech}
-                  disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                />
-                
-                {/* Nome do componente */}
-                <TextField
-                  label="Nome do Componente"
-                  name="nome"
-                  value={formData.nome}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  required
-                  error={!!errors.nome}
-                  helperText={errors.nome}
-                  disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                />
-                
-                {/* Part Number */}
-                <TextField
-                  label="Part Number"
-                  name="partNumber"
-                  value={formData.partNumber}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  required
-                  error={!!errors.partNumber}
-                  helperText={errors.partNumber}
-                  disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                />
-
-                {/* Descrição */}
-                <TextField
-                  label="Descrição"
-                  name="descricao"
-                  value={formData.descricao}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  multiline
-                  rows={2}
-                  disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                />
-
-                {/* Quantidade */}
-                <TextField
-                  label="Quantidade"
-                  name="quantidade"
-                  type="number"
-                  value={formData.quantidade}
-                  onChange={handleChange}
-                  fullWidth
-                  variant="outlined"
-                  size="small"
-                  required
-                  inputProps={{ min: 1 }}
-                  error={!!errors.quantidade}
-                  helperText={errors.quantidade}
-                  disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                />
-
-                {/* Caixa */}
-                <FormControl
-                  fullWidth
-                  size="small"
-                  required
-                  error={!!errors.fkCaixa}
-                  disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                >
-                  <InputLabel>Caixa</InputLabel>
-                  <Select
-                    name="fkCaixa"
-                    value={formData.fkCaixa}
-                    label="Caixa"
+            {/* Formulário (lado direito) */}
+            <Box sx={{ flex: 1, p: { xs: 1, md: 2 } }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  <TextField
+                    label="ID HardWare Tech"
+                    variant="outlined"
+                    name="idHardWareTech"
+                    value={formData.idHardWareTech}
                     onChange={handleChange}
-                  >
-                    {loadingDropdowns ? (
-                      <MenuItem disabled>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <CircularProgress size={20} />
-                          <Typography>Carregando...</Typography>
-                        </Box>
-                      </MenuItem>
-                    ) : (
-                      caixas.length > 0 ? (
-                        caixas.map((caixa) => (
-                          <MenuItem key={caixa.idCaixa} value={caixa.idCaixa}>
-                            {caixa.nomeCaixa}
-                          </MenuItem>
-                        ))
-                      ) : (
-                        <MenuItem disabled>Nenhuma caixa disponível</MenuItem>
-                      )
-                    )}
-                  </Select>
-                  {errors.fkCaixa && <FormHelperText>{errors.fkCaixa}</FormHelperText>}
-                </FormControl>
+                    error={Boolean(errors.idHardWareTech)}
+                    helperText={errors.idHardWareTech}
+                    disabled={submitting}
+                    size="small"
+                    sx={{ flex: '1 1 45%', minWidth: '200px' }}
+                  />
 
-                {/* Categoria */}
-                <FormControl
-                  fullWidth
-                  size="small"
-                  required
-                  error={!!errors.categoria}
-                  disabled={submitting || categorias.length === 0}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
-                >
-                  <InputLabel>Categoria</InputLabel>
-                  <Select
-                    name="categoria"
-                    value={formData.categoria}
-                    label="Categoria"
+                  <TextField
+                    label="Nome do Componente"
+                    variant="outlined"
+                    name="nomeComponente"
+                    value={formData.nomeComponente}
                     onChange={handleChange}
+                    error={Boolean(errors.nomeComponente)}
+                    helperText={errors.nomeComponente}
+                    disabled={submitting}
+                    size="small"
+                    sx={{ flex: '1 1 45%', minWidth: '200px' }}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  <TextField
+                    label="Part Number"
+                    variant="outlined"
+                    name="partNumber"
+                    value={formData.partNumber}
+                    onChange={handleChange}
+                    error={Boolean(errors.partNumber)}
+                    helperText={errors.partNumber}
+                    disabled={submitting}
+                    size="small"
+                    sx={{ flex: '1 1 45%', minWidth: '200px' }}
+                  />
+
+                  <TextField
+                    label="Quantidade"
+                    variant="outlined"
+                    name="quantidade"
+                    type="number"
+                    value={formData.quantidade}
+                    onChange={handleChange}
+                    error={Boolean(errors.quantidade)}
+                    helperText={errors.quantidade}
+                    disabled={submitting}
+                    size="small"
+                    sx={{ flex: '1 1 45%', minWidth: '120px' }}
+                  />
+                </Box>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+                  <FormControl 
+                    variant="outlined" 
+                    disabled={submitting} 
+                    size="small"
+                    error={Boolean(errors.fkCaixa)}
+                    sx={{ flex: '1 1 45%', minWidth: '200px' }}
                   >
-                    {categorias.length > 0 ? (
-                      categorias.map((categoria) => (
+                    <InputLabel id="select-caixa-label">Caixa</InputLabel>
+                    <Select
+                      labelId="select-caixa-label"
+                      id="select-caixa"
+                      name="fkCaixa"
+                      value={formData.fkCaixa}
+                      onChange={handleChange}
+                      label="Caixa"
+                    >
+                      {caixas.map(caixa => (
+                        <MenuItem key={caixa.idCaixa} value={caixa.idCaixa}>
+                          {caixa.nomeCaixa}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    <FormHelperText>{errors.fkCaixa}</FormHelperText>
+                  </FormControl>
+
+                  <FormControl 
+                    variant="outlined" 
+                    disabled={submitting} 
+                    size="small"
+                    error={Boolean(errors.categoria)}
+                    sx={{ flex: '1 1 45%', minWidth: '200px' }}
+                  >
+                    <InputLabel id="select-categoria-label">Categoria</InputLabel>
+                    <Select
+                      labelId="select-categoria-label"
+                      id="select-categoria"
+                      name="categoria"
+                      value={formData.categoria}
+                      onChange={handleChange}
+                      label="Categoria"
+                    >
+                      {categorias.map(categoria => (
                         <MenuItem key={categoria.idCategoria} value={categoria.idCategoria}>
                           {categoria.nomeCategoria}
                         </MenuItem>
-                      ))
-                    ) : (
-                      <MenuItem disabled value="">
-                        Nenhuma categoria disponível
-                      </MenuItem>
-                    )}
-                  </Select>
-                  {errors.categoria && <FormHelperText>{errors.categoria}</FormHelperText>}
-                </FormControl>
+                      ))}
+                    </Select>
+                    <FormHelperText>{errors.categoria}</FormHelperText>
+                  </FormControl>
+                </Box>
 
-                {/* Status de verificação */}
-                <FormControl
-                  fullWidth
-                  size="small"
-                  required
+                <TextField
+                  label="Descrição"
+                  variant="outlined"
+                  name="descricao"
+                  value={formData.descricao}
+                  onChange={handleChange}
+                  error={Boolean(errors.descricao)}
+                  helperText={errors.descricao}
                   disabled={submitting}
-                  sx={{
-                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#61131A',
-                    },
-                    '& .MuiInputLabel-root.Mui-focused': {
-                      color: '#61131A',
-                    }
-                  }}
+                  size="small"
+                  multiline
+                  rows={2}
+                  fullWidth
+                />
+
+                <FormControl 
+                  variant="outlined" 
+                  disabled={submitting} 
+                  size="small"
+                  fullWidth
                 >
-                  <InputLabel>Verificado?</InputLabel>
+                  <InputLabel id="select-flagVerificado-label">Verificado</InputLabel>
                   <Select
+                    labelId="select-flagVerificado-label"
+                    id="select-flagVerificado"
                     name="flagVerificado"
                     value={formData.flagVerificado}
-                    label="Verificado?"
                     onChange={handleChange}
+                    error={Boolean(errors.flagVerificado)}
+                    label="Verificado"
                   >
                     <MenuItem value="Sim">Sim</MenuItem>
                     <MenuItem value="Não">Não</MenuItem>
                   </Select>
                 </FormControl>
 
-                {/* Condição (exibido apenas se verificado = Sim) */}
                 {formData.flagVerificado === 'Sim' && (
                   <FormControl
-                    fullWidth
-                    size="small"
-                    required
-                    error={!!errors.condicao}
+                    variant="outlined"
                     disabled={submitting}
-                    sx={{
-                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#61131A',
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#61131A',
-                      }
-                    }}
+                    size="small"
+                    error={!!errors.condicao}
+                    fullWidth
                   >
-                    <InputLabel>Condição</InputLabel>
+                    <InputLabel id="select-condicao-label">Condição</InputLabel>
                     <Select
+                      labelId="select-condicao-label"
+                      id="select-condicao"
                       name="condicao"
                       value={formData.condicao}
-                      label="Condição"
                       onChange={handleChange}
+                      label="Condição"
                     >
-                      <MenuItem value="Bom Estado">Bom Estado</MenuItem>
-                      <MenuItem value="Em Observação">Em Observação</MenuItem>
+                      <MenuItem value="BOM_ESTADO">Bom Estado</MenuItem>
+                      <MenuItem value="EM_OBSERVACAO">Em Observação</MenuItem>
                     </Select>
-                    {errors.condicao && <FormHelperText>{errors.condicao}</FormHelperText>}
+                    <FormHelperText>{errors.condicao}</FormHelperText>
                   </FormControl>
                 )}
 
-                {/* Observação (exibido apenas se condição = Em Observação) */}
-                {formData.condicao === 'Em Observação' && (
+                {formData.condicao === 'EM_OBSERVACAO' && (
                   <TextField
                     label="Observação"
+                    variant="outlined"
                     name="observacao"
                     value={formData.observacao}
                     onChange={handleChange}
-                    fullWidth
-                    variant="outlined"
+                    error={Boolean(errors.observacao)}
+                    helperText={errors.observacao}
+                    disabled={submitting}
                     size="small"
                     multiline
                     rows={2}
-                    required
-                    error={!!errors.observacao}
-                    helperText={errors.observacao}
-                    disabled={submitting}
-                    sx={{
-                      '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                        borderColor: '#61131A',
-                      },
-                      '& .MuiInputLabel-root.Mui-focused': {
-                        color: '#61131A',
-                      }
-                    }}
+                    fullWidth
                   />
                 )}
               </Box>
             </Box>
-          </>
+          </Box>
         )}
       </DialogContent>
 
-      <DialogActions sx={{ px: 3, py: 2, borderTop: '1px solid #eee', justifyContent: 'flex-end' }}>
-        <Button
-          onClick={handleClose}
-          disabled={submitting}
+      <DialogActions sx={{
+        p: 2,
+        borderTop: '1px solid #e0e0e0',
+        backgroundColor: '#f9f9f9',
+        display: 'flex',
+        justifyContent: 'center',
+        gap: 2
+      }}>
+        <Button 
+          onClick={handleClose} 
+          variant="outlined"
+          size="medium"
+          disabled={submitting || success}
           sx={{
+            textTransform: 'none',
+            borderRadius: '6px',
             color: '#666',
-            '&:hover': { bgcolor: '#f5f5f5' }
+            borderColor: '#d1d1d1',
+            fontSize: '0.875rem',
+            minWidth: '120px',
+            '&:hover': {
+              borderColor: '#999',
+              backgroundColor: 'rgba(0,0,0,0.03)'
+            }
           }}
         >
           Cancelar
         </Button>
         <Button
-          variant="contained"
           onClick={handleSubmit}
-          disabled={submitting || loadingDropdowns || success}
+          variant="contained"
+          disableElevation
+          size="medium"
+          disabled={submitting || success}
           sx={{
-            bgcolor: '#61131A',
-            '&:hover': { bgcolor: '#4e0f15' },
-            '&.Mui-disabled': {
-              bgcolor: '#e0e0e0',
-              color: '#a0a0a0'
-            },
             textTransform: 'none',
+            bgcolor: success ? '#2e7d32' : '#61131A',
+            '&:hover': { bgcolor: success ? '#2e7d32' : '#4e0f15' },
+            borderRadius: '6px',
             fontWeight: 600,
-            px: 2
+            fontSize: '0.875rem',
+            minWidth: '180px',
+            py: 1,
+            position: 'relative',
+            transition: 'background-color 0.3s'
           }}
-          startIcon={submitting ? <CircularProgress size={16} color="inherit" /> : null}
         >
-          {submitting ? 'Salvando...' : componentToEdit ? 'Atualizar' : 'Cadastrar'}
+          {submitting ? (
+            <>
+              <CircularProgress
+                size={24}
+                sx={{
+                  color: 'white',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  marginTop: '-12px',
+                  marginLeft: '-12px',
+                }}
+              />
+              <span style={{ visibility: 'hidden' }}>
+                {componentToEdit ? 'Atualizar Componente' : 'Cadastrar Componente'}
+              </span>
+            </>
+          ) : success ? (
+            <>
+              <CheckCircleIcon sx={{ mr: 1, fontSize: 18 }} />
+              {componentToEdit ? 'Componente Atualizado' : 'Componente Cadastrado'}
+            </>
+          ) : (
+            componentToEdit ? 'Atualizar Componente' : 'Cadastrar Componente'
+          )}
         </Button>
       </DialogActions>
     </Dialog>

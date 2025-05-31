@@ -21,7 +21,6 @@ import {
   FormControlLabel
 } from "@mui/material";
 
-// Material UI Icons
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
@@ -33,18 +32,26 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
+const API_IMAGES_URL = "http://localhost:8080/api/uploads/images/";
+
 /**
  * Formata o valor da condição do componente
  */
 const formatCondition = (condition) => {
-  switch (condition) {
-    case 'BOM_ESTADO':
-      return 'Bom Estado';
-    case 'OBSERVACAO':
-      return 'Em Observação';
-    default:
-      return condition;
+  if (!condition) return '';
+  
+  const conditionUpper = condition.toUpperCase();
+  
+  if (conditionUpper === 'BOM_ESTADO' || conditionUpper === 'BOMESTADO') {
+    return 'Bom Estado';
   }
+  
+  if (conditionUpper === 'EM_OBSERVACAO' || conditionUpper === 'EMOBSERVACAO' || 
+      conditionUpper === 'OBSERVACAO' || conditionUpper === 'OBSERVAÇÃO') {
+    return 'Em Observação';
+  }
+  
+  return condition;
 };
 
 /**
@@ -77,6 +84,14 @@ const ComponentesDataGrid = ({
     if (onToggleCatalog) {
       onToggleCatalog(componentId, !currentValue);
     }
+  };
+
+  // Função para obter a URL da imagem do componente
+  const getImageUrl = (item) => {
+    if (item.imagem) {
+      return `${API_IMAGES_URL}${item.imagem}`;
+    }
+    return defaultImage;
   };
 
   if (loading) {
@@ -162,9 +177,9 @@ const ComponentesDataGrid = ({
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Avatar 
-                        src={item.imagemUrl || defaultImage} 
+                        src={getImageUrl(item)} 
                         variant="rounded"
-                        alt={item.partNumber}
+                        alt={item.nomeComponente || item.partNumber}
                         sx={{ 
                           width: 34, 
                           height: 34, 
@@ -176,7 +191,7 @@ const ComponentesDataGrid = ({
                       />
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idHardWareTech}</TableCell>
-                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nomeComponente}</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nomeComponente || "Sem nome"}</TableCell>
                     <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.partNumber}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.quantidade}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
@@ -220,10 +235,10 @@ const ComponentesDataGrid = ({
                               sx={{ 
                                 backgroundColor: formatCondition(item.condicao) === 'Bom Estado' 
                                   ? 'rgba(46, 204, 113, 0.1)' 
-                                  : (formatCondition(item.condicao) === 'Em Observação' ? 'rgba(231, 76, 60, 0.1)' : 'rgba(52, 152, 219, 0.1)'),
+                                  : 'rgba(231, 76, 60, 0.1)',
                                 color: formatCondition(item.condicao) === 'Bom Estado' 
                                   ? '#27ae60' 
-                                  : (formatCondition(item.condicao) === 'Em Observação' ? '#e74c3c' : '#3498db'),
+                                  : '#e74c3c',
                                 fontWeight: 500,
                                 fontSize: '0.75rem',
                                 borderRadius: '4px',

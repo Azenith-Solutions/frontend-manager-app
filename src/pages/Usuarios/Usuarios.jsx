@@ -113,7 +113,6 @@ const Usuarios = () => {
       console.log('Resposta da API:', response.data);
       if (response.data && response.data.data) {
         const usuariosAPI = response.data.data.map(user => {
-          // Extrair iniciais para o avatar (fallback se não houver imagem)
           const iniciais = user.fullName
             .split(' ')
             .map(n => n[0])

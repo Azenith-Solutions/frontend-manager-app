@@ -149,6 +149,7 @@ const UserFormModal = ({ open, onClose }) => {
   const handleRoleChange = (e) => {
     setSelectedRole(e.target.value);
   };
+
   // Função para enviar o formulário
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -215,9 +216,9 @@ const UserFormModal = ({ open, onClose }) => {
       console.log('Enviando dados (objeto):', userData);
 
       const formDataToSend = new FormData();
-      // Create a Blob from the JSON string with the correct MIME type
+
       const jsonDataBlob = new Blob([JSON.stringify(userData)], { type: 'application/json' });
-      // Append the Blob as 'data', providing a filename can also be helpful
+
       formDataToSend.append('data', jsonDataBlob, 'data.json');
 
       // Se houver imagem selecionada, adiciona ao FormData
@@ -227,16 +228,13 @@ const UserFormModal = ({ open, onClose }) => {
 
       console.log('Enviando FormData:', formDataToSend);
 
-      // Removido o terceiro argumento (objeto de configuração) para permitir que o Axios
-      // e o interceptor gerenciem o Content-Type para FormData automaticamente.
+      
       const response = await api.post('/auth/register', formDataToSend);
 
       console.log('Resposta do cadastro:', response.data);
 
-      // Indica que o registro foi bem-sucedido
       setRegistrationSuccess(true);
 
-      // Exibe mensagem de sucesso
       setSnackbar({
         open: true,
         message: 'Usuário cadastrado com sucesso!',

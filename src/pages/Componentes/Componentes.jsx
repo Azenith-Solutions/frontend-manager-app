@@ -61,16 +61,14 @@ const Componentes = () => {
   const [newVisibilityValue, setNewVisibilityValue] = useState(false);
   const [toggleVisibilityLoading, setToggleVisibilityLoading] = useState(false);
   
-  // Estados para controlar o menu de filtros
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
   const [availableCaixas, setAvailableCaixas] = useState([]);
 
-  // Estado para armazenar filtros ativos
   const [activeFilters, setActiveFilters] = useState({
     caixas: [],
-    mercadoLivre: null, // true, false, ou null (não filtrado)
-    verificado: null, // true, false, ou null (não filtrado)
-    condicao: [] // 'Bom Estado', 'Em Observação', ou vazio (não filtrado)
+    mercadoLivre: null,
+    verificado: null, 
+    condicao: [] 
   });
 
   // Imagem padrão para os componentes TESTE
@@ -85,7 +83,6 @@ const Componentes = () => {
     try {
       setLoading(true);
 
-      // Adicionando um delay artificial para mostrar a tela de carregamento
       await new Promise(resolve => setTimeout(resolve, 1000));
 
       const response = await api.get('/components');
@@ -128,41 +125,30 @@ const Componentes = () => {
       item.idHardWareTech.toString().includes(searchText.toLowerCase())
   );
 
-  // Nova função para abrir modal de edição
   const handleEditComponent = (component) => {
     setComponentToEdit(component);
     setModalOpen(true);
   };
 
-  // Função para abrir modal de criação
   const handleAddComponent = () => {
     setComponentToEdit(null);
     setModalOpen(true);
   };
 
-  // Função para fechar modal e recarregar a lista
   const handleCloseModal = () => {
     setModalOpen(false);
     fetchComponents();
   };
 
-  // Handler para excluir componente (abre o modal)
   const handleDeleteComponent = (component) => {
     setComponentToDelete(component);
     setDeleteModalOpen(true);
   };
 
-  // Handler para fechar o modal de deleção e recarregar a lista
   const handleCloseDeleteModal = () => {
     setDeleteModalOpen(false);
     setComponentToDelete(null);
     fetchComponents();
-  };
-
-  // Handler para abrir o modal de visibilidade
-  const handleToggleVisibility = (component) => {
-    setComponentToToggleVisibility(component);
-    setVisibilityModalOpen(true);
   };
 
   // Função para lidar com o início do processo de toggle de visibilidade
@@ -185,31 +171,10 @@ const Componentes = () => {
       
       const componentId = componentToToggleVisibility.idComponente;
       
-      const updatedComponent = {
-        idComponente: componentToToggleVisibility.idComponente,
-        idHardWareTech: componentToToggleVisibility.idHardWareTech,
-        nomeComponente: componentToToggleVisibility.nomeComponente || "Nome",
-        fkCaixa: componentToToggleVisibility.fkCaixa.idCaixa || null,
-        fkCategoria: componentToToggleVisibility.fkCategoria,
-        partNumber: componentToToggleVisibility.partNumber,
-        quantidade: componentToToggleVisibility.quantidade,
-        flagML: componentToToggleVisibility.flagML,
-        codigoML: componentToToggleVisibility.codigoML || "",
-        flagVerificado: componentToToggleVisibility.flagVerificado,
-        condicao: componentToToggleVisibility.condicao,
-        observacao: componentToToggleVisibility.observacao || "",
-        descricao: componentToToggleVisibility.descricao || "",
-        dataUltimaVenda: componentToToggleVisibility.dataUltimaVenda,
-        createdAt: componentToToggleVisibility.createdAt,
-        updatedAt: componentToToggleVisibility.updatedAt,
-        quantidadeVendido: componentToToggleVisibility.quantidadeVendido,
-        // Aqui está a única alteração real
+      await api.patch(`/components/${componentId}/visibility`, {
         isVisibleCatalog: newVisibilityValue
-      };
+      });
       
-      await api.put(`/components/${componentId}`, updatedComponent);
-      
-      // Atualiza o estado local para feedback imediato
       const updatedComponents = components.map(comp => {
         if (comp.idComponente === componentId) {
           return { ...comp, isVisibleCatalog: newVisibilityValue };
@@ -218,8 +183,6 @@ const Componentes = () => {
       });
       
       setComponents(updatedComponents);
-      
-      // Fecha o modal e limpa os estados
       setVisibilityModalOpen(false);
       setComponentToToggleVisibility(null);
       
@@ -228,29 +191,10 @@ const Componentes = () => {
       
     } catch (error) {
       console.error("Erro ao alterar visibilidade no catálogo:", error);
-      // Você pode adicionar um toast/snackbar de erro aqui
     } finally {
       setToggleVisibilityLoading(false);
     }
   };
-
-  // Cartões de estatísticas para o header
-  const statsCards = [
-    {
-      icon: <InventoryIcon sx={{ color: '#61131A', fontSize: 14 }} />,
-      iconBgColor: '#ffeded',
-      color: '#61131A',
-      value: totalComponents,
-      label: 'Cadastrados'
-    },
-    {
-      icon: <StorefrontIcon sx={{ color: '#27ae60', fontSize: 14 }} />,
-      iconBgColor: '#eaf7ef',
-      color: '#27ae60',
-      value: components.filter(item => item.flagML).length,
-      label: 'Anunciados'
-    }
-  ];
 
   if (loading) {
     return (
@@ -608,6 +552,7 @@ const Componentes = () => {
           Adicionar componente
         </Button>
       </Paper>
+
       <Container
         maxWidth={false}
         disableGutters
@@ -639,6 +584,7 @@ const Componentes = () => {
         open={modalOpen}
         onClose={handleCloseModal}
         componentToEdit={componentToEdit}
+        componentes={components}
       />
 
       {/* Modal de deleção de componente */}
