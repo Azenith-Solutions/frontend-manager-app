@@ -42,6 +42,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import Tooltip from '@mui/material/Tooltip';
 
 const Pedidos = () => {
   const [loading, setLoading] = useState(true);
@@ -66,6 +68,7 @@ const Pedidos = () => {
   const [debugItensApi, setDebugItensApi] = useState([]);
   const [componentesEstoque, setComponentesEstoque] = useState([]);
   const [itensPorPedido, setItensPorPedido] = useState({});
+  const [editBlockedModalOpen, setEditBlockedModalOpen] = useState(false);
 
   useEffect(() => {
     document.title = "HardwareTech | Pedidos";
@@ -740,7 +743,7 @@ const Pedidos = () => {
                       algumExcedeEstoque = itensPedido.some(it => {
                         const compId = it.fkComponente?.idComponente || it.fk_componente || it.fkComponente;
                         const comp = componentesEstoque.find(c => String(c.idComponente) === String(compId));
-                        const excede = comp && Number(it.quantidade) > Number(comp.quantidade);
+                        const excede = comp && Number(it.quantidadeCarrinho) > Number(comp.quantidade);
                         return excede;
                       });
                     }
@@ -787,7 +790,15 @@ const Pedidos = () => {
                         <TableCell align="center" sx={{ py: 0.8 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, alignItems: 'center' }}>
                             {algumExcedeEstoque ? (
-                              <WarningAmberIcon sx={{ color: '#f39c12', fontSize: 22, verticalAlign: 'middle', mr: 0.5 }} titleAccess="Quantidade solicitada excede o estoque atual do componente!" />
+                              <Tooltip
+                                title={<Typography variant="body2" sx={{ p: 1 }}>Quantidade solicitada excede o estoque atual do componente!</Typography>}
+                                arrow
+                                placement="top"
+                              >
+                                <IconButton size="small" sx={{ p: 0.3, ml: 0.2, color: '#e74c3c' }}>
+                                  <InfoOutlinedIcon fontSize="small" />
+                                </IconButton>
+                              </Tooltip>
                             ) : (
                               <Box sx={{ width: 22, height: 22, mr: 0.5 }} />
                             )}
@@ -821,8 +832,12 @@ const Pedidos = () => {
                                 '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' }
                               }}
                               onClick={() => {
-                                setPedidoToEdit(item);
-                                setOrderModalOpen(true);
+                                if ((item.status || '').toLowerCase() === 'concluido') {
+                                  setEditBlockedModalOpen(true);
+                                } else {
+                                  setPedidoToEdit(item);
+                                  setOrderModalOpen(true);
+                                }
                               }}
                             >
                               <EditIcon fontSize="small" />
@@ -936,7 +951,7 @@ const Pedidos = () => {
                   {pedidoItens.map((item, idx) => (
                     <TableRow key={idx}>
                       <TableCell>{item.fkComponente?.partNumber || item.fkComponente?.idComponente || item.fkComponente?.descricao || '-'}</TableCell>
-                      <TableCell>{item.quantidade}</TableCell>
+                      <TableCell>{item.quantidadeCarrinho}</TableCell>
                       <TableCell>{item.fkComponente?.quantidade ?? '-'}</TableCell>
                     </TableRow>
                   ))}
@@ -947,6 +962,26 @@ const Pedidos = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setItensModalOpen(false)}>Fechar</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Modal de edição bloqueada */}
+      <Dialog open={editBlockedModalOpen} onClose={() => setEditBlockedModalOpen(false)} maxWidth="xs" fullWidth>
+        <DialogTitle sx={{ fontSize: '1.2rem', pb: 0, textAlign: 'center', background: 'linear-gradient(90deg, #fff3f3 0%, #fff 100%)', borderBottom: '1px solid #f8d7da' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <InfoOutlinedIcon sx={{ color: '#61131A', fontSize: 38, mb: 0.5 }} />
+            Edição não permitida
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 2, background: 'linear-gradient(90deg, #fff3f3 0%, #fff 100%)' }}>
+          <Typography sx={{ fontSize: '1.05rem', color: '#61131A', fontWeight: 600, textAlign: 'center', mb: 1 }}>
+            Não é possível editar um pedido que já está <b>CONCLUÍDO</b>.
+          </Typography>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, pr: 3, pl: 3, justifyContent: 'center', background: 'linear-gradient(90deg, #fff3f3 0%, #fff 100%)' }}>
+          <Button onClick={() => setEditBlockedModalOpen(false)} sx={{ borderRadius: '4px', textTransform: 'none', fontWeight: 600, px: 4, bgcolor: '#61131A', color: '#fff', '&:hover': { bgcolor: '#4e0f15' } }} autoFocus>
+            OK
+          </Button>
         </DialogActions>
       </Dialog>
     </div>
