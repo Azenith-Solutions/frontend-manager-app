@@ -1,0 +1,320 @@
+/* 
+ * LowStockChart.module.css
+ * Estilos para o componente TinyBarChart de produtos com baixo estoque
+ */
+
+/* Variáveis de cores - seguindo a paleta da interface */
+:root {
+    --primary-color: #61131A;
+    --primary-color-light: rgba(97, 19, 26, 0.7);
+    --primary-color-hover: rgba(97, 19, 26, 1);
+    --warning-color: #f44336;
+    --warning-color-light: rgba(244, 67, 54, 0.85);
+    --warning-color-hover: rgba(244, 67, 54, 1);
+    --limit-color: #814d00;
+    --in-limit-bar-color: #FF9800;
+    /* Laranja para a linha de limite */
+    --limit-color-light: #FFF3E0;
+    /* Fundo claro para a linha de limite */
+    --limit-color-glow: rgba(255, 152, 0, 0.5);
+    /* Cor de brilho para a linha */
+    --text-dark: #333;
+    --text-light: #666;
+    --bg-light: rgba(255, 255, 255, 0.97);
+    --border-light: rgba(0, 0, 0, 0.1);
+    --hover-bg: rgba(0, 0, 0, 0.05);
+}
+
+/* Contêiner principal do gráfico */
+.chartContainer {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Legendas personalizadas */
+.chartLegends {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
+.chartLegend {
+    display: flex;
+    align-items: center;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 3px 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.barLegends {
+    display: flex;
+    gap: 15px;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 3px 10px;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.barLegendItem {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.barLegendColor {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+}
+
+.orangeLegendLine {
+    display: inline-block;
+    width: 16px;
+    height: 2.5px;
+    background-color: var(--limit-color);
+    margin-right: 6px;
+}
+
+.legendText {
+    font-size: 10px;
+    color: var(--text-dark);
+    font-weight: 500;
+}
+
+/* Estilos para a linha de limite */
+.limitLine {
+    stroke-width: 2.5;
+    stroke-dasharray: 0;
+    filter: drop-shadow(0 0 3px var(--limit-color-glow));
+    z-index: 10;
+}
+
+.limitBackground {
+    opacity: 0.4;
+    z-index: 1;
+}
+
+.limitDottedLine {
+    opacity: 0.6;
+    z-index: 5;
+}
+
+.limitLabel {
+    fill: var(--limit-color);
+    font-size: 11px;
+    font-weight: 600;
+    text-anchor: middle;
+    filter: drop-shadow(0 0 1px white);
+}
+
+/* Estilos para as barras */
+.barItem {
+    stroke: none;
+    transition: opacity 0.3s ease, fill 0.3s ease;
+}
+
+.normalBar {
+    fill: var(--primary-color);
+    opacity: 0.85;
+}
+
+.normalBar:hover {
+    opacity: 1;
+    fill: var(--primary-color-hover);
+}
+
+.criticalStockBar {
+    fill: var(--in-limit-bar-color);
+    opacity: 0.9;
+    stroke: rgba(0, 0, 0, 0.1);
+    stroke-width: 0.5;
+}
+
+.criticalStockBar:hover {
+    opacity: 1;
+    fill: var(--in-limit-bar-color);
+    filter: brightness(1.05);
+}
+
+.lowStockBar {
+    fill: var(--warning-color-light);
+}
+
+.lowStockBar:hover {
+    fill: var(--warning-color-hover);
+    opacity: 1;
+}
+
+/* Estilos para o tooltip */
+.tooltipContainer {
+    background-color: var(--bg-light);
+    border: 1px solid var(--border-light);
+    border-radius: 4px;
+    padding: 8px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    font-size: 12px;
+    min-width: 140px;
+    transition: all 0.2s ease;
+}
+
+.tooltipName {
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-dark);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    border-bottom: 1px solid var(--border-light);
+    padding-bottom: 4px;
+}
+
+.tooltipValue {
+    margin: 5px 0 3px;
+    font-size: 12px;
+}
+
+.tooltipLimit {
+    display: flex;
+    align-items: center;
+    margin: 4px 0;
+    font-size: 11px;
+    color: var(--limit-color);
+    gap: 5px;
+}
+
+.tooltipLimitIndicator {
+    display: inline-block;
+    width: 12px;
+    height: 2px;
+    background-color: var(--limit-color);
+    border-radius: 2px;
+}
+
+.tooltipStatus {
+    font-size: 11px;
+    margin-top: 3px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    border-top: 1px dashed rgba(0, 0, 0, 0.1);
+    padding-top: 3px;
+}
+
+.tooltipAlert {
+    color: var(--warning-color);
+    border-top: 1px dashed rgba(244, 67, 54, 0.3);
+}
+
+.tooltipWarning {
+    color: var(--limit-color);
+    border-top: 1px dashed rgba(255, 152, 0, 0.3);
+}
+
+.tooltipNormal {
+    color: #388e3c;
+    /* Verde para indicar estoque normal */
+    border-top: 1px dashed rgba(56, 142, 60, 0.3);
+}
+
+/* Animação para o gráfico */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.chartContainer {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Responsividade */
+@media (max-width: 960px) {
+    .tooltipContainer {
+        padding: 6px 10px;
+        font-size: 11px;
+    }
+
+    .tooltipName,
+    .tooltipValue {
+        font-size: 11px;
+    }
+
+    .tooltipAlert {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 600px) {
+    .tooltipContainer {
+        padding: 5px 8px;
+        font-size: 10px;
+    }
+
+    .tooltipName,
+    .tooltipValue {
+        font-size: 10px;
+    }
+
+    .tooltipAlert,
+    .tooltipLimit,
+    .tooltipWarning,
+    .tooltipNormal,
+    .tooltipStatus {
+        font-size: 9px;
+    }
+
+    .limitLabel {
+        font-size: 8px;
+    }
+
+    .chartLegends {
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .chartLegend,
+    .barLegends {
+        padding: 2px 8px;
+    }
+
+    .barLegends {
+        gap: 6px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .barLegendItem {
+        gap: 3px;
+    }
+
+    .barLegendColor {
+        width: 6px;
+        height: 6px;
+    }
+
+    .orangeLegendLine {
+        width: 12px;
+    }
+
+    .legendText {
+        font-size: 8px;
+    }
+}
