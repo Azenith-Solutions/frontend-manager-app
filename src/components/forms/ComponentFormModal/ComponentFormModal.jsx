@@ -38,6 +38,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   // Estado do formulário
   const [formData, setFormData] = useState({
     idHardWareTech: '',
+    nomeComponente: '',  
     partNumber: '',
     descricao: '',
     quantidade: 1,
@@ -112,6 +113,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     if (componentToEdit) {
       setFormData({
         idHardWareTech: componentToEdit.idHardWareTech || '',
+        nomeComponente: componentToEdit.nomeComponente || '',  // Incluindo o nome na edição
         partNumber: componentToEdit.partNumber || '',
         descricao: componentToEdit.descricao || '',
         quantidade: componentToEdit.quantidade || 1,
@@ -216,7 +218,11 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
     if (!formData.idHardWareTech) {
       newErrors.idHardWareTech = 'O IDH é obrigatório';
     }
-
+    
+    if (!formData.nomeComponente) {
+      newErrors.nomeComponente = 'O nome do componente é obrigatório';
+    }
+    
     if (!formData.partNumber) {
       newErrors.partNumber = 'O Part Number é obrigatório';
     }
@@ -268,6 +274,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
 
       const dataToSend = {
         idHardWareTech: formData.idHardWareTech,
+        nomeComponente: formData.nomeComponente,  // Incluindo o nome nos dados enviados
         caixa: Number(formData.fkCaixa),
         categoria: Number(formData.categoria),
         partNumber: formData.partNumber,
@@ -317,6 +324,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
   const handleClose = () => {
     setFormData({
       idHardWareTech: '',
+      nomeComponente: '',  // Incluindo o campo nome ao limpar
       partNumber: '',
       descricao: '',
       quantidade: 1,
@@ -388,7 +396,7 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
             }}>
               <Box sx={{
                 width: '100%',
-                pb: '100%', // Proporção 1:1
+                pb: '100%', 
                 position: 'relative',
                 overflow: 'hidden',
                 borderRadius: '8px',
@@ -512,7 +520,30 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null }) => {
                     }
                   }}
                 />
-
+                
+                {/* Nome do componente */}
+                <TextField
+                  label="Nome do Componente"
+                  name="nome"
+                  value={formData.nome}
+                  onChange={handleChange}
+                  fullWidth
+                  variant="outlined"
+                  size="small"
+                  required
+                  error={!!errors.nome}
+                  helperText={errors.nome}
+                  disabled={submitting}
+                  sx={{
+                    '& .MuiOutlinedInput-root.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#61131A',
+                    },
+                    '& .MuiInputLabel-root.Mui-focused': {
+                      color: '#61131A',
+                    }
+                  }}
+                />
+                
                 {/* Part Number */}
                 <TextField
                   label="Part Number"

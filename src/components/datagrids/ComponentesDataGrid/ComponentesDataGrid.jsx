@@ -16,7 +16,9 @@ import {
   IconButton,
   Tooltip,
   CircularProgress,
-  Collapse
+  Collapse,
+  Switch,
+  FormControlLabel
 } from "@mui/material";
 
 // Material UI Icons
@@ -28,6 +30,22 @@ import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown';
 import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp';
 import DescriptionIcon from '@mui/icons-material/Description';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
+
+/**
+ * Formata o valor da condição do componente
+ */
+const formatCondition = (condition) => {
+  switch (condition) {
+    case 'BOM_ESTADO':
+      return 'Bom Estado';
+    case 'OBSERVACAO':
+      return 'Em Observação';
+    default:
+      return condition;
+  }
+};
 
 /**
  * Componente de tabela para exibição dos dados de componentes de hardware
@@ -42,6 +60,7 @@ const ComponentesDataGrid = ({
   onDeleteComponent,
   onPageChange,
   onRowsPerPageChange,
+  onToggleCatalog,
   loading = false
 }) => {
   // Estado para controlar a linha expandida (mostrar descrição)
@@ -50,6 +69,14 @@ const ComponentesDataGrid = ({
   // Manipular o clique em uma linha
   const handleRowClick = (idComponente) => {
     setExpandedRow(expandedRow === idComponente ? null : idComponente);
+  };
+
+  // Função para lidar com a mudança do toggle de catálogo
+  const handleCatalogToggle = (event, componentId, currentValue) => {
+    event.stopPropagation();
+    if (onToggleCatalog) {
+      onToggleCatalog(componentId, !currentValue);
+    }
   };
 
   if (loading) {
@@ -91,12 +118,14 @@ const ComponentesDataGrid = ({
                 <TableCell align="center" width="40px"></TableCell>
                 <TableCell align="center">Componente</TableCell>
                 <TableCell align="center">IDH</TableCell>
+                <TableCell align="center">Nome</TableCell>
                 <TableCell align="center">Part Number</TableCell>
                 <TableCell align="center">Quantidade</TableCell>
                 <TableCell align="center">Caixa</TableCell>
                 <TableCell align="center">Mercado Livre</TableCell>
                 <TableCell align="center">Status</TableCell>
                 <TableCell align="center">Condição</TableCell>
+                <TableCell align="center">Catálogo</TableCell>
                 <TableCell align="center">Ações</TableCell>
               </TableRow>
             </TableHead>
@@ -147,6 +176,7 @@ const ComponentesDataGrid = ({
                       />
                     </TableCell>
                     <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idHardWareTech}</TableCell>
+                    <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.nomeComponente}</TableCell>
                     <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.partNumber}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.quantidade}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
@@ -185,21 +215,21 @@ const ComponentesDataGrid = ({
                         item.condicao ? (
                           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
                             <Chip 
-                              label={item.condicao}
+                              label={formatCondition(item.condicao)}
                               size="small"
                               sx={{ 
-                                backgroundColor: item.condicao === 'Bom Estado' 
+                                backgroundColor: formatCondition(item.condicao) === 'Bom Estado' 
                                   ? 'rgba(46, 204, 113, 0.1)' 
-                                  : (item.condicao === 'Observação' ? 'rgba(231, 76, 60, 0.1)' : 'rgba(52, 152, 219, 0.1)'),
-                                color: item.condicao === 'Bom Estado' 
+                                  : (formatCondition(item.condicao) === 'Em Observação' ? 'rgba(231, 76, 60, 0.1)' : 'rgba(52, 152, 219, 0.1)'),
+                                color: formatCondition(item.condicao) === 'Bom Estado' 
                                   ? '#27ae60' 
-                                  : (item.condicao === 'Observação' ? '#e74c3c' : '#3498db'),
+                                  : (formatCondition(item.condicao) === 'Em Observação' ? '#e74c3c' : '#3498db'),
                                 fontWeight: 500,
                                 fontSize: '0.75rem',
                                 borderRadius: '4px',
                               }}
                             />
-                            {item.condicao === 'Observação' && item.observacao && (
+                            {formatCondition(item.condicao) === 'Em Observação' && item.observacao && (
                               <Tooltip
                                 title={
                                   <Typography variant="body2" sx={{ p: 1 }}>
@@ -225,6 +255,33 @@ const ComponentesDataGrid = ({
                           N/A
                         </Typography>
                       )}
+                    </TableCell>
+                    <TableCell align="center" sx={{ py: 0.8 }}>
+                      <Box 
+                        onClick={(e) => e.stopPropagation()}
+                        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <IconButton
+                          size="small"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onToggleCatalog && onToggleCatalog(item.idComponente, !item.isVisibleCatalog);
+                          }}
+                          sx={{ 
+                            color: item.isVisibleCatalog ? '#27ae60' : '#e74c3c',
+                            backgroundColor: item.isVisibleCatalog ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                            '&:hover': { 
+                              backgroundColor: item.isVisibleCatalog ? 'rgba(46, 204, 113, 0.2)' : 'rgba(231, 76, 60, 0.2)'
+                            },
+                            p: 1
+                          }}
+                        >
+                          {item.isVisibleCatalog ? <VisibilityIcon fontSize="small" /> : <VisibilityOffIcon fontSize="small" />}
+                        </IconButton>
+                        <Typography variant="caption" sx={{ ml: 1, fontWeight: 'medium', color: item.isVisibleCatalog ? '#27ae60' : '#e74c3c' }}>
+                          {item.isVisibleCatalog ? "Visível" : "Oculto"}
+                        </Typography>
+                      </Box>
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
@@ -263,7 +320,7 @@ const ComponentesDataGrid = ({
                   </TableRow>
                   {/* Linha expandida para mostrar a descrição */}
                   <TableRow>
-                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={10}>
+                    <TableCell style={{ paddingBottom: 0, paddingTop: 0 }} colSpan={11}>
                       <Collapse in={expandedRow === item.idComponente} timeout="auto" unmountOnExit>
                         <Box 
                           sx={{ 

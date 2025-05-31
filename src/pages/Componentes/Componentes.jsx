@@ -4,6 +4,7 @@ import { api } from "../../service/api";
 import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
 import ComponentesDataGrid from "../../components/datagrids/ComponentesDataGrid/ComponentesDataGrid";
 import ComponentDeleteModal from "../../components/forms/ComponentDeleteModal/ComponentDeleteModal";
+import CatalogVisibilityModal from "../../components/forms/CatalogVisibilityModal/CatalogVisibilityModal";
 
 // Componentes genéricos para header e filtro
 import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
@@ -55,7 +56,11 @@ const Componentes = () => {
   const [componentToEdit, setComponentToEdit] = useState(null);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [componentToDelete, setComponentToDelete] = useState(null);
-
+  const [visibilityModalOpen, setVisibilityModalOpen] = useState(false);
+  const [componentToToggleVisibility, setComponentToToggleVisibility] = useState(null);
+  const [newVisibilityValue, setNewVisibilityValue] = useState(false);
+  const [toggleVisibilityLoading, setToggleVisibilityLoading] = useState(false);
+  
   // Estados para controlar o menu de filtros
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
   const [availableCaixas, setAvailableCaixas] = useState([]);
@@ -65,7 +70,7 @@ const Componentes = () => {
     caixas: [],
     mercadoLivre: null, // true, false, ou null (não filtrado)
     verificado: null, // true, false, ou null (não filtrado)
-    condicao: [] // 'Bom Estado', 'Observação', ou vazio (não filtrado)
+    condicao: [] // 'Bom Estado', 'Em Observação', ou vazio (não filtrado)
   });
 
   // Imagem padrão para os componentes TESTE
@@ -152,6 +157,81 @@ const Componentes = () => {
     setDeleteModalOpen(false);
     setComponentToDelete(null);
     fetchComponents();
+  };
+
+  // Handler para abrir o modal de visibilidade
+  const handleToggleVisibility = (component) => {
+    setComponentToToggleVisibility(component);
+    setVisibilityModalOpen(true);
+  };
+
+  // Função para lidar com o início do processo de toggle de visibilidade
+  const handleToggleCatalog = (componentId, newVisibility) => {
+    // Encontra o componente pelo ID
+    const component = components.find(c => c.idComponente === componentId);
+    if (component) {
+      setComponentToToggleVisibility(component);
+      setNewVisibilityValue(newVisibility);
+      setVisibilityModalOpen(true);
+    }
+  };
+
+  // Função para confirmar e realizar a alteração de visibilidade
+  const handleConfirmVisibilityChange = async () => {
+    if (!componentToToggleVisibility) return;
+    
+    try {
+      setToggleVisibilityLoading(true);
+      
+      const componentId = componentToToggleVisibility.idComponente;
+      
+      const updatedComponent = {
+        idComponente: componentToToggleVisibility.idComponente,
+        idHardWareTech: componentToToggleVisibility.idHardWareTech,
+        nomeComponente: componentToToggleVisibility.nomeComponente || "Nome",
+        fkCaixa: componentToToggleVisibility.fkCaixa.idCaixa || null,
+        fkCategoria: componentToToggleVisibility.fkCategoria,
+        partNumber: componentToToggleVisibility.partNumber,
+        quantidade: componentToToggleVisibility.quantidade,
+        flagML: componentToToggleVisibility.flagML,
+        codigoML: componentToToggleVisibility.codigoML || "",
+        flagVerificado: componentToToggleVisibility.flagVerificado,
+        condicao: componentToToggleVisibility.condicao,
+        observacao: componentToToggleVisibility.observacao || "",
+        descricao: componentToToggleVisibility.descricao || "",
+        dataUltimaVenda: componentToToggleVisibility.dataUltimaVenda,
+        createdAt: componentToToggleVisibility.createdAt,
+        updatedAt: componentToToggleVisibility.updatedAt,
+        quantidadeVendido: componentToToggleVisibility.quantidadeVendido,
+        // Aqui está a única alteração real
+        isVisibleCatalog: newVisibilityValue
+      };
+      
+      await api.put(`/components/${componentId}`, updatedComponent);
+      
+      // Atualiza o estado local para feedback imediato
+      const updatedComponents = components.map(comp => {
+        if (comp.idComponente === componentId) {
+          return { ...comp, isVisibleCatalog: newVisibilityValue };
+        }
+        return comp;
+      });
+      
+      setComponents(updatedComponents);
+      
+      // Fecha o modal e limpa os estados
+      setVisibilityModalOpen(false);
+      setComponentToToggleVisibility(null);
+      
+      // Recarregar os dados do servidor
+      fetchComponents();
+      
+    } catch (error) {
+      console.error("Erro ao alterar visibilidade no catálogo:", error);
+      // Você pode adicionar um toast/snackbar de erro aqui
+    } finally {
+      setToggleVisibilityLoading(false);
+    }
   };
 
   // Cartões de estatísticas para o header
@@ -539,171 +619,19 @@ const Componentes = () => {
           overflow: 'hidden'
         }}
       >
-        <TableContainer component={Paper} sx={{
-          boxShadow: '0 3px 10px rgba(0,0,0,0.08)',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          width: '100%',
-          mt: 0,
-          height: 'calc(100vh - 180px)',
-          display: 'flex',
-          flexDirection: 'column'
-        }}>
-          <Box sx={{ flexGrow: 1, overflow: 'auto' }}>
-            <Table stickyHeader sx={{ width: '100%' }} aria-label="tabela de componentes">
-              <TableHead>
-                <TableRow sx={{
-                  backgroundColor: '#f5f5f5',
-                  '& th': {
-                    fontWeight: 'bold',
-                    color: '#333',
-                    fontSize: '0.85rem',
-                    borderBottom: '2px solid #61131A',
-                    py: 1.8
-                  }
-                }}>
-                  <TableCell align="center">Componente</TableCell>
-                  <TableCell align="center">IDH</TableCell>
-                  <TableCell align="center">Part Number</TableCell>
-                  <TableCell align="center">Quantidade</TableCell>
-                  <TableCell align="center">Caixa</TableCell>
-                  <TableCell align="center">Mercado Livre</TableCell>
-                  <TableCell align="center">Verificado</TableCell>
-                  <TableCell align="center">Ações</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filteredComponents
-                  .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage)
-                  .map((item) => (
-                    <TableRow
-                      key={item.idComponente}
-                      hover
-                      sx={{
-                        '&:nth-of-type(odd)': { backgroundColor: 'rgba(0,0,0,0.02)' },
-                        '&:hover': { backgroundColor: 'rgba(97,19,26,0.04)' },
-                        transition: 'background-color 0.2s',
-                        height: '54px'
-                      }}
-                    >
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Avatar
-                          src={item.imagemUrl || defaultImage}
-                          variant="rounded"
-                          alt={item.partNumber}
-                          sx={{
-                            width: 34,
-                            height: 34,
-                            margin: '0 auto',
-                            bgcolor: '#ccc',
-                            position: 'relative',
-                            top: '-1px' // Ajustando ligeiramente a posição vertical
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idHardWareTech}</TableCell>
-                      <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.partNumber}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>{item.quantidade}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Chip
-                          icon={item.flagML ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                          label={item.flagML ? "Sim" : "Não"}
-                          size="small"
-                          sx={{
-                            backgroundColor: item.flagML ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                            color: item.flagML ? '#27ae60' : '#e74c3c',
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                            borderRadius: '4px',
-                            '& .MuiChip-icon': { color: 'inherit' }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Chip
-                          icon={item.flagVerificado ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                          label={item.flagVerificado ? "Sim" : "Não"}
-                          size="small"
-                          sx={{
-                            backgroundColor: item.flagVerificado ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                            color: item.flagVerificado ? '#27ae60' : '#e74c3c',
-                            fontWeight: 500,
-                            fontSize: '0.75rem',
-                            borderRadius: '4px',
-                            '& .MuiChip-icon': { color: 'inherit' }
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell align="center" sx={{ py: 0.8 }}>
-                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                          <IconButton
-                            size="small"
-                            title="Editar"
-                            onClick={() => handleEditComponent(item)}
-                            sx={{
-                              color: '#2980b9',
-                              backgroundColor: 'rgba(41, 128, 185, 0.1)',
-                              '&:hover': { backgroundColor: 'rgba(41, 128, 185, 0.2)' }
-                            }}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton
-                            size="small"
-                            title="Excluir"
-                            sx={{
-                              color: '#c0392b',
-                              backgroundColor: 'rgba(192, 57, 43, 0.1)',
-                              '&:hover': { backgroundColor: 'rgba(192, 57, 43, 0.2)' }
-                            }}
-                          >
-                            <DeleteIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                {filteredComponents.length > 0 &&
-                  filteredComponents.length < rowsPerPage &&
-                  Array.from({ length: Math.max(0, rowsPerPage - filteredComponents.length) }).map((_, index) => (
-                    <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                      <TableCell colSpan={8} />
-                    </TableRow>
-                  ))}
-                {filteredComponents.length === 0 && (
-                  <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={8} align="center">
-                      Nenhum componente encontrado
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </Box>
-          <TablePagination
-            component="div"
-            count={filteredComponents.length}
-            page={page}
-            onPageChange={handleChangePage}
-            rowsPerPage={rowsPerPage}
-            onRowsPerPageChange={handleChangeRowsPerPage}
-            rowsPerPageOptions={[5, 10, 25, 50]}
-            labelRowsPerPage="Linhas por página:"
-            labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
-            sx={{
-              borderTop: '1px solid rgba(224, 224, 224, 1)',
-              backgroundColor: '#f9f9f9',
-              overflowY: 'hidden',
-              '& .MuiTablePagination-toolbar': {
-                minHeight: '48px',
-              },
-              '& .MuiTablePagination-selectLabel, & .MuiTablePagination-displayedRows': {
-                fontSize: '0.875rem',
-              }
-            }}
-          />
-        </TableContainer>
+        {/* Substituindo a tabela pelo componente ComponentesDataGrid */}
+        <ComponentesDataGrid 
+          components={components}
+          filteredComponents={filteredComponents}
+          page={page}
+          rowsPerPage={rowsPerPage}
+          defaultImage={defaultImage}
+          onEditComponent={handleEditComponent}
+          onDeleteComponent={handleDeleteComponent}
+          onToggleCatalog={handleToggleCatalog}
+          onPageChange={handleChangePage}
+          onRowsPerPageChange={handleChangeRowsPerPage}
+        />
       </Container>
 
       {/* Modal do formulário de componente */}
@@ -719,6 +647,16 @@ const Componentes = () => {
         onClose={handleCloseDeleteModal}
         component={componentToDelete}
         onComponentDeleted={handleCloseDeleteModal}
+      />
+
+      {/* Modal de visibilidade do catálogo */}
+      <CatalogVisibilityModal
+        open={visibilityModalOpen}
+        onClose={() => setVisibilityModalOpen(false)}
+        component={componentToToggleVisibility}
+        newVisibility={newVisibilityValue}
+        onConfirm={handleConfirmVisibilityChange}
+        isLoading={toggleVisibilityLoading}
       />
     </div>
   );
