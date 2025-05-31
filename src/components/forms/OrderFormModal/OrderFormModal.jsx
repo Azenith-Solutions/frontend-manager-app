@@ -15,11 +15,12 @@ import {
   FormLabel
 } from "@mui/material";
 import { api } from "../../../service/api";
+import Snackbar from '@mui/material/Snackbar';
+import Alert from '@mui/material/Alert';
 
 const initialForm = {
   codigo: "",
   cnpj: "",
-  ddd: "",
   nomeComprador: "",
   emailComprador: "",
   telCelular: "",
@@ -41,20 +42,34 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
   const [componentes, setComponentes] = useState([]);
   const [itensPedido, setItensPedido] = useState([]); // [{ fk_componente, quantidade }]
   const [loadingComponentes, setLoadingComponentes] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState({ open: false, message: '', severity: 'error' });
 
   React.useEffect(() => {
     console.log("[OrderFormModal] Pedido recebido:", pedido);
     if (pedido) {
+      const cnpjValue = pedido.cnpj || pedido.CNPJ || "";
+      // Detecta tipo de pessoa automaticamente
+      if (cnpjValue && cnpjValue.replace(/\D/g, '').length === 11) {
+        setTipoPessoa('pf');
+      } else if (cnpjValue && cnpjValue.replace(/\D/g, '').length === 14) {
+        setTipoPessoa('empresa');
+      }
       setForm({
         codigo: pedido.codigo || "",
-        cnpj: pedido.cnpj || pedido.CNPJ || "",
-        ddd: pedido.ddd || pedido.DDD || "",
+        cnpj: cnpjValue,
         nomeComprador: pedido.nomeComprador || pedido.nomeComprador || "",
         emailComprador: pedido.emailComprador || pedido.emailComprador || "",
         telCelular: pedido.telCelular || pedido.telCelular || "",
         status: pedido.status || "EM_ANALISE",
         valor: pedido.valor || ""
       });
+      // Detecta tipoPessoa com base no tamanho do cnpj/cpf
+      const cnpjCpf = (pedido.cnpj || pedido.CNPJ || "").replace(/\D/g, "");
+      if (cnpjCpf.length === 11) {
+        setTipoPessoa("pf");
+      } else {
+        setTipoPessoa("empresa");
+      }
       // Busca itens do pedido na API ao editar
       if (pedido.idPedido || pedido.id_pedido || pedido.id) {
         const id = pedido.idPedido || pedido.id_pedido || pedido.id;
@@ -63,7 +78,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
           const itensDoPedido = itens.filter(item => item.fkPedido && String(item.fkPedido.idPedido) === String(id));
           setItensPedido(itensDoPedido.map(i => ({
             fk_componente: i.fkComponente?.idComponente || i.fk_componente || i.fkComponente,
-            quantidade: i.quantidade
+            quantidade: i.quantidadeCarrinho // Atualizado para refletir o novo nome do campo
           })));
         }).catch(() => setItensPedido([]));
       } else {
@@ -72,6 +87,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
     } else {
       setForm(initialForm);
       setItensPedido([]);
+      setTipoPessoa("empresa"); // volta ao padrão ao criar novo
     }
   }, [pedido, open]);
 
@@ -113,21 +129,26 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Bloqueia salvar se não houver itens no pedido
+    if (itensPedido.length === 0) {
+      setFeedbackMessage({ open: true, message: "Adicione pelo menos um item ao pedido antes de salvar.", severity: 'error' });
+      setLoading(false);
+      return;
+    }
     try {
       if (form.status === "CONCLUIDO") {
-
         const res = await api.get("/components");
         const componentesEstoque = Array.isArray(res.data.data) ? res.data.data : res.data;
         for (const item of itensPedido) {
           const compId = item.fk_componente?.idComponente || item.fk_componente || item.fkComponente;
           const comp = componentesEstoque.find(c => String(c.idComponente) === String(compId));
           if (!comp) {
-            setError(`Não é possível concluir o pedido: componente de id ${compId} não encontrado no estoque.`);
+            setFeedbackMessage({ open: true, message: `Não é possível concluir o pedido: componente de id ${compId} não encontrado no estoque.`, severity: 'error' });
             setLoading(false);
             return;
           }
           if (Number(item.quantidade) > Number(comp.quantidade)) {
-            setError(`Não é possível concluir o pedido: o item "${comp.partNumber || comp.descricao || compId}" excede o estoque disponível.`);
+            setFeedbackMessage({ open: true, message: `Não é possível concluir o pedido: o item "${comp.partNumber || comp.descricao || compId}" excede o estoque disponível.`, severity: 'error' });
             setLoading(false);
             return;
           }
@@ -135,11 +156,10 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
       }
       const payload = {
         codigo: form.codigo,
-        cnpj: form.cnpj,
-        ddd: parseInt(form.ddd, 10),
+        cnpj: form.cnpj.replace(/\D/g, ''),
         nomeComprador: form.nomeComprador,
         emailComprador: form.emailComprador,
-        telCelular: parseInt(form.telCelular, 10),
+        telCelular: parseInt(form.telCelular.replace(/\D/g, ''), 10),
         status: form.status,
         valor: form.valor
       };
@@ -161,7 +181,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             await api.put(`/items/${itemAntigo.idItem || itemAntigo.id}`, {
               fkPedido: id,
               fkComponente: atualizado.fk_componente,
-              quantidade: atualizado.quantidade
+              quantidadeCarrinho: atualizado.quantidade // Atualizado para refletir o novo nome do campo
             });
           } else {
             // Remove item que foi excluído
@@ -175,7 +195,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             await api.post("/items", [{
               fkPedido: id,
               fkComponente: itemNovo.fk_componente,
-              quantidade: itemNovo.quantidade
+              quantidadeCarrinho: itemNovo.quantidade // Atualizado para refletir o novo nome do campo
             }]);
           }
         }
@@ -193,7 +213,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
         const itensPayload = itensPedido.map(item => ({
           fkPedido: pedidoId,
           fkComponente: item.fk_componente,
-          quantidade: item.quantidade
+          quantidadeCarrinho: item.quantidade // Atualizado para refletir o novo nome do campo
         }));
         if (itensPayload.length > 0) {
           await api.post("/items", itensPayload);
@@ -205,7 +225,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
       if (onSuccess) onSuccess();
       onClose();
     } catch (err) {
-      console.error("[OrderFormModal] Erro na requisição:", err);
+      setFeedbackMessage({ open: true, message: err?.response?.data?.message || "Erro ao salvar pedido.", severity: 'error' });
       setError(err?.response?.data?.message || "Erro ao salvar pedido.");
     } finally {
       setLoading(false);
@@ -216,6 +236,31 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
     setForm(initialForm);
     setError("");
     onClose();
+  };
+
+  const formatCnpjCpf = (value) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, '');
+    if (tipoPessoa === 'empresa') {
+      return value
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,4})$/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    } else {
+      return value
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+  };
+
+  const formatPhone = (value) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, '');
+    return value.replace(/(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{4})(\d)/, '$1-$2')
+                .replace(/-(\d{4})$/, '-$1');
   };
 
   return (
@@ -234,7 +279,8 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               setTipoPessoa(e.target.value);
               setForm(prev => ({ ...prev, cnpj: '' }));
             }}
-            disabled={!!pedido} // Desabilita se estiver editando
+            disabled={!!pedido}
+            sx={!!pedido ? { pointerEvents: 'none', opacity: 0.5 } : {}}
           >
             <FormControlLabel
               value="empresa"
@@ -258,29 +304,22 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             onChange={handleChange}
             required
             fullWidth
+            disabled={!!pedido}
           />
           <TextField
             label={tipoPessoa === 'empresa' ? 'CNPJ' : 'CPF'}
             name="cnpj"
-            value={form.cnpj}
+            value={formatCnpjCpf(form.cnpj)}
             onChange={e => {
-              // Permitir apenas números e limitar a 14 para CNPJ ou 11 para CPF
+              let value = e.target.value.replace(/\D/g, '');
               const maxLen = tipoPessoa === 'empresa' ? 14 : 11;
-              const value = e.target.value.replace(/\D/g, '').slice(0, maxLen);
+              value = value.slice(0, maxLen);
               setForm(prev => ({ ...prev, cnpj: value }));
             }}
             required
             fullWidth
-            inputProps={{ maxLength: tipoPessoa === 'empresa' ? 14 : 11, inputMode: 'numeric', pattern: '[0-9]*' }}
-          />
-          <TextField
-            label="DDD"
-            name="ddd"
-            value={form.ddd}
-            onChange={handleChange}
-            required
-            fullWidth
-            type="number"
+            inputProps={{ maxLength: tipoPessoa === 'empresa' ? 18 : 14, inputMode: 'text', pattern: '[0-9.\-/]*' }}
+            disabled={!!pedido}
           />
           <TextField
             label="Nome do Comprador"
@@ -289,6 +328,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             onChange={handleChange}
             required
             fullWidth
+            disabled={!!pedido}
           />
           <TextField
             label="Email do Comprador"
@@ -298,15 +338,22 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             required
             fullWidth
             type="email"
+            disabled={!!pedido}
           />
           <TextField
             label="Telefone Celular"
             name="telCelular"
-            value={form.telCelular}
-            onChange={handleChange}
+            value={formatPhone(form.telCelular)}
+            onChange={e => {
+              let value = e.target.value.replace(/\D/g, '');
+              value = value.slice(0, 11);
+              setForm(prev => ({ ...prev, telCelular: value }));
+            }}
             required
             fullWidth
-            type="number"
+            type="text"
+            inputProps={{ maxLength: 15, inputMode: 'text', pattern: '[0-9()\- ]*' }}
+            disabled={!!pedido}
           />
           <TextField
             select
@@ -410,6 +457,22 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
           {loading ? <CircularProgress size={22} /> : "Salvar"}
         </Button>
       </DialogActions>
+      {/* Snackbar para feedback de erro */}
+      <Snackbar
+        open={feedbackMessage.open}
+        autoHideDuration={5000}
+        onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      >
+        <Alert
+          onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+          severity={feedbackMessage.severity}
+          variant="filled"
+          sx={{ width: '100%', maxWidth: '400px', fontSize: '0.9rem' }}
+        >
+          {feedbackMessage.message}
+        </Alert>
+      </Snackbar>
     </Dialog>
   );
 };
