@@ -1,7 +1,7 @@
 import React, { useMemo, memo } from 'react';
 import PropTypes from 'prop-types';
 import { BarChart, Bar, ResponsiveContainer, Cell, ReferenceLine, Tooltip, XAxis, YAxis, CartesianGrid } from 'recharts';
-import styles from './LowStockChart.module.css';
+import styles from './ComponentsPerBoxChart.module.css';
 
 /**
  * Componente para renderização do tooltip personalizado
@@ -50,16 +50,16 @@ CustomTooltip.propTypes = {
 };
 
 /**
- * Componente TinyBarChart para exibir produtos com baixo estoque
- * Inclui uma linha de referência para o limite crítico
+ * Componente TinyBarChart para exibir quantidade de componentes por caixa
+ * Inclui uma linha de referência para o limite máximo de 200 componentes
  * 
  * @param {Object} props - Propriedades do componente
- * @param {Array} props.data - Dados dos produtos com estoque baixo
+ * @param {Array} props.data - Dados dos componentes por caixa
  * @param {boolean} props.isMobile - Flag para indicar se está em visualização mobile
  * @param {number} props.chartHeight - Altura do gráfico
  * @returns {JSX.Element} Componente de gráfico de barras simplificado
  */
-const LowStockChart = ({ data, isMobile, chartHeight }) => {  // Constantes
+const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constantes
     const MAX_COMPONENTS_PER_BOX = 200;
     const CHART_MARGINS = { top: 20, right: 30, left: isMobile ? 60 : 75, bottom: 5 };
     const BAR_SIZE = isMobile ? 14 : 20;
@@ -188,7 +188,7 @@ const LowStockChart = ({ data, isMobile, chartHeight }) => {  // Constantes
 };
 
 // Definição de PropTypes para documentação e validação
-LowStockChart.propTypes = {
+ComponentsPerBoxChart.propTypes = {
     data: PropTypes.arrayOf(
         PropTypes.shape({
             produto: PropTypes.string.isRequired,
@@ -200,4 +200,4 @@ LowStockChart.propTypes = {
 };
 
 // Exportando componente memoizado para melhor performance
-export default memo(LowStockChart);
+export default memo(ComponentsPerBoxChart);

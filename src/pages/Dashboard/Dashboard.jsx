@@ -13,9 +13,9 @@ import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import { XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer, Sector } from 'recharts';
 import styles from "./Dashboard.module.css";
-import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA, fetchQuantityByMLStatus } from "../../service/dashboard/dashboardService";
+import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA, fetchQuantityByMLStatus, fetchComponentsPerBox } from "../../service/dashboard/dashboardService";
 import KpiDetailModal from "../../components/modals/KpiDetailModal/KpiDetailModal";
-import LowStockChart from './LowStockChart';
+import ComponentsPerBoxChart from './ComponentsPerBoxChart';
 
 // mock similando carregamento do fetch de dados
 const fetchKpiData = () => {
@@ -257,8 +257,10 @@ const Dashboard = () => {  // Dados do dashboard
     getIncompleteComponents();
     getItemsOutOfLastSaleSLA();
     getQuantityByMLStatus();
+    getComponentsPerBox();
     fetchData();
   }, []);
+
   // Adjust chart heights based on window resize
   useEffect(() => {
     const handleResize = () => {
@@ -278,15 +280,25 @@ const Dashboard = () => {  // Dados do dashboard
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
   }, [isTablet]);  // Configuração para o gráfico de pizza (componentes ML)
-  const RADIAN = Math.PI / 180;
+
+  const getComponentsPerBox = async () => {
+    try {
+      const response = await fetchComponentsPerBox();
+
+      console.log("Componentes por caixa:", response.data);
+    } catch (error) {
+      console.error("Error fetching boxes data:", error);
+    }
+  }
+
   const dataBarHorizon = [
-    { produto: 'Resistor 220Ω', quantidade: 5 },        // Acima do limite
-    { produto: 'Capacitor 10uF', quantidade: 3 },       // Exatamente no limite
-    { produto: 'Transistor BC548', quantidade: 2 },     // Abaixo do limite
-    { produto: 'LED Vermelho', quantidade: 6 },         // Acima do limite
-    { produto: 'Microcontrolador ATmega328', quantidade: 1 }, // Bem abaixo do limite
-    { produto: 'Sensor DHT11', quantidade: 4 },         // Acima do limite
-    { produto: 'Diodo 1N4007', quantidade: 3 },         // Exatamente no limite
+    { produto: 'Caixa A1', quantidade: 180 },          // Abaixo do limite
+    { produto: 'Caixa B2', quantidade: 195 },          // Próximo ao limite
+    { produto: 'Caixa C3', quantidade: 210 },          // Acima do limite
+    { produto: 'Caixa D4', quantidade: 150 },          // Abaixo do limite
+    { produto: 'Caixa E5', quantidade: 220 },          // Acima do limite
+    { produto: 'Caixa F6', quantidade: 190 },          // Próximo ao limite
+    { produto: 'Caixa G7', quantidade: 240 },          // Acima do limite
   ];
 
 
@@ -589,15 +601,14 @@ const Dashboard = () => {  // Dados do dashboard
 
         <Card className={styles.chartCard3} ref={chartCard3Ref}>
           <Typography variant="h6" className={styles.chartTitle}>
-            <span role="img" aria-label="alert" style={{ marginRight: '8px' }}>🚨</span>
-            Produtos com Menor Estoque
+            <span role="img" aria-label="box" style={{ marginRight: '8px' }}>📦</span>
+            Quantidade de Componentes Por Caixa
           </Typography>
-          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
-            <LowStockChart
-              data={dataBarHorizon}
-              isMobile={isMobile}
-              chartHeight={chartHeights.chart3}
-            />
+          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>            <ComponentsPerBoxChart
+            data={dataBarHorizon}
+            isMobile={isMobile}
+            chartHeight={chartHeights.chart3}
+          />
           </div>
         </Card>
       </Box>

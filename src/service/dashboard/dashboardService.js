@@ -59,3 +59,15 @@ export const fetchQuantityByMLStatus = async () => {
         throw error;
     }
 }
+
+export const fetchComponentsPerBox = async () => {
+    try {
+        const response = await api.get('/boxes/kpi/box-dashboard');
+        console.log('Resposta dos componentes por caixa:', response);
+
+        return response.data;
+    } catch (error) {
+        console.error('Erro ao buscar componentes por caixa:', error);
+        throw error;
+    }
+}
