@@ -31,8 +31,8 @@ const fetchKpiData = () => {
   });
 };
 
-const Dashboard = () => {  // Dados do dashboard
-  // Estado para dados do dashboard
+const Dashboard = () => {
+  // Estados das KPIs e dados das Dashboards
   const [lowStockComponents, setLowStockComponents] = useState([]);
   const [quantityLowStockComponents, setQuantityLowStockComponents] = useState(lowStockComponents.length);
   const [inObservationComponents, setInObservationComponents] = useState([]);
@@ -41,6 +41,8 @@ const Dashboard = () => {  // Dados do dashboard
   const [quantityIncompleteComponents, setQuantityIncompleteComponents] = useState(incompleteComponents.length);
   const [itemsOutOfLastSaleSLA, setItemsOutOfLastSaleSLA] = useState([]); const [quantityItemsOutOfLastSaleSLA, setQuantityItemsOutOfLastSaleSLA] = useState(itemsOutOfLastSaleSLA.length);
   const [componentsMLData, setComponentsMLData] = useState([]);
+  const [boxesDataDashboard, setBoxesDataDashboard] = useState([]);
+
   const [loading, setLoading] = useState(true);
   // Estados para controle de modal
   const [modalOpen, setModalOpen] = useState(false);
@@ -284,23 +286,21 @@ const Dashboard = () => {  // Dados do dashboard
   const getComponentsPerBox = async () => {
     try {
       const response = await fetchComponentsPerBox();
+      const boxes = [
+        { title: response.data[0]?.name || 'Caixa 1', componentsPerBox: response.data[0]?.componentCount || 0 },
+        { title: response.data[1]?.name || 'Caixa 2', componentsPerBox: response.data[1]?.componentCount || 0 },
+        { title: response.data[2]?.name || 'Caixa 3', componentsPerBox: response.data[2]?.componentCount || 0 },
+        { title: response.data[3]?.name || 'Caixa 4', componentsPerBox: response.data[3]?.componentCount || 0 },
+        { title: response.data[4]?.name || 'Caixa 5', componentsPerBox: response.data[4]?.componentCount || 0 }
+      ];
 
-      console.log("Componentes por caixa:", response.data);
+      setBoxesDataDashboard(boxes);
+
+      console.log("Dados para o gráfico de componentes por caixa:", boxes);
     } catch (error) {
       console.error("Error fetching boxes data:", error);
     }
   }
-
-  const dataBarHorizon = [
-    { produto: 'Caixa A1', quantidade: 180 },          // Abaixo do limite
-    { produto: 'Caixa B2', quantidade: 195 },          // Próximo ao limite
-    { produto: 'Caixa C3', quantidade: 210 },          // Acima do limite
-    { produto: 'Caixa D4', quantidade: 150 },          // Abaixo do limite
-    { produto: 'Caixa E5', quantidade: 220 },          // Acima do limite
-    { produto: 'Caixa F6', quantidade: 190 },          // Próximo ao limite
-    { produto: 'Caixa G7', quantidade: 240 },          // Acima do limite
-  ];
-
 
   if (loading) {
     return (<Box className={styles.loadingContainer}>
@@ -604,11 +604,12 @@ const Dashboard = () => {  // Dados do dashboard
             <span role="img" aria-label="box" style={{ marginRight: '8px' }}>📦</span>
             Quantidade de Componentes Por Caixa
           </Typography>
-          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>            <ComponentsPerBoxChart
-            data={dataBarHorizon}
-            isMobile={isMobile}
-            chartHeight={chartHeights.chart3}
-          />
+          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
+            <ComponentsPerBoxChart
+              data={boxesDataDashboard}
+              isMobile={isMobile}
+              chartHeight={chartHeights.chart3}
+            />
           </div>
         </Card>
       </Box>
