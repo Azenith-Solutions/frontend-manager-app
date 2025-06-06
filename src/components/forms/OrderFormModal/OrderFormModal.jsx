@@ -43,9 +43,12 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
   const [itensPedido, setItensPedido] = useState([]); // [{ fk_componente, quantidade }]
   const [loadingComponentes, setLoadingComponentes] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState({ open: false, message: '', severity: 'error' });
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [validatedItems, setValidatedItems] = useState(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
     console.log("[OrderFormModal] Pedido recebido:", pedido);
+
     if (pedido) {
       const cnpjValue = pedido.cnpj || pedido.CNPJ || "";
       // Detecta tipo de pessoa automaticamente
@@ -153,7 +156,54 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             return;
           }
         }
+        // If status is CONCLUIDO and stock validation passed, store the validated items and show confirmation
+        setValidatedItems(componentesEstoque);
+        setShowConfirmationModal(true);
+        setLoading(false);
+        return;
       }
+      
+      // For other statuses, continue with the normal flow
+      await saveOrder();
+    } catch (err) {
+      setFeedbackMessage({ open: true, message: err?.response?.data?.message || "Erro ao salvar pedido.", severity: 'error' });
+      setError(err?.response?.data?.message || "Erro ao salvar pedido.");
+      setLoading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setForm(initialForm);
+    setError("");
+    onClose();
+  };
+
+  const formatCnpjCpf = (value) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, '');
+    if (tipoPessoa === 'empresa') {
+      return value
+        .replace(/(\d{2})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,4})$/, '$1/$2')
+        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
+    } else {
+      return value
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d)/, '$1.$2')
+        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    }
+  };
+  const formatPhone = (value) => {
+    if (!value) return "";
+    value = value.replace(/\D/g, '');
+    return value.replace(/(\d{2})(\d)/, '($1) $2')
+                .replace(/(\d{5})(\d)/, '$1-$2');
+  };
+
+  const saveOrder = async () => {
+    setLoading(true);
+    try {
       const payload = {
         codigo: form.codigo,
         cnpj: form.cnpj.replace(/\D/g, ''),
@@ -220,6 +270,59 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
         }
         console.log("[OrderFormModal] Resposta POST:", response?.data);
       }
+
+      // Se o pedido for CONCLUIDO, atualiza o estoque dos componentes
+      if (form.status === "CONCLUIDO") {
+        try {
+          // Busca componentes atuais
+          const resComp = await api.get("/components");
+          const listaComponentes = Array.isArray(resComp.data.data) ? resComp.data.data : resComp.data;
+          for (const item of itensPedido) {
+            const compId = item.fk_componente;
+            const componente = listaComponentes.find(c => String(c.idComponente) === String(compId));
+            if (componente) {
+              const novaQuantidade = Math.max(0, parseInt(componente.quantidade, 10) - parseInt(item.quantidade, 10));
+              // Monta objeto conforme ComponentRequestDTO
+              const componentData = {
+                idHardWareTech: componente.idHardWareTech,
+                nomeComponente: componente.nomeComponente,
+                partNumber: componente.partNumber,
+                descricao: componente.descricao,
+                quantidade: novaQuantidade,
+                fkCaixa: componente.fkCaixa?.idCaixa || componente.caixa?.idCaixa || componente.caixa,
+                fkCategoria: componente.fkCategoria?.idCategoria || componente.fkCategoria?.id || componente.fkCategoria,
+                flagVerificado: componente.flagVerificado,
+                condicao: componente.condicao,
+                observacao: componente.observacao,
+                flagML: componente.flagML,
+                codigoML: componente.codigoML,
+                imagem: componente.imagem
+              };
+
+              // Só inclui isVisibleCatalog se não for undefined
+              if (typeof componente.isVisibleCatalog !== 'undefined') {
+                componentData.isVisibleCatalog = componente.isVisibleCatalog === null ? false : componente.isVisibleCatalog;
+              }
+              
+              const formData = new FormData();
+              formData.append('data', new Blob([JSON.stringify(componentData)], { type: 'application/json' }));
+             
+              await api.put(`/components/${compId}`, formData);
+            }
+          }
+          setFeedbackMessage({
+            open: true,
+            message: "Pedido concluído e estoque atualizado com sucesso!",
+            severity: 'success'
+          });
+        } catch (errEstoque) {
+          setFeedbackMessage({
+            open: true,
+            message: "Pedido salvo, mas houve erro ao atualizar o estoque. Verifique manualmente.",
+            severity: 'warning'
+          });
+        } 
+      }
       setForm(initialForm);
       setItensPedido([]);
       if (onSuccess) onSuccess();
@@ -232,248 +335,288 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
     }
   };
 
-  const handleClose = () => {
-    setForm(initialForm);
-    setError("");
-    onClose();
-  };
-
-  const formatCnpjCpf = (value) => {
-    if (!value) return "";
-    value = value.replace(/\D/g, '');
-    if (tipoPessoa === 'empresa') {
-      return value
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,4})$/, '$1/$2')
-        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-    } else {
-      return value
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
-    }
-  };
-
-  const formatPhone = (value) => {
-    if (!value) return "";
-    value = value.replace(/\D/g, '');
-    return value.replace(/(\d{2})(\d)/, '($1) $2')
-                .replace(/(\d{4})(\d)/, '$1-$2')
-                .replace(/-(\d{4})$/, '-$1');
-  };
-
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-      <DialogTitle>{pedido ? 'Editar Pedido' : 'Novo Pedido'}</DialogTitle>
-      <DialogContent>
-        {/* Selecionador de tipo de pessoa */}
-        <Box sx={{ mb: 2 }}>
-          <FormLabel id="tipo-pessoa-label">Tipo de Pessoa</FormLabel>
-          <RadioGroup
-            row
-            aria-labelledby="tipo-pessoa-label"
-            name="tipoPessoa"
-            value={tipoPessoa}
-            onChange={e => {
-              setTipoPessoa(e.target.value);
-              setForm(prev => ({ ...prev, cnpj: '' }));
-            }}
-            disabled={!!pedido}
-            sx={!!pedido ? { pointerEvents: 'none', opacity: 0.5 } : {}}
-          >
-            <FormControlLabel
-              value="empresa"
-              control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />}
-              label="Empresa (CNPJ)"
+    <>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+        <DialogTitle>{pedido ? 'Editar Pedido' : 'Novo Pedido'}</DialogTitle>
+        <DialogContent>
+          {/* Selecionador de tipo de pessoa */}
+          <Box sx={{ mb: 2 }}>
+            <FormLabel id="tipo-pessoa-label">Tipo de Pessoa</FormLabel>
+            <RadioGroup
+              row
+              aria-labelledby="tipo-pessoa-label"
+              name="tipoPessoa"
+              value={tipoPessoa}
+              onChange={e => {
+                setTipoPessoa(e.target.value);
+                setForm(prev => ({ ...prev, cnpj: '' }));
+              }}
+              disabled={!!pedido}
+              sx={!!pedido ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+            >
+              <FormControlLabel
+                value="empresa"
+                control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />}
+                label="Empresa (CNPJ)"
+                disabled={!!pedido}
+              />
+              <FormControlLabel
+                value="pf"
+                control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />}
+                label="Pessoa Física (CPF)"
+                disabled={!!pedido}
+              />
+            </RadioGroup>
+          </Box>
+          <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField
+              label="Código"
+              name="codigo"
+              value={form.codigo}
+              onChange={handleChange}
+              required
+              fullWidth
               disabled={!!pedido}
             />
-            <FormControlLabel
-              value="pf"
-              control={<Radio sx={{ color: '#61131A', '&.Mui-checked': { color: '#61131A' } }} />}
-              label="Pessoa Física (CPF)"
+            <TextField
+              label={tipoPessoa === 'empresa' ? 'CNPJ' : 'CPF'}
+              name="cnpj"
+              value={formatCnpjCpf(form.cnpj)}
+              onChange={e => {
+                let value = e.target.value.replace(/\D/g, '');
+                const maxLen = tipoPessoa === 'empresa' ? 14 : 11;
+                value = value.slice(0, maxLen);
+                setForm(prev => ({ ...prev, cnpj: value }));
+              }}
+              required
+              fullWidth
+              inputProps={{ maxLength: tipoPessoa === 'empresa' ? 18 : 14, inputMode: 'text', pattern: '[0-9.\-/]*' }}
               disabled={!!pedido}
             />
-          </RadioGroup>
-        </Box>
-        <Box component="form" onSubmit={handleSubmit} sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            label="Código"
-            name="codigo"
-            value={form.codigo}
-            onChange={handleChange}
-            required
-            fullWidth
-            disabled={!!pedido}
-          />
-          <TextField
-            label={tipoPessoa === 'empresa' ? 'CNPJ' : 'CPF'}
-            name="cnpj"
-            value={formatCnpjCpf(form.cnpj)}
-            onChange={e => {
-              let value = e.target.value.replace(/\D/g, '');
-              const maxLen = tipoPessoa === 'empresa' ? 14 : 11;
-              value = value.slice(0, maxLen);
-              setForm(prev => ({ ...prev, cnpj: value }));
-            }}
-            required
-            fullWidth
-            inputProps={{ maxLength: tipoPessoa === 'empresa' ? 18 : 14, inputMode: 'text', pattern: '[0-9.\-/]*' }}
-            disabled={!!pedido}
-          />
-          <TextField
-            label="Nome do Comprador"
-            name="nomeComprador"
-            value={form.nomeComprador}
-            onChange={handleChange}
-            required
-            fullWidth
-            disabled={!!pedido}
-          />
-          <TextField
-            label="Email do Comprador"
-            name="emailComprador"
-            value={form.emailComprador}
-            onChange={handleChange}
-            required
-            fullWidth
-            type="email"
-            disabled={!!pedido}
-          />
-          <TextField
-            label="Telefone Celular"
-            name="telCelular"
-            value={formatPhone(form.telCelular)}
-            onChange={e => {
-              let value = e.target.value.replace(/\D/g, '');
-              value = value.slice(0, 11);
-              setForm(prev => ({ ...prev, telCelular: value }));
-            }}
-            required
-            fullWidth
-            type="text"
-            inputProps={{ maxLength: 15, inputMode: 'text', pattern: '[0-9()\- ]*' }}
-            disabled={!!pedido}
-          />
-          <TextField
-            select
-            label="Status"
-            name="status"
-            value={form.status}
-            onChange={handleChange}
-            required
-            fullWidth
-          >
-            {statusOptions.map((option) => (
-              <MenuItem key={option.value} value={option.value}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="Valor"
-            name="valor"
-            value={form.valor}
-            onChange={handleChange}
-            required
-            fullWidth
-            type="text"
-          />
-          {error && <Box color="error.main">{error}</Box>}
-        </Box>
-        <Box sx={{ mt: 2, mb: 2 }}>
-          <FormLabel>Itens do Pedido</FormLabel>
-          {loadingComponentes ? (
-            <Box sx={{ my: 2 }}><CircularProgress size={22} /></Box>
-          ) : (
-            <>
-              <TextField
-                select
-                label="Adicionar Componente"
-                value=""
-                onChange={e => handleAddItem(Number(e.target.value))}
-                fullWidth
-                sx={{ mb: 2 }}
-              >
-                <MenuItem value="" disabled>Selecione um componente</MenuItem>
-                {componentes.map(c => (
-                  <MenuItem key={c.idComponente} value={c.idComponente} disabled={itensPedido.some(i => i.fk_componente === c.idComponente)}>
-                    {c.partNumber} - {c.descricao || c.idHardWareTech}
-                  </MenuItem>
-                ))}
-              </TextField>
-              {itensPedido.length === 0 && <Box sx={{ color: '#888', fontSize: 13, mb: 1 }}>Nenhum item adicionado.</Box>}
-              {itensPedido.map(item => {
-                const comp = componentes.find(c => c.idComponente === item.fk_componente);
-                return (
-                  <Box key={item.fk_componente} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, border: '1px solid #eee', borderRadius: 1, bgcolor: 'transparent', p: 1 }}>
-                    <Box sx={{ flex: 1 }}>
-                      <b>{comp?.partNumber || comp?.idHardWareTech}</b> <span style={{ color: '#888' }}>{comp?.descricao}</span>
+            <TextField
+              label="Nome do Comprador"
+              name="nomeComprador"
+              value={form.nomeComprador}
+              onChange={handleChange}
+              required
+              fullWidth
+              disabled={!!pedido}
+            />
+            <TextField
+              label="Email do Comprador"
+              name="emailComprador"
+              value={form.emailComprador}
+              onChange={handleChange}
+              required
+              fullWidth
+              type="email"
+              disabled={!!pedido}
+            />
+            <TextField
+              label="Telefone Celular"
+              name="telCelular"
+              value={formatPhone(form.telCelular)}
+              onChange={e => {
+                let value = e.target.value.replace(/\D/g, '');
+                value = value.slice(0, 11);
+                setForm(prev => ({ ...prev, telCelular: value }));
+              }}
+              required
+              fullWidth
+              type="text"
+              inputProps={{ maxLength: 15, inputMode: 'text', pattern: '[0-9()\- ]*' }}
+              disabled={!!pedido}
+            />
+            <TextField
+              select
+              label="Status"
+              name="status"
+              value={form.status}
+              onChange={handleChange}
+              required
+              fullWidth
+            >
+              {statusOptions.map((option) => (
+                <MenuItem key={option.value} value={option.value}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </TextField>
+            <TextField
+              label="Valor"
+              name="valor"
+              value={form.valor}
+              onChange={handleChange}
+              required
+              fullWidth
+              type="text"
+            />
+            {error && <Box color="error.main">{error}</Box>}
+          </Box>
+          <Box sx={{ mt: 2, mb: 2 }}>
+            <FormLabel>Itens do Pedido</FormLabel>
+            {loadingComponentes ? (
+              <Box sx={{ my: 2 }}><CircularProgress size={22} /></Box>
+            ) : (
+              <>
+                <TextField
+                  select
+                  label="Adicionar Componente"
+                  value=""
+                  onChange={e => handleAddItem(Number(e.target.value))}
+                  fullWidth
+                  sx={{ mb: 2 }}
+                >
+                  <MenuItem value="" disabled>Selecione um componente</MenuItem>
+                  {componentes.map(c => (
+                    <MenuItem key={c.idComponente} value={c.idComponente} disabled={itensPedido.some(i => i.fk_componente === c.idComponente)}>
+                      {c.partNumber} - {c.descricao || c.idHardWareTech}
+                    </MenuItem>
+                  ))}
+                </TextField>
+                {itensPedido.length === 0 && <Box sx={{ color: '#888', fontSize: 13, mb: 1 }}>Nenhum item adicionado.</Box>}
+                {itensPedido.map(item => {
+                  const comp = componentes.find(c => c.idComponente === item.fk_componente);
+                  return (
+                    <Box key={item.fk_componente} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, border: '1px solid #eee', borderRadius: 1, bgcolor: 'transparent', p: 1 }}>
+                      <Box sx={{ flex: 1 }}>
+                        <b>{comp?.partNumber || comp?.idHardWareTech}</b> <span style={{ color: '#888' }}>{comp?.descricao}</span>
+                      </Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #ccc', borderRadius: 2, overflow: 'hidden', bgcolor: '#faf9f7', height: 36 }}>
+                        <Button
+                          variant="text"
+                          size="small"
+                          sx={{ minWidth: 32, px: 0, fontWeight: 700, color: '#61131A', borderRadius: 0, height: '100%' }}
+                          onClick={() => handleChangeQuantidade(item.fk_componente, Number(item.quantidade) - 1)}
+                          disabled={Number(item.quantidade) <= 1}
+                        >
+                          -
+                        </Button>
+                        <TextField
+                          type="number"
+                          value={item.quantidade}
+                          onChange={e => {
+                            let value = e.target.value.replace(/\D/g, '');
+                            value = value === '' ? 1 : Math.max(1, Number(value));
+                            handleChangeQuantidade(item.fk_componente, value);
+                          }}
+                          inputProps={{ min: 1, style: { textAlign: 'center', width: 48, fontWeight: 600, fontSize: 16, padding: 0, MozAppearance: 'textfield' }, inputMode: 'numeric', pattern: '[0-9]*' }}
+                          size="small"
+                          sx={{ mx: 0, bgcolor: 'transparent', '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 }, '& input[type=number]': { MozAppearance: 'textfield' } }}
+                          variant="standard"
+                          InputProps={{ disableUnderline: true }}
+                        />
+                        <Button
+                          variant="text"
+                          size="small"
+                          sx={{ minWidth: 32, px: 0, fontWeight: 700, color: '#61131A', borderRadius: 0, height: '100%' }}
+                          onClick={() => handleChangeQuantidade(item.fk_componente, Number(item.quantidade) + 1)}
+                        >
+                          +
+                        </Button>
+                      </Box>
+                      <Button color="error" size="small" onClick={() => handleRemoveItem(item.fk_componente)}>Remover</Button>
                     </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0, border: '1px solid #ccc', borderRadius: 2, overflow: 'hidden', bgcolor: '#faf9f7', height: 36 }}>
-                      <Button
-                        variant="text"
-                        size="small"
-                        sx={{ minWidth: 32, px: 0, fontWeight: 700, color: '#61131A', borderRadius: 0, height: '100%' }}
-                        onClick={() => handleChangeQuantidade(item.fk_componente, Number(item.quantidade) - 1)}
-                        disabled={Number(item.quantidade) <= 1}
-                      >
-                        -
-                      </Button>
-                      <TextField
-                        type="number"
-                        value={item.quantidade}
-                        onChange={e => {
-                          let value = e.target.value.replace(/\D/g, '');
-                          value = value === '' ? 1 : Math.max(1, Number(value));
-                          handleChangeQuantidade(item.fk_componente, value);
-                        }}
-                        inputProps={{ min: 1, style: { textAlign: 'center', width: 48, fontWeight: 600, fontSize: 16, padding: 0, MozAppearance: 'textfield' }, inputMode: 'numeric', pattern: '[0-9]*' }}
-                        size="small"
-                        sx={{ mx: 0, bgcolor: 'transparent', '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 }, '& input[type=number]': { MozAppearance: 'textfield' } }}
-                        variant="standard"
-                        InputProps={{ disableUnderline: true }}
-                      />
-                      <Button
-                        variant="text"
-                        size="small"
-                        sx={{ minWidth: 32, px: 0, fontWeight: 700, color: '#61131A', borderRadius: 0, height: '100%' }}
-                        onClick={() => handleChangeQuantidade(item.fk_componente, Number(item.quantidade) + 1)}
-                      >
-                        +
-                      </Button>
-                    </Box>
-                    <Button color="error" size="small" onClick={() => handleRemoveItem(item.fk_componente)}>Remover</Button>
-                  </Box>
-                );
-              })}
-            </>
-          )}
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>Cancelar</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={loading} sx={{ bgcolor: '#61131A', '&:hover': { bgcolor: '#4e0f15' } }}>
-          {loading ? <CircularProgress size={22} /> : "Salvar"}
-        </Button>
-      </DialogActions>
-      {/* Snackbar para feedback de erro */}
-      <Snackbar
-        open={feedbackMessage.open}
-        autoHideDuration={5000}
-        onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
-      >
-        <Alert
+                  );
+                })}
+              </>
+            )}
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} disabled={loading}>Cancelar</Button>
+          <Button onClick={handleSubmit} variant="contained" disabled={loading} sx={{ bgcolor: '#61131A', '&:hover': { bgcolor: '#4e0f15' } }}>
+            {loading ? <CircularProgress size={22} /> : "Salvar"}
+          </Button>
+        </DialogActions>
+        {/* Snackbar para feedback de erro */}
+        <Snackbar
+          open={feedbackMessage.open}
+          autoHideDuration={5000}
           onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
-          severity={feedbackMessage.severity}
-          variant="filled"
-          sx={{ width: '100%', maxWidth: '400px', fontSize: '0.9rem' }}
+          anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
         >
-          {feedbackMessage.message}
-        </Alert>
-      </Snackbar>
-    </Dialog>
+          <Alert
+            onClose={() => setFeedbackMessage(prev => ({ ...prev, open: false }))}
+            severity={feedbackMessage.severity}
+            variant="filled"
+            sx={{ width: '100%', maxWidth: '400px', fontSize: '0.9rem' }}
+          >
+            {feedbackMessage.message}
+          </Alert>
+        </Snackbar>
+      </Dialog>
+
+      {/* Confirmation Dialog */}
+      <Dialog
+        open={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        maxWidth="xs"
+        fullWidth
+        PaperProps={{
+          sx: {
+            borderRadius: 3,
+            boxShadow: 8,
+            background: '#fff', // fundo branco
+            p: 0
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          fontSize: '1.2rem',
+          pb: 0,
+          textAlign: 'center',
+          background: '#fff', // fundo branco
+          borderBottom: '1px solid #f8d7da'
+        }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" style={{ marginBottom: 4 }}>
+              <circle cx="12" cy="12" r="12" fill="#61131A" fillOpacity="0.12" />
+              <path d="M12 8v4m0 4h.01" stroke="#61131A" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            Confirmar conclusão do pedido
+          </Box>
+        </DialogTitle>
+        <DialogContent sx={{ pt: 2, pb: 2, background: '#fff' }}>
+          <Box sx={{ my: 1, textAlign: 'center' }}>
+            <Box sx={{ fontSize: '1.05rem', color: '#61131A', fontWeight: 600, mb: 1 }}>
+              Você está prestes a <b>concluir</b> este pedido.
+            </Box>
+            <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0, color: '#61131A', fontSize: '1rem', fontWeight: 500 }}>
+              <li style={{ marginBottom: 6 }}>
+                <span style={{ fontWeight: 700, color: '#9C1F2E' }}>•</span> Pedido será finalizado com o status <b>CONCLUÍDO</b>
+              </li>
+              <li style={{ marginBottom: 6 }}>
+                <span style={{ fontWeight: 700, color: '#9C1F2E' }}>•</span> Itens serão descontados no estoque
+              </li>
+              <li>
+                <span style={{ fontWeight: 700, color: '#9C1F2E' }}>•</span> <span style={{ color: '#b71c1c', fontWeight: 700 }}>Esta ação não poderá ser revertida</span>
+              </li>
+            </ul>
+            <Box sx={{ mt: 2, color: '#61131A', fontWeight: 500, fontSize: '1rem' }}>
+              Tem certeza que deseja <b>prosseguir</b>?
+            </Box>
+          </Box>
+        </DialogContent>
+        <DialogActions sx={{ pb: 2, pr: 3, pl: 3, justifyContent: 'center', background: '#fff' }}>
+          <Button onClick={() => setShowConfirmationModal(false)} sx={{ borderRadius: '4px', textTransform: 'none', fontWeight: 600, px: 4 }}>
+            Cancelar
+          </Button>
+          <Button
+            onClick={() => {
+              setShowConfirmationModal(false);
+              saveOrder();
+            }}
+            variant="contained"
+            color="error"
+            sx={{ bgcolor: '#61131A', '&:hover': { bgcolor: '#4e0f15' }, fontWeight: 600, borderRadius: '4px', textTransform: 'none', px: 4 }}
+          >
+            Confirmar Conclusão
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
 

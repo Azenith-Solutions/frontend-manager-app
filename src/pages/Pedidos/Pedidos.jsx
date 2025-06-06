@@ -967,18 +967,18 @@ const Pedidos = () => {
 
       {/* Modal de edição bloqueada */}
       <Dialog open={editBlockedModalOpen} onClose={() => setEditBlockedModalOpen(false)} maxWidth="xs" fullWidth>
-        <DialogTitle sx={{ fontSize: '1.2rem', pb: 0, textAlign: 'center', background: 'linear-gradient(90deg, #fff3f3 0%, #fff 100%)', borderBottom: '1px solid #f8d7da' }}>
+        <DialogTitle sx={{ fontSize: '1.2rem', pb: 0, textAlign: 'center', background: '#fff', borderBottom: '1px solid #f8d7da' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1 }}>
             <InfoOutlinedIcon sx={{ color: '#61131A', fontSize: 38, mb: 0.5 }} />
             Edição não permitida
           </Box>
         </DialogTitle>
-        <DialogContent sx={{ pt: 2, pb: 2, background: 'linear-gradient(90deg, #fff3f3 0%, #fff 100%)' }}>
+        <DialogContent sx={{ pt: 2, pb: 2, background: '#fff' }}>
           <Typography sx={{ fontSize: '1.05rem', color: '#61131A', fontWeight: 600, textAlign: 'center', mb: 1 }}>
             Não é possível editar um pedido que já está <b>CONCLUÍDO</b>.
           </Typography>
         </DialogContent>
-        <DialogActions sx={{ pb: 2, pr: 3, pl: 3, justifyContent: 'center', background: 'linear-gradient(90deg, #fff3f3 0%, #fff 100%)' }}>
+        <DialogActions sx={{ pb: 2, pr: 3, pl: 3, justifyContent: 'center', background: '#fff' }}>
           <Button onClick={() => setEditBlockedModalOpen(false)} sx={{ borderRadius: '4px', textTransform: 'none', fontWeight: 600, px: 4, bgcolor: '#61131A', color: '#fff', '&:hover': { bgcolor: '#4e0f15' } }} autoFocus>
             OK
           </Button>
