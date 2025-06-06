@@ -331,6 +331,25 @@ const Pedidos = () => {
     // eslint-disable-next-line
   }, [filteredPedidos, page, rowsPerPage]);
 
+  // Atualiza pedidos, componentes e itensPorPedido após salvar/editar pedido
+  const handleOrderSuccess = async () => {
+    await fetchPedidos();
+    await fetchComponentesEstoque();
+    // Atualiza itensPorPedido para todos os pedidos visíveis
+    try {
+      const response = await api.get('/items');
+      const itens = response.data.data || response.data || [];
+      const novoItensPorPedido = {};
+      // Atualiza para todos os pedidos atualmente filtrados e visíveis
+      filteredPedidos.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).forEach(p => {
+        novoItensPorPedido[p.idPedido] = itens.filter(item => item.fkPedido && String(item.fkPedido.idPedido) === String(p.idPedido));
+      });
+      setItensPorPedido(prev => ({ ...prev, ...novoItensPorPedido }));
+    } catch (e) {
+      // Em caso de erro, não faz nada
+    }
+  };
+
   if (loading) {
     return (
       <Box className={styles.loadingContainer}>
@@ -747,6 +766,8 @@ const Pedidos = () => {
                         return excede;
                       });
                     }
+                    // NÃO mostrar warning se o pedido está concluído
+                    const isConcluido = (item.status || '').toLowerCase() === 'concluido';
                     return (
                       <TableRow
                         key={item.id}
@@ -789,7 +810,7 @@ const Pedidos = () => {
                         </TableCell>
                         <TableCell align="center" sx={{ py: 0.8 }}>
                           <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1, alignItems: 'center' }}>
-                            {algumExcedeEstoque ? (
+                            {algumExcedeEstoque && !isConcluido ? (
                               <Tooltip
                                 title={<Typography variant="body2" sx={{ p: 1 }}>Quantidade solicitada excede o estoque atual do componente!</Typography>}
                                 arrow
@@ -907,7 +928,7 @@ const Pedidos = () => {
           setOrderModalOpen(false);
           setPedidoToEdit(null);
         }}
-        onSuccess={fetchPedidos}
+        onSuccess={handleOrderSuccess}
         pedido={pedidoToEdit}
       />
 
@@ -933,35 +954,83 @@ const Pedidos = () => {
 
       {/* Modal de itens do pedido */}
       <Dialog open={itensModalOpen} onClose={() => setItensModalOpen(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Itens do Pedido {pedidoSelecionado?.idPedido}</DialogTitle>
-        <DialogContent>
+        <DialogTitle sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          background: 'linear-gradient(90deg, #f8fafc 60%, #f0f2f5 100%)',
+          borderBottom: '1px solid #e0e0e0',
+          fontWeight: 700,
+          fontSize: '1.25rem',
+          color: '#61131A',
+          py: 2,
+        }}>
+          <ReceiptIcon sx={{ color: '#61131A', fontSize: 28, mr: 1 }} />
+          Itens do Pedido {pedidoSelecionado?.idPedido}
+        </DialogTitle>
+        <DialogContent sx={{
+          background: 'linear-gradient(90deg, #f8fafc 60%, #f0f2f5 100%)',
+          px: 3,
+          py: 2.5,
+        }}>
           {pedidoItens.length === 0 ? (
-            <Typography sx={{ color: '#888', mt: 2 }}>Nenhum item encontrado.</Typography>
+            <Typography sx={{ color: '#888', mt: 2, textAlign: 'center', fontSize: '1.05rem' }}>Nenhum item encontrado.</Typography>
           ) : (
-            <>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Componente</TableCell>
-                    <TableCell>Quantidade Solicitada</TableCell>
-                    <TableCell>Quantidade em Estoque</TableCell>
+            <Table size="small" sx={{
+              background: '#fff',
+              borderRadius: 2,
+              boxShadow: '0 2px 8px rgba(97,19,26,0.06)',
+              overflow: 'hidden',
+              mt: 1,
+            }}>
+              <TableHead>
+                <TableRow sx={{ background: '#f5e9eb' }}>
+                  <TableCell sx={{ fontWeight: 700, color: '#61131A', fontSize: '1rem', borderBottom: '2px solid #61131A' }}>Componente</TableCell>
+                  <TableCell sx={{ fontWeight: 700, color: '#61131A', fontSize: '1rem', borderBottom: '2px solid #61131A' }}>Quantidade Solicitada</TableCell>
+                  {/* Só mostra a coluna de estoque se o pedido NÃO estiver concluído */}
+                  {pedidoSelecionado?.status?.toLowerCase() !== 'concluido' && (
+                    <TableCell sx={{ fontWeight: 700, color: '#61131A', fontSize: '1rem', borderBottom: '2px solid #61131A' }}>Quantidade em Estoque</TableCell>
+                  )}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {pedidoItens.map((item, idx) => (
+                  <TableRow key={idx} sx={{
+                    background: idx % 2 === 0 ? '#f8fafc' : '#fff',
+                    '&:last-child td': { borderBottom: 0 },
+                  }}>
+                    <TableCell sx={{ fontWeight: 500, color: '#333', fontSize: '0.98rem' }}>{item.fkComponente?.partNumber || item.fkComponente?.idComponente || item.fkComponente?.descricao || '-'}</TableCell>
+                    <TableCell sx={{ fontWeight: 500, color: '#61131A', fontSize: '0.98rem' }}>{item.quantidadeCarrinho}</TableCell>
+                    {/* Só mostra a quantidade em estoque se o pedido NÃO estiver concluído */}
+                    {pedidoSelecionado?.status?.toLowerCase() !== 'concluido' && (
+                      <TableCell sx={{ fontWeight: 500, color: '#61131A', fontSize: '0.98rem' }}>{item.fkComponente?.quantidade ?? '-'}</TableCell>
+                    )}
                   </TableRow>
-                </TableHead>
-                <TableBody>
-                  {pedidoItens.map((item, idx) => (
-                    <TableRow key={idx}>
-                      <TableCell>{item.fkComponente?.partNumber || item.fkComponente?.idComponente || item.fkComponente?.descricao || '-'}</TableCell>
-                      <TableCell>{item.quantidadeCarrinho}</TableCell>
-                      <TableCell>{item.fkComponente?.quantidade ?? '-'}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </>
+                ))}
+              </TableBody>
+            </Table>
           )}
         </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setItensModalOpen(false)}>Fechar</Button>
+        <DialogActions sx={{
+          background: '#f8fafc',
+          borderTop: '1px solid #e0e0e0',
+          py: 2,
+          px: 3,
+          justifyContent: 'center',
+        }}>
+          <Button onClick={() => setItensModalOpen(false)} sx={{
+            borderRadius: '4px',
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 4,
+            bgcolor: '#61131A',
+            color: '#fff',
+            fontSize: '1rem',
+            boxShadow: '0 2px 8px rgba(97,19,26,0.08)',
+            '&:hover': { bgcolor: '#4e0f15' }
+          }}>
+            Fechar
+          </Button>
         </DialogActions>
       </Dialog>
 
