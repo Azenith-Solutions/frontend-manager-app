@@ -337,9 +337,44 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
 
   return (
     <>
-      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
-        <DialogTitle>{pedido ? 'Editar Pedido' : 'Novo Pedido'}</DialogTitle>
-        <DialogContent>
+      <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth PaperProps={{
+        sx: {
+          borderRadius: 3,
+          boxShadow: 8,
+          background: 'linear-gradient(90deg, #f8fafc 60%, #f0f2f5 100%)',
+          p: 0
+        }
+      }}>
+        <DialogTitle sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1,
+          background: 'linear-gradient(90deg, #f8fafc 60%, #f0f2f5 100%)',
+          borderBottom: '1px solid #e0e0e0',
+          fontWeight: 700,
+          fontSize: '1.25rem',
+          color: '#61131A',
+          py: 2,
+        }}>
+          <Box sx={{
+            backgroundColor: '#61131A',
+            width: 32,
+            height: 32,
+            borderRadius: 2,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            mr: 1
+          }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><rect x="3" y="5" width="18" height="14" rx="2" fill="#fff" stroke="#61131A" strokeWidth="2"/><path d="M7 9h10M7 13h6" stroke="#61131A" strokeWidth="2" strokeLinecap="round"/></svg>
+          </Box>
+          {pedido ? 'Editar Pedido' : 'Novo Pedido'}
+        </DialogTitle>
+        <DialogContent sx={{
+          background: 'linear-gradient(90deg, #f8fafc 60%, #f0f2f5 100%)',
+          px: 3,
+          py: 2.5,
+        }}>
           {/* Selecionador de tipo de pessoa */}
           <Box sx={{ mb: 2 }}>
             <FormLabel id="tipo-pessoa-label">Tipo de Pessoa</FormLabel>
@@ -353,7 +388,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
                 setForm(prev => ({ ...prev, cnpj: '' }));
               }}
               disabled={!!pedido}
-              sx={!!pedido ? { pointerEvents: 'none', opacity: 0.5 } : {}}
+              sx={{ ml: 1 }}
             >
               <FormControlLabel
                 value="empresa"
@@ -377,6 +412,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               onChange={handleChange}
               required
               fullWidth
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
             <TextField
@@ -392,6 +430,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               required
               fullWidth
               inputProps={{ maxLength: tipoPessoa === 'empresa' ? 18 : 14, inputMode: 'text', pattern: '[0-9.\-/]*' }}
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
             <TextField
@@ -401,6 +442,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               onChange={handleChange}
               required
               fullWidth
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
             <TextField
@@ -411,6 +455,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               required
               fullWidth
               type="email"
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
             <TextField
@@ -426,6 +473,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               fullWidth
               type="text"
               inputProps={{ maxLength: 15, inputMode: 'text', pattern: '[0-9()\- ]*' }}
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
             <TextField
@@ -436,6 +486,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               onChange={handleChange}
               required
               fullWidth
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
             >
               {statusOptions.map((option) => (
                 <MenuItem key={option.value} value={option.value}>
@@ -451,6 +504,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               required
               fullWidth
               type="text"
+              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+              InputLabelProps={{ sx: { fontSize: '1rem' } }}
+              sx={{ bgcolor: '#fff' }}
             />
             {error && <Box color="error.main">{error}</Box>}
           </Box>
@@ -466,7 +522,9 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
                   value=""
                   onChange={e => handleAddItem(Number(e.target.value))}
                   fullWidth
-                  sx={{ mb: 2 }}
+                  sx={{ mb: 2, bgcolor: '#fff' }}
+                  InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+                  InputLabelProps={{ sx: { fontSize: '1rem' } }}
                 >
                   <MenuItem value="" disabled>Selecione um componente</MenuItem>
                   {componentes.map(c => (
@@ -479,7 +537,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
                 {itensPedido.map(item => {
                   const comp = componentes.find(c => c.idComponente === item.fk_componente);
                   return (
-                    <Box key={item.fk_componente} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, border: '1px solid #eee', borderRadius: 1, bgcolor: 'transparent', p: 1 }}>
+                    <Box key={item.fk_componente} sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1, border: '1px solid #eee', borderRadius: 2, bgcolor: '#fff', p: 1 }}>
                       <Box sx={{ flex: 1 }}>
                         <b>{comp?.partNumber || comp?.idHardWareTech}</b> <span style={{ color: '#888' }}>{comp?.descricao}</span>
                       </Box>
@@ -498,14 +556,13 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
                           value={item.quantidade}
                           onChange={e => {
                             let value = e.target.value.replace(/\D/g, '');
-                            value = value === '' ? 1 : Math.max(1, Number(value));
+                            value = value ? Math.max(1, Number(value)) : 1;
                             handleChangeQuantidade(item.fk_componente, value);
                           }}
-                          inputProps={{ min: 1, style: { textAlign: 'center', width: 48, fontWeight: 600, fontSize: 16, padding: 0, MozAppearance: 'textfield' }, inputMode: 'numeric', pattern: '[0-9]*' }}
+                          inputProps={{ min: 1, style: { textAlign: 'center', width: 40, fontWeight: 600, fontSize: '1rem', MozAppearance: 'textfield' }, step: 1 }}
+                          sx={{ width: 60, mx: 0.5, bgcolor: '#fff', '& input': { textAlign: 'center' } }}
                           size="small"
-                          sx={{ mx: 0, bgcolor: 'transparent', '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 }, '& input[type=number]': { MozAppearance: 'textfield' } }}
-                          variant="standard"
-                          InputProps={{ disableUnderline: true }}
+                          InputProps={{ inputProps: { style: { MozAppearance: 'textfield', textAlign: 'center' } }, sx: { '& input[type=number]::-webkit-outer-spin-button, & input[type=number]::-webkit-inner-spin-button': { WebkitAppearance: 'none', margin: 0 }, '& input[type=number]': { MozAppearance: 'textfield', textAlign: 'center' } } }}
                         />
                         <Button
                           variant="text"
@@ -516,7 +573,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
                           +
                         </Button>
                       </Box>
-                      <Button color="error" size="small" onClick={() => handleRemoveItem(item.fk_componente)}>Remover</Button>
+                      <Button color="error" size="small" onClick={() => handleRemoveItem(item.fk_componente)} sx={{ ml: 1, fontWeight: 600, color: '#b71c1c', textTransform: 'none' }}>Remover</Button>
                     </Box>
                   );
                 })}
@@ -524,10 +581,39 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
             )}
           </Box>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose} disabled={loading}>Cancelar</Button>
-          <Button onClick={handleSubmit} variant="contained" disabled={loading} sx={{ bgcolor: '#61131A', '&:hover': { bgcolor: '#4e0f15' } }}>
-            {loading ? <CircularProgress size={22} /> : "Salvar"}
+        <DialogActions sx={{
+          background: '#f8fafc',
+          borderTop: '1px solid #e0e0e0',
+          py: 2,
+          px: 3,
+          justifyContent: 'center',
+        }}>
+          <Button onClick={handleClose} disabled={loading} sx={{
+            borderRadius: '4px',
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 4,
+            bgcolor: '#fff',
+            color: '#61131A',
+            fontSize: '1rem',
+            border: '1px solid #61131A',
+            boxShadow: '0 2px 8px rgba(97,19,26,0.04)',
+            '&:hover': { bgcolor: '#f5e9eb' }
+          }}>
+            Cancelar
+          </Button>
+          <Button onClick={handleSubmit} variant="contained" disabled={loading} sx={{
+            borderRadius: '4px',
+            textTransform: 'none',
+            fontWeight: 700,
+            px: 4,
+            bgcolor: '#61131A',
+            color: '#fff',
+            fontSize: '1rem',
+            boxShadow: '0 2px 8px rgba(97,19,26,0.08)',
+            '&:hover': { bgcolor: '#4e0f15' }
+          }}>
+            {loading ? <CircularProgress size={22} sx={{ color: '#fff' }} /> : "Salvar"}
           </Button>
         </DialogActions>
         {/* Snackbar para feedback de erro */}
@@ -581,26 +667,29 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
         <DialogContent sx={{ pt: 2, pb: 2, background: '#fff' }}>
           <Box sx={{ my: 1, textAlign: 'center' }}>
             <Box sx={{ fontSize: '1.05rem', color: '#61131A', fontWeight: 600, mb: 1 }}>
-              Você está prestes a <b>concluir</b> este pedido.
+              Tem certeza que deseja <b>concluir</b> este pedido?
             </Box>
-            <ul style={{ paddingLeft: 0, listStyle: 'none', margin: 0, color: '#61131A', fontSize: '1rem', fontWeight: 500 }}>
-              <li style={{ marginBottom: 6 }}>
-                <span style={{ fontWeight: 700, color: '#9C1F2E' }}>•</span> Pedido será finalizado com o status <b>CONCLUÍDO</b>
-              </li>
-              <li style={{ marginBottom: 6 }}>
-                <span style={{ fontWeight: 700, color: '#9C1F2E' }}>•</span> Itens serão descontados no estoque
-              </li>
-              <li>
-                <span style={{ fontWeight: 700, color: '#9C1F2E' }}>•</span> <span style={{ color: '#b71c1c', fontWeight: 700 }}>Esta ação não poderá ser revertida</span>
-              </li>
-            </ul>
-            <Box sx={{ mt: 2, color: '#61131A', fontWeight: 500, fontSize: '1rem' }}>
-              Tem certeza que deseja <b>prosseguir</b>?
+            <Box sx={{ color: '#222', fontWeight: 700, fontSize: '1rem', mt: 1, letterSpacing: 0.2, background: '#f5f5f5', borderRadius: 1, px: 1, py: 0.5, display: 'inline-block' }}>
+              Esta ação não poderá ser desfeita e os itens serão descontados do estoque.
             </Box>
           </Box>
         </DialogContent>
         <DialogActions sx={{ pb: 2, pr: 3, pl: 3, justifyContent: 'center', background: '#fff' }}>
-          <Button onClick={() => setShowConfirmationModal(false)} sx={{ borderRadius: '4px', textTransform: 'none', fontWeight: 600, px: 4 }}>
+          <Button
+            onClick={() => setShowConfirmationModal(false)}
+            sx={{
+              borderRadius: '4px',
+              textTransform: 'none',
+              fontWeight: 700,
+              px: 4,
+              bgcolor: '#fff',
+              color: '#61131A',
+              fontSize: '1rem',
+              border: '1px solid #61131A',
+              boxShadow: '0 2px 8px rgba(97,19,26,0.04)',
+              '&:hover': { bgcolor: '#f5e9eb' }
+            }}
+          >
             Cancelar
           </Button>
           <Button
