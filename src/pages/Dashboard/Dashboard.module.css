@@ -3,7 +3,9 @@
   padding-bottom: 15px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  /* Allow scrolling when needed, especially on zoom or smaller screens */
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .loadingContainer {
@@ -139,9 +141,12 @@
   height: calc(100% - 120px);
   /* Ajustado para o maior espaço dos KPIs */
   width: 100%;
-  overflow: hidden;
+  /* Allow scrolling when needed but prevent unnecessary scrollbars */
+  overflow: visible;
   padding: 4px;
   margin-top: 8px;
+  /* Ensure cards are positioned at the top when content overflows */
+  align-items: start;
 }
 
 .chartTitle {
@@ -151,9 +156,15 @@
   font-weight: 600;
   color: #333;
   padding: 0 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  /* Allow text to wrap naturally instead of requiring nowrap */
+  white-space: normal;
+  /* Ensure enough height for two lines of text if needed */
+  min-height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .chartCard1 {
@@ -165,9 +176,11 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
   position: relative;
+  height: 100%;
+  /* Prevent content overflow causing unwanted scrollbars */
+  overflow: visible;
 }
 
 .chartCard1:hover,
@@ -196,9 +209,11 @@
   padding: 16px;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
   position: relative;
   transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+  height: 100%;
+  /* Prevent content overflow causing unwanted scrollbars */
+  overflow: visible;
 }
 
 .chartCard3::after {
@@ -218,6 +233,12 @@
   padding: 8px 4px 4px;
   position: relative;
   transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  /* Add some top margin to ensure spacing below the title */
+  margin-top: 5px;
+  /* Ensure chart content doesn't overflow its container */
+  overflow: visible;
 }
 
 .chartContent:hover {
@@ -278,8 +299,9 @@
   .chartTitle {
     font-size: 12px;
     padding: 0 8px;
-    margin-bottom: 8px;
+    margin-bottom: 10px;
     white-space: normal;
+    min-height: 32px;
   }
 
   .chartCard1 {
@@ -335,7 +357,9 @@
 
   .chartTitle {
     font-size: 11px;
-    margin-bottom: 6px;
+    margin-bottom: 8px;
+    min-height: 30px;
+    line-height: 1.3;
   }
 
   .chartCard1,

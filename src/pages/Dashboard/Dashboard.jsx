@@ -11,45 +11,51 @@ import WarningIcon from '@mui/icons-material/Warning';
 import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
 import AutorenewIcon from '@mui/icons-material/Autorenew';
 import InventoryIcon from '@mui/icons-material/Inventory';
-import { XAxis, YAxis, Tooltip, CartesianGrid, BarChart, Bar, PieChart, Pie, Cell, Legend, ResponsiveContainer, Sector } from 'recharts';
+import {
+  Tooltip,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 import styles from "./Dashboard.module.css";
-import { fetchLowStockItems, fetchInObservationItems, fetchIcompleteItems, fetchItemsOutOfLastSaleSLA, fetchQuantityByMLStatus, fetchComponentsPerBox } from "../../service/dashboard/dashboardService";
+import {
+  fetchLowStockItems,
+  fetchInObservationItems,
+  fetchIcompleteItems,
+  fetchItemsOutOfLastSaleSLA,
+  fetchQuantityByMLStatus,
+  fetchComponentsPerBox
+} from "../../service/dashboard/dashboardService";
 import KpiDetailModal from "../../components/modals/KpiDetailModal/KpiDetailModal";
 import ComponentsPerBoxChart from './ComponentsPerBoxChart';
 
-// mock similando carregamento do fetch de dados
-const fetchKpiData = () => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({
-        lowStockItems: 15,
-        totalStockValue: 124500,
-        turnoverRate: 3.2,
-        obsoleteItems: 23
-      });
-    }, 1000);
-  });
-};
-
 const Dashboard = () => {
-  // Estados das KPIs e dados das Dashboards
+  // Estados das KPIs
   const [lowStockComponents, setLowStockComponents] = useState([]);
   const [quantityLowStockComponents, setQuantityLowStockComponents] = useState(lowStockComponents.length);
   const [inObservationComponents, setInObservationComponents] = useState([]);
   const [quantityInObservationComponents, setQuantityInObservationComponents] = useState(inObservationComponents.length);
   const [incompleteComponents, setIncompleteComponents] = useState([]);
   const [quantityIncompleteComponents, setQuantityIncompleteComponents] = useState(incompleteComponents.length);
-  const [itemsOutOfLastSaleSLA, setItemsOutOfLastSaleSLA] = useState([]); const [quantityItemsOutOfLastSaleSLA, setQuantityItemsOutOfLastSaleSLA] = useState(itemsOutOfLastSaleSLA.length);
+  const [itemsOutOfLastSaleSLA, setItemsOutOfLastSaleSLA] = useState([]);
+  const [quantityItemsOutOfLastSaleSLA, setQuantityItemsOutOfLastSaleSLA] = useState(itemsOutOfLastSaleSLA.length);
+
+  // Estados para dados dos gráficos
   const [componentsMLData, setComponentsMLData] = useState([]);
   const [boxesDataDashboard, setBoxesDataDashboard] = useState([]);
-
   const [loading, setLoading] = useState(true);
+
   // Estados para controle de modal
   const [modalOpen, setModalOpen] = useState(false);
   const [modalTitle, setModalTitle] = useState("");
   const [modalData, setModalData] = useState([]);
   const [modalColumns, setModalColumns] = useState([]);
-  const [modalLoading, setModalLoading] = useState(false); const isMobile = useMediaQuery('(max-width:600px)');
+  const [modalLoading, setModalLoading] = useState(false);
+
+  // Media queries para responsividade
+  const isMobile = useMediaQuery('(max-width:600px)');
   const isTablet = useMediaQuery('(max-width:960px)');
   const chartCard1Ref = useRef(null);
   const chartCard3Ref = useRef(null);
@@ -61,15 +67,12 @@ const Dashboard = () => {
   const getLowStockComponents = async () => {
     try {
       const response = await fetchLowStockItems();
-
       const lowStockItems = response.data;
-      console.log("Componentes com baixo estoque:", lowStockItems);
 
       setLowStockComponents(lowStockItems);
       setQuantityLowStockComponents(lowStockItems.length);
-      console.log("Quantidade de componentes com baixo estoque:", lowStockItems.length);
     } catch (error) {
-      console.error("Error fetching low stock components:", error);
+      console.error("Erro ao buscar componentes com baixo estoque:", error);
     }
   };
 
@@ -79,9 +82,8 @@ const Dashboard = () => {
 
       setInObservationComponents(response.data);
       setQuantityInObservationComponents(response.data.length);
-      console.log("Quantidade de componentes em observação:", response.data.length);
     } catch (error) {
-      console.error("Error fetching in observation components:", error);
+      console.error("Erro ao buscar componentes em observação:", error);
     }
   };
 
@@ -91,22 +93,22 @@ const Dashboard = () => {
 
       setIncompleteComponents(response.data);
       setQuantityIncompleteComponents(response.data.length);
-      console.log("Quantidade de componentes incompletos:", response.data.length);
     } catch (error) {
-      console.error("Error fetching incomplete components:", error);
+      console.error("Erro ao buscar componentes incompletos:", error);
     }
   };
   const getItemsOutOfLastSaleSLA = async () => {
     try {
       const response = await fetchItemsOutOfLastSaleSLA();
 
-      console.log("Componentes fora do SLA da última venda:", response.data);
       setItemsOutOfLastSaleSLA(response.data);
       setQuantityItemsOutOfLastSaleSLA(response.data.length);
     } catch (error) {
-      console.error("Error fetching items out of last sale SLA:", error);
+      console.error("Erro ao buscar itens fora do SLA da última venda:", error);
     }
-  }; const getQuantityByMLStatus = async () => {
+  };
+
+  const getQuantityByMLStatus = async () => {
     try {
       const response = await fetchQuantityByMLStatus();
 
@@ -135,6 +137,7 @@ const Dashboard = () => {
       setComponentsMLData(fallbackData);
     }
   };
+
   // Função para abrir o modal com detalhes da KPI selecionada
   const handleKpiClick = (kpiType) => {
     setModalLoading(true);
@@ -146,6 +149,7 @@ const Dashboard = () => {
       case 'lowStock':
         setModalTitle("Produtos com Baixo Estoque");
         setModalData(lowStockComponents);
+
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
           { field: 'descricao', headerName: 'Descrição', width: 250 },
@@ -162,12 +166,13 @@ const Dashboard = () => {
             headerName: 'Caixa',
             width: 120,
             valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
-          }
-        ];
-        break; case 'observation':
+          }];
+        break;
+
+      case 'observation':
         setModalTitle("Produtos em Observação");
         setModalData(inObservationComponents);
-        // Colunas específicas para o caso "observation" conforme o ComponentObservationDTO
+
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'IDH', width: 100 },
           { field: 'partNumber', headerName: 'Part Number', width: 150 },
@@ -178,6 +183,7 @@ const Dashboard = () => {
       case 'incomplete':
         setModalTitle("Produtos Incompletos");
         setModalData(incompleteComponents);
+
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
           { field: 'descricao', headerName: 'Descrição', width: 250 },
@@ -200,6 +206,7 @@ const Dashboard = () => {
       case 'outOfSla':
         setModalTitle("Produtos Não Vendidos por 30+ Dias");
         setModalData(itemsOutOfLastSaleSLA);
+
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
           { field: 'descricao', headerName: 'Descrição', width: 250 },
@@ -222,6 +229,7 @@ const Dashboard = () => {
       default:
         setModalTitle("Detalhes");
         setModalData([]);
+
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
           { field: 'descricao', headerName: 'Descrição', width: 250 },
@@ -230,131 +238,151 @@ const Dashboard = () => {
 
     // Definindo as colunas no estado para uso no modal
     setModalColumns(modalColumns);
-
-    // Simulando um breve carregamento para demonstração
-    setTimeout(() => {
-      setModalLoading(false);
-    }, 300);
   };
 
   // Função para fechar o modal
   const handleCloseModal = () => {
     setModalOpen(false);
   };
-  const fetchData = async () => {
+
+  const setupKPIsAndDashboardsData = async () => {
     try {
-      await fetchKpiData();
-      // Como não estamos mais usando o kpiData, apenas aguardamos a conclusão
-      // para garantir que todos os dados foram carregados
+      getLowStockComponents();
+      getInObservationComponents();
+      getIncompleteComponents();
+      getItemsOutOfLastSaleSLA();
+      getQuantityByMLStatus();
+      getComponentsPerBox();
     } catch (error) {
-      console.error("Error fetching data:", error);
+      console.error("Erro ao buscar dados de KPIs e Dashboards:", error);
     } finally {
       setLoading(false);
     }
   };
+
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
-    getLowStockComponents();
-    getInObservationComponents();
-    getIncompleteComponents();
-    getItemsOutOfLastSaleSLA();
-    getQuantityByMLStatus();
-    getComponentsPerBox();
-    fetchData();
+    setupKPIsAndDashboardsData();
   }, []);
-
-  // Adjust chart heights based on window resize
+  // Ajusta alturas dos gráficos com base no redimensionamento da janela
   useEffect(() => {
     const handleResize = () => {
       if (chartCard1Ref.current && chartCard3Ref.current) {
-        // Get the actual card content height and adjust chart height accordingly
-        const card1Height = chartCard1Ref.current.clientHeight - 40; // subtract title height
-        const card3Height = chartCard3Ref.current.clientHeight - 40;
+        // Obtém a altura real do conteúdo do card e ajusta a altura do gráfico de acordo
+        // Aumenta a subtração da altura do título para considerar títulos com quebra de linha
+        const titleHeight = isTablet ? 50 : 60;
+        const card1Height = chartCard1Ref.current.clientHeight - titleHeight;
+        const card3Height = chartCard3Ref.current.clientHeight - titleHeight;
 
         setChartHeights({
-          chart1: Math.max(card1Height, 250),
-          chart3: Math.max(card3Height, isTablet ? 250 : 350)
+          chart1: Math.max(card1Height, isTablet ? 250 : 300),
+          chart3: Math.max(card3Height, isTablet ? 250 : 300)
         });
       }
-    };
+    };    // Redimensionamento inicial e pequeno atraso para garantir atualizações do DOM
+    setTimeout(handleResize, 100);
 
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [isTablet]);  // Configuração para o gráfico de pizza (componentes ML)
+    // Adiciona listener de redimensionamento
+    window.addEventListener('resize', handleResize);    // Configuração para o gráfico de pizza (componentes ML)
+    // Adiciona listener de zoom para mudanças no zoom do navegador
+    window.addEventListener('wheel', (e) => {
+      if (e.ctrlKey) {
+        setTimeout(handleResize, 100);
+      }
+    });
+
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('wheel', handleResize);
+    };
+  }, [isTablet]);
 
   const getComponentsPerBox = async () => {
     try {
-      const response = await fetchComponentsPerBox();
-      const boxes = [
-        { title: response.data[0]?.name || 'Caixa 1', componentsPerBox: response.data[0]?.componentCount || 0 },
-        { title: response.data[1]?.name || 'Caixa 2', componentsPerBox: response.data[1]?.componentCount || 0 },
-        { title: response.data[2]?.name || 'Caixa 3', componentsPerBox: response.data[2]?.componentCount || 0 },
-        { title: response.data[3]?.name || 'Caixa 4', componentsPerBox: response.data[3]?.componentCount || 0 },
-        { title: response.data[4]?.name || 'Caixa 5', componentsPerBox: response.data[4]?.componentCount || 0 }
+      const response = await fetchComponentsPerBox(); const boxes = [
+        {
+          title: response.data[0]?.name || 'Caixa 1',
+          componentsPerBox: response.data[0]?.componentCount || 0
+        },
+        {
+          title: response.data[1]?.name || 'Caixa 2',
+          componentsPerBox: response.data[1]?.componentCount || 0
+        },
+        {
+          title: response.data[2]?.name || 'Caixa 3',
+          componentsPerBox: response.data[2]?.componentCount || 0
+        },
+        {
+          title: response.data[3]?.name || 'Caixa 4',
+          componentsPerBox: response.data[3]?.componentCount || 0
+        },
+        {
+          title: response.data[4]?.name || 'Caixa 5',
+          componentsPerBox: response.data[4]?.componentCount || 0
+        }
       ];
 
       setBoxesDataDashboard(boxes);
-
-      console.log("Dados para o gráfico de componentes por caixa:", boxes);
     } catch (error) {
-      console.error("Error fetching boxes data:", error);
+      console.error("Erro ao buscar dados das caixas:", error);
     }
   }
 
   if (loading) {
-    return (<Box className={styles.loadingContainer}>
-      <CircularProgress color="primary" size={50} thickness={4} />
-      <Typography variant="h6" sx={{ mt: 2, fontWeight: 500, color: '#555' }}>
-        Carregando dados do dashboard...
-      </Typography>
-    </Box>
+    return (
+      <Box className={styles.loadingContainer}>
+        <CircularProgress color="primary" size={50} thickness={4} />
+        <Typography variant="h6" sx={{ mt: 2, fontWeight: 500, color: '#555' }}>
+          Carregando dados do dashboard...
+        </Typography>
+      </Box>
     );
   }
 
   return (
     <div className={styles.dashboard}>
-      <Box className={styles.kpiContainer}>
-        <Card
-          className={styles.kpiCard}
-          sx={{
-            borderTop: '4px solid #61131A',
-            cursor: 'pointer',
-            position: 'relative',
-            '&::after': {
-              content: '""',
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              height: '4px',
-              background: 'linear-gradient(90deg, #61131A 70%, rgba(97, 19, 26, 0.4) 100%)',
-              borderRadius: '4px 4px 0 0',
-              opacity: 0,
-              transition: 'opacity 0.3s ease-in-out',
-            },
-            '&:hover::after': {
-              opacity: 1,
-            }
-          }}
-          onClick={() => handleKpiClick('lowStock')}
-        >
-          <CardContent sx={{ p: 2 }}>
-            <Box className={styles.kpiContent}>
-              <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#ffeded' }}>
-                <WarningIcon sx={{ color: '#61131A' }} />
-              </Box>
-              <Box className={styles.kpiDataBox}>
-                <Typography variant="h4" className={styles.kpiValue}>
-                  {quantityLowStockComponents}
-                </Typography>
-                <Typography variant="body2" className={styles.kpiLabel}>
-                  Produtos com Baixo Estoque
-                </Typography>
-              </Box>
+      <Box className={styles.kpiContainer}>        <Card
+        className={styles.kpiCard}
+        sx={{
+          borderTop: '4px solid #61131A',
+          cursor: 'pointer',
+          position: 'relative',
+          '&::after': {
+            content: '""',
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            height: '4px',
+            background: 'linear-gradient(90deg, #61131A 70%, rgba(97, 19, 26, 0.4) 100%)',
+            borderRadius: '4px 4px 0 0',
+            opacity: 0,
+            transition: 'opacity 0.3s ease-in-out',
+          },
+          '&:hover::after': {
+            opacity: 1,
+          }
+        }}
+        onClick={() => handleKpiClick('lowStock')}
+      >
+        <CardContent sx={{ p: 2 }}>
+          <Box className={styles.kpiContent}>
+            <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#ffeded' }}>
+              <WarningIcon sx={{ color: '#61131A' }} />
             </Box>
-          </CardContent>
-        </Card>        <Card
+            <Box className={styles.kpiDataBox}>
+              <Typography variant="h4" className={styles.kpiValue}>
+                {quantityLowStockComponents}
+              </Typography>
+              <Typography variant="body2" className={styles.kpiLabel}>
+                Produtos com Baixo Estoque
+              </Typography>
+            </Box>
+          </Box>
+        </CardContent>
+      </Card>
+
+        <Card
           className={styles.kpiCard}
           sx={{
             borderTop: '4px solid #0288d1',
@@ -393,7 +421,9 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>        <Card
+        </Card>
+
+        <Card
           className={styles.kpiCard}
           sx={{
             borderTop: '4px solid #689f38',
@@ -432,7 +462,9 @@ const Dashboard = () => {
               </Box>
             </Box>
           </CardContent>
-        </Card>        <Card
+        </Card>
+
+        <Card
           className={styles.kpiCard}
           sx={{
             borderTop: '4px solid #7b1fa2',
@@ -482,10 +514,21 @@ const Dashboard = () => {
         <Card className={styles.chartCard1} ref={chartCard1Ref}>
           <Typography variant="h6" className={styles.chartTitle}>
             Componentes Anunciados no Mercado Livre
-          </Typography>
-          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart1 }}>
-            <ResponsiveContainer width="100%" height="100%" minHeight={chartHeights.chart1}>
-              <PieChart margin={{ top: 0, right: 0, left: 0, bottom: 30 }}>
+          </Typography>          <div
+            className={styles.chartContent}
+            style={{
+              width: '100%',
+              height: '100%',
+              minHeight: chartHeights.chart1
+            }}
+          >
+            <ResponsiveContainer
+              width="100%"
+              height="100%"
+              minHeight={chartHeights.chart1}
+            >              <PieChart
+              margin={{ top: 0, right: 0, left: 0, bottom: 30 }}
+            >
                 <Pie
                   data={componentsMLData}
                   cx="50%"
@@ -533,8 +576,7 @@ const Dashboard = () => {
                       strokeWidth={0.5}
                     />
                   ))}
-                </Pie>
-                <Tooltip
+                </Pie>                <Tooltip
                   formatter={(value, name) => [`${value} unidades`, name]}
                   contentStyle={{
                     fontSize: isMobile ? 12 : 14,
@@ -555,8 +597,7 @@ const Dashboard = () => {
                     borderBottom: '1px solid rgba(0,0,0,0.1)',
                     paddingBottom: '4px'
                   }}
-                />
-                <Legend
+                />                <Legend
                   layout="horizontal"
                   verticalAlign="bottom"
                   align="center"
@@ -565,20 +606,23 @@ const Dashboard = () => {
                   formatter={(value, entry) => {
                     const { payload } = entry;
                     const quantity = payload.value;
-                    const percent = Math.round((quantity / componentsMLData.reduce((sum, item) => sum + item.value, 0)) * 100);
+                    const percent = Math.round(
+                      (quantity / componentsMLData.reduce((sum, item) => sum + item.value, 0)) * 100
+                    );
                     return (
-                      <span style={{
-                        fontSize: isMobile ? '10px' : '11px',
-                        color: '#333',
-                        fontWeight: 500,
-                        display: 'inline-block',
-                        whiteSpace: 'nowrap'
-                      }}>
+                      <span
+                        style={{
+                          fontSize: isMobile ? '10px' : '11px',
+                          color: '#333',
+                          fontWeight: 500,
+                          display: 'inline-block',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
                         {`${value}: ${quantity} unidades - ${percent}%`}
                       </span>
                     );
-                  }}
-                  wrapperStyle={{
+                  }} wrapperStyle={{
                     fontSize: isMobile ? 10 : 11,
                     width: '100%',
                     backgroundColor: 'rgba(255, 255, 255, 0.92)',
@@ -603,8 +647,14 @@ const Dashboard = () => {
           <Typography variant="h6" className={styles.chartTitle}>
             <span role="img" aria-label="box" style={{ marginRight: '8px' }}>📦</span>
             Quantidade de Componentes Por Caixa
-          </Typography>
-          <div className={styles.chartContent} style={{ width: '100%', height: '100%', minHeight: chartHeights.chart3 }}>
+          </Typography>          <div
+            className={styles.chartContent}
+            style={{
+              width: '100%',
+              height: '100%',
+              minHeight: chartHeights.chart3
+            }}
+          >
             <ComponentsPerBoxChart
               data={boxesDataDashboard}
               isMobile={isMobile}
