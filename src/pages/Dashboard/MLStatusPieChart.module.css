@@ -11,6 +11,8 @@
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
+    min-height: 300px;
+    /* Altura mínima para evitar colapso em telas pequenas */
 }
 
 /* Animação para o gráfico */

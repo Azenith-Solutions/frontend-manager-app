@@ -4,8 +4,7 @@
   display: flex;
   flex-direction: column;
   /* Allow scrolling when needed, especially on zoom or smaller screens */
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 .loadingContainer {
@@ -237,6 +236,9 @@
   flex-direction: column;
   /* Add some top margin to ensure spacing below the title */
   margin-top: 5px;
+  /* Ensure chart content dynamically resizes with its container */
+  flex: 1 1 auto;
+  min-height: 300px;
   /* Ensure chart content doesn't overflow its container */
   overflow: visible;
 }

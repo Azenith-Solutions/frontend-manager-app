@@ -61,8 +61,8 @@ const Dashboard = () => {
   const chartCard1Ref = useRef(null);
   const chartCard3Ref = useRef(null);
   const [chartHeights, setChartHeights] = useState({
-    chart1: isTablet ? 300 : 400,
-    chart3: isTablet ? 300 : 400
+    chart1: isTablet ? 350 : 450, // Altura inicial
+    chart3: isTablet ? 350 : 450  // Altura inicial
   });
 
   const getLowStockComponents = async () => {
@@ -267,34 +267,48 @@ const Dashboard = () => {
   useEffect(() => {
     const handleResize = () => {
       if (chartCard1Ref.current && chartCard3Ref.current) {
-        // Obtém a altura real do conteúdo do card e ajusta a altura do gráfico de acordo
-        // Aumenta a subtração da altura do título para considerar títulos com quebra de linha
+        // Obtém a altura real dos containers dos cards
         const titleHeight = isTablet ? 50 : 60;
-        const card1Height = chartCard1Ref.current.clientHeight - titleHeight;
-        const card3Height = chartCard3Ref.current.clientHeight - titleHeight;
+        const paddingOffset = 30; // Valor para compensar paddings e margens
+
+        // Calcula altura disponível para cada gráfico baseada no conteúdo do card
+        const card1Height = chartCard1Ref.current.clientHeight - titleHeight - paddingOffset;
+        const card3Height = chartCard3Ref.current.clientHeight - titleHeight - paddingOffset;
+
+        // Define alturas mínimas para garantir boa visualização
+        const minHeight = isTablet ? 280 : 350;
 
         setChartHeights({
-          chart1: Math.max(card1Height, isTablet ? 250 : 300),
-          chart3: Math.max(card3Height, isTablet ? 250 : 300)
+          chart1: Math.max(card1Height, minHeight),
+          chart3: Math.max(card3Height, minHeight)
         });
       }
-    };    // Redimensionamento inicial e pequeno atraso para garantir atualizações do DOM
-    setTimeout(handleResize, 100);
+    };
+
+    // Executa ajuste inicial após pequeno delay para garantir renderização completa
+    setTimeout(handleResize, 300);
 
     // Adiciona listener de redimensionamento
-    window.addEventListener('resize', handleResize);    // Configuração para o gráfico de pizza (componentes ML)
-    // Adiciona listener de zoom para mudanças no zoom do navegador
-    window.addEventListener('wheel', (e) => {
+    window.addEventListener('resize', handleResize);
+
+    // Adiciona listener específico para mudanças de zoom
+    const handleZoom = (e) => {
       if (e.ctrlKey) {
-        setTimeout(handleResize, 100);
+        setTimeout(handleResize, 300);
       }
-    });
+    };
+    window.addEventListener('wheel', handleZoom);
+
+    // Executa redimensionamento quando os dados estiverem carregados
+    if (!loading && (componentsMLData.length > 0 || boxesDataDashboard.length > 0)) {
+      setTimeout(handleResize, 300);
+    }
 
     return () => {
       window.removeEventListener('resize', handleResize);
-      window.removeEventListener('wheel', handleResize);
+      window.removeEventListener('wheel', handleZoom);
     };
-  }, [isTablet]);
+  }, [isTablet, loading, componentsMLData, boxesDataDashboard]);
 
   const getComponentsPerBox = async () => {
     try {
@@ -514,12 +528,14 @@ const Dashboard = () => {
           <Typography variant="h6" className={styles.chartTitle}>
             <span role="img" aria-label="box" style={{ marginRight: '8px' }}>📢</span>
             Componentes Anunciados no Mercado Livre
-          </Typography>          <div
+          </Typography>
+          <div
             className={styles.chartContent}
             style={{
               width: '100%',
-              height: '100%',
-              minHeight: chartHeights.chart1
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1
             }}
           >
             <MLStatusPieChart
@@ -539,8 +555,9 @@ const Dashboard = () => {
             className={styles.chartContent}
             style={{
               width: '100%',
-              height: '100%',
-              minHeight: chartHeights.chart3
+              display: 'flex',
+              flexDirection: 'column',
+              flex: 1
             }}
           >
             <ComponentsPerBoxChart

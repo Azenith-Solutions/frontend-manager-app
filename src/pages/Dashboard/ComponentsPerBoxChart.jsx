@@ -59,15 +59,25 @@ CustomTooltip.propTypes = {
  * @param {number} props.chartHeight - Altura do gráfico
  * @returns {JSX.Element} Componente de gráfico de barras simplificado
  */
-const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constantes
+const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {
+    // Constantes
     const MAX_COMPONENTS_PER_BOX = 200;
     const CHART_MARGINS = { top: 0, right: 0, left: isMobile ? 60 : 75, bottom: 30 };
     const BAR_SIZE = isMobile ? 14 : 20;
+
+    // Calcular altura efetiva do gráfico (considerando o número de caixas e espaço para legenda)
+    const itemHeight = BAR_SIZE + 10; // Altura de cada item mais espaço
+    const legendHeight = 60; // Altura estimada da legenda
+    const minItemsHeight = data.length * itemHeight;
+    // Garantir altura mínima baseada no número de itens, mais espaço para a legenda
+    const effectiveChartHeight = Math.max(minItemsHeight + legendHeight, chartHeight);
+
     // Encontrar o valor máximo para garantir que a linha seja visível
     const maxValue = useMemo(() => {
         const max = Math.max(...data.map(item => item.componentsPerBox));
         return Math.max(max, MAX_COMPONENTS_PER_BOX + 20); // Garantir espaço para a linha e dar margem
     }, [data, MAX_COMPONENTS_PER_BOX]);
+
     // Preparar dados para o gráfico usando memoização para performance
     const enhancedData = useMemo(() => {
         return data.map(item => ({
@@ -78,14 +88,24 @@ const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constante
             isNormal: item.componentsPerBox > MAX_COMPONENTS_PER_BOX
         }));
     }, [data, MAX_COMPONENTS_PER_BOX]);
+
     // Função para determinar a cor da barra baseada no limite de componentes por caixa
     const getBarClassName = (quantity) => {
         if (quantity > MAX_COMPONENTS_PER_BOX) return styles.lowStockBar;
         if (quantity < (MAX_COMPONENTS_PER_BOX - 10)) return styles.normalBar;
         return styles.criticalStockBar;
-    }; return (
-        <div className={styles.chartContainer} style={{ position: 'relative', paddingBottom: '0px' }}>
-            <ResponsiveContainer width="100%" height="100%" minHeight={chartHeight}>
+    };
+
+    return (
+        <div
+            className={styles.chartContainer}
+            style={{
+                position: 'relative',
+                paddingBottom: '0px',
+                height: effectiveChartHeight
+            }}
+        >
+            <ResponsiveContainer width="100%" height="100%">
                 <BarChart
                     data={enhancedData}
                     layout="vertical"
@@ -109,7 +129,10 @@ const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constante
                         tick={{ fontSize: 10, fill: '#666' }}
                         width={CHART_MARGINS.left}
                     />
-                    <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.3} />                    {/* Linha laranja de referência para o limite máximo de componentes por caixa */}          {/* Linha de fundo para destacar ainda mais o limite */}
+                    <CartesianGrid horizontal={false} strokeDasharray="3 3" opacity={0.3} />
+
+                    {/* Linha laranja de referência para o limite máximo de componentes por caixa */}
+                    {/* Linha de fundo para destacar ainda mais o limite */}
                     <ReferenceLine
                         x={MAX_COMPONENTS_PER_BOX}
                         stroke="#FFF3E0"
@@ -143,7 +166,9 @@ const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constante
                         strokeWidth={1}
                         className={styles.limitDottedLine}
                         ifOverflow="extendDomain"
-                    />                    {/* Tooltip personalizado */}
+                    />
+
+                    {/* Tooltip personalizado */}
                     <Tooltip
                         content={<CustomTooltip />}
                         cursor={{ fill: 'rgba(0, 0, 0, 0.05)' }}
@@ -157,7 +182,8 @@ const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constante
                         }}
                     />
 
-                    {/* Barras de estoque */}          <Bar
+                    {/* Barras de estoque */}
+                    <Bar
                         dataKey="quantity"
                         name="Estoque"
                         className={styles.barItem}
@@ -165,14 +191,15 @@ const ComponentsPerBoxChart = ({ data, isMobile, chartHeight }) => {// Constante
                         barSize={BAR_SIZE}
                         isAnimationActive={true}
                         animationDuration={800}
-                    >                    {enhancedData.map((entry, index) => (
-                        <Cell
-                            key={`cell-${index}`}
-                            fill={entry.quantity < MAX_COMPONENTS_PER_BOX * 0.75 ? '#f44336' :
-                                entry.quantity >= MAX_COMPONENTS_PER_BOX * 0.75 && entry.quantity <= MAX_COMPONENTS_PER_BOX ? '#FF9800' : '#61131A'}
-                            className={getBarClassName(entry.quantity)}
-                        />
-                    ))}
+                    >
+                        {enhancedData.map((entry, index) => (
+                            <Cell
+                                key={`cell-${index}`}
+                                fill={entry.quantity < MAX_COMPONENTS_PER_BOX * 0.75 ? '#61131A' :
+                                    entry.quantity >= MAX_COMPONENTS_PER_BOX * 0.75 && entry.quantity <= MAX_COMPONENTS_PER_BOX ? '#FF9800' : '#f44336'}
+                                className={getBarClassName(entry.quantity)}
+                            />
+                        ))}
                     </Bar>
                     <Legend
                         layout="horizontal"
