@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useMediaQuery } from "@mui/material";
 import {
   Box,
@@ -30,6 +30,7 @@ import {
 } from "../../service/dashboard/dashboardService";
 import KpiDetailModal from "../../components/modals/KpiDetailModal/KpiDetailModal";
 import ComponentsPerBoxChart from './ComponentsPerBoxChart';
+import MLStatusPieChart from './MLStatusPieChart';
 
 const Dashboard = () => {
   // Estados das KPIs
@@ -244,8 +245,7 @@ const Dashboard = () => {
   const handleCloseModal = () => {
     setModalOpen(false);
   };
-
-  const setupKPIsAndDashboardsData = async () => {
+  const setupKPIsAndDashboardsData = React.useCallback(async () => {
     try {
       getLowStockComponents();
       getInObservationComponents();
@@ -258,12 +258,11 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
-
+  }, []);
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
     setupKPIsAndDashboardsData();
-  }, []);
+  }, [setupKPIsAndDashboardsData]);
   // Ajusta alturas dos gráficos com base no redimensionamento da janela
   useEffect(() => {
     const handleResize = () => {
@@ -513,6 +512,7 @@ const Dashboard = () => {
       <Box className={styles.chartsContainer}>
         <Card className={styles.chartCard1} ref={chartCard1Ref}>
           <Typography variant="h6" className={styles.chartTitle}>
+            <span role="img" aria-label="box" style={{ marginRight: '8px' }}>📢</span>
             Componentes Anunciados no Mercado Livre
           </Typography>          <div
             className={styles.chartContent}
@@ -522,124 +522,11 @@ const Dashboard = () => {
               minHeight: chartHeights.chart1
             }}
           >
-            <ResponsiveContainer
-              width="100%"
-              height="100%"
-              minHeight={chartHeights.chart1}
-            >              <PieChart
-              margin={{ top: 0, right: 0, left: 0, bottom: 30 }}
-            >
-                <Pie
-                  data={componentsMLData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={(props) => {
-                    const RADIAN = Math.PI / 180;
-                    const { cx, cy, midAngle, outerRadius, percent } = props;
-
-                    // Calcular posição do texto
-                    const radius = outerRadius * 0.65;
-                    const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                    const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-                    // Mostrar percentagem apenas se for maior que 1%
-                    if (percent < 0.01) return null;
-
-                    return (
-                      <text
-                        x={x}
-                        y={y}
-                        fill="white"
-                        textAnchor="middle"
-                        dominantBaseline="central"
-                        style={{
-                          fontWeight: 'bold',
-                          fontSize: isMobile ? '12px' : '14px',
-                          textShadow: '0px 0px 3px rgba(0,0,0,0.7)'
-                        }}
-                      >
-                        {`${(percent * 100).toFixed(0)}%`}
-                      </text>
-                    );
-                  }}
-                  outerRadius={isMobile ? 100 : 140}
-                  innerRadius={0}
-                  paddingAngle={2}
-                  dataKey="value"
-                >
-                  {componentsMLData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={entry.color}
-                      stroke="#fff"
-                      strokeWidth={0.5}
-                    />
-                  ))}
-                </Pie>                <Tooltip
-                  formatter={(value, name) => [`${value} unidades`, name]}
-                  contentStyle={{
-                    fontSize: isMobile ? 12 : 14,
-                    backgroundColor: 'rgba(255, 255, 255, 0.97)',
-                    borderRadius: '8px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-                    border: '1px solid rgba(0,0,0,0.05)',
-                    padding: '8px 12px'
-                  }}
-                  itemStyle={{
-                    padding: '4px 0',
-                    color: '#333'
-                  }}
-                  labelStyle={{
-                    fontWeight: 600,
-                    color: '#333',
-                    marginBottom: '6px',
-                    borderBottom: '1px solid rgba(0,0,0,0.1)',
-                    paddingBottom: '4px'
-                  }}
-                />                <Legend
-                  layout="horizontal"
-                  verticalAlign="bottom"
-                  align="center"
-                  iconSize={10}
-                  iconType="circle"
-                  formatter={(value, entry) => {
-                    const { payload } = entry;
-                    const quantity = payload.value;
-                    const percent = Math.round(
-                      (quantity / componentsMLData.reduce((sum, item) => sum + item.value, 0)) * 100
-                    );
-                    return (
-                      <span
-                        style={{
-                          fontSize: isMobile ? '10px' : '11px',
-                          color: '#333',
-                          fontWeight: 500,
-                          display: 'inline-block',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {`${value}: ${quantity} unidades - ${percent}%`}
-                      </span>
-                    );
-                  }} wrapperStyle={{
-                    fontSize: isMobile ? 10 : 11,
-                    width: '100%',
-                    backgroundColor: 'rgba(255, 255, 255, 0.92)',
-                    borderRadius: '0 0 8px 8px',
-                    paddingTop: '18px',
-                    margin: '0 auto',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    position: 'absolute',
-                    bottom: 10,
-                    left: 0,
-                    borderTop: '1px solid rgba(0,0,0,0.05)'
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            <MLStatusPieChart
+              data={componentsMLData}
+              isMobile={isMobile}
+              chartHeight={chartHeights.chart1}
+            />
           </div>
         </Card>
 
@@ -647,7 +534,8 @@ const Dashboard = () => {
           <Typography variant="h6" className={styles.chartTitle}>
             <span role="img" aria-label="box" style={{ marginRight: '8px' }}>📦</span>
             Quantidade de Componentes Por Caixa
-          </Typography>          <div
+          </Typography>
+          <div
             className={styles.chartContent}
             style={{
               width: '100%',
