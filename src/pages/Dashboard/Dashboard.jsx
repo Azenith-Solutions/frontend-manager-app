@@ -7,10 +7,10 @@ import {
   Typography,
   CircularProgress
 } from "@mui/material";
-import WarningIcon from '@mui/icons-material/Warning';
-import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
-import AutorenewIcon from '@mui/icons-material/Autorenew';
-import InventoryIcon from '@mui/icons-material/Inventory';
+import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'; // Baixo estoque
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff'; // Em observação
+import ReportProblemIcon from '@mui/icons-material/ReportProblem'; // Incompletos
+import EventBusyIcon from '@mui/icons-material/EventBusy'; // 30 dias não vendidos
 import {
   Tooltip,
   PieChart,
@@ -150,30 +150,17 @@ const Dashboard = () => {
       case 'lowStock':
         setModalTitle("Produtos com Baixo Estoque");
         setModalData(lowStockComponents);
-
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
-          { field: 'descricao', headerName: 'Descrição', width: 250 },
+          { field: 'nomeComponente', headerName: 'Nome', width: 200 },,
           { field: 'partNumber', headerName: 'Part Number', width: 150 },
-          { field: 'quantidade', headerName: 'Qtde', width: 80 },
-          {
-            field: 'condicao',
-            headerName: 'Condição',
-            width: 130,
-            renderCell: (value) => value?.descricao || value
-          },
-          {
-            field: 'fkCaixa',
-            headerName: 'Caixa',
-            width: 120,
-            valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
-          }];
+          { field: 'quantidade', headerName: 'Qtde', width: 80 }
+        ];
         break;
 
       case 'observation':
         setModalTitle("Produtos em Observação");
         setModalData(inObservationComponents);
-
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'IDH', width: 100 },
           { field: 'partNumber', headerName: 'Part Number', width: 150 },
@@ -183,63 +170,94 @@ const Dashboard = () => {
         break;
       case 'incomplete':
         setModalTitle("Produtos Incompletos");
-        setModalData(incompleteComponents);
+        const friendlyFieldNames = {
+          descricao: 'Descrição',
+          nomeComponente: 'Nome do componente',
+          partNumber: 'Part Number',
+          quantidade: 'Quantidade',
+          condicao: 'Condição',
+          fkCaixa: 'Caixa',
+          categoria: 'Categoria',
+          flagVerificado: 'Verificado',
+          flagML: 'Mercado Livre',
+          codigoML: 'Código ML',
+          observacao: 'Observação',
+          imagem: 'Imagem',
+        };
+        setModalData(
+          incompleteComponents.map(comp => {
+            let camposIncompletos = [];
 
+
+            if (comp.flagML === true && (!comp.codigoML || comp.codigoML === '')) {
+              camposIncompletos.push(friendlyFieldNames['codigoML']);
+            }
+
+            if (comp.flagML === false && comp.codigoML && comp.codigoML !== '') {
+              camposIncompletos.push(friendlyFieldNames['codigoML']);
+            }
+
+            if (comp.condicao === null || comp.condicao === undefined) {
+              camposIncompletos.push(friendlyFieldNames['condicao']);
+            }
+
+            if (
+              comp.condicao === 'Em Observação' &&
+              (comp.observacao === null || comp.observacao === undefined || comp.observacao === '')
+            ) {
+              camposIncompletos.push(friendlyFieldNames['observacao']);
+            }
+
+            if (comp.descricao === null || comp.descricao === undefined || comp.descricao === '') {
+              camposIncompletos.push(friendlyFieldNames['descricao']);
+            }
+
+            if (comp.flagVerificado === false) {
+              camposIncompletos.push(friendlyFieldNames['flagVerificado']);
+            }
+
+            if (comp.fkCaixa === null || comp.fkCaixa === undefined) {
+              camposIncompletos.push(friendlyFieldNames['fkCaixa']);
+            }
+
+            if (comp.imagem === null || comp.imagem === undefined || comp.imagem === '') {
+              camposIncompletos.push(friendlyFieldNames['imagem']);
+            }
+
+            return {
+              ...comp,
+              camposIncompletos: camposIncompletos.join(', ')
+            };
+          })
+        );
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
-          { field: 'descricao', headerName: 'Descrição', width: 250 },
           { field: 'partNumber', headerName: 'Part Number', width: 150 },
-          { field: 'quantidade', headerName: 'Qtde', width: 80 },
-          {
-            field: 'condicao',
-            headerName: 'Condição',
-            width: 130,
-            renderCell: (value) => value?.descricao || value
-          },
-          {
-            field: 'fkCaixa',
-            headerName: 'Caixa',
-            width: 120,
-            valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
-          }
+          { field: 'camposIncompletos', headerName: 'Campos Incompletos', width: 300 }
         ];
         break;
       case 'outOfSla':
         setModalTitle("Produtos Não Vendidos por 30+ Dias");
         setModalData(itemsOutOfLastSaleSLA);
-
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
-          { field: 'descricao', headerName: 'Descrição', width: 250 },
-          { field: 'partNumber', headerName: 'Part Number', width: 150 },
-          { field: 'quantidade', headerName: 'Qtde', width: 80 },
-          {
-            field: 'condicao',
-            headerName: 'Condição',
-            width: 130,
-            renderCell: (value) => value?.descricao || value
-          },
-          {
-            field: 'fkCaixa',
-            headerName: 'Caixa',
-            width: 120,
-            valueGetter: (row) => row.fkCaixa?.nomeCaixa || '-'
-          }
+          { field: 'nomeComponente', headerName: 'Nome do produto', width: 200 },
+          { field: 'descricao', headerName: 'Descrição', width: 250 }
         ];
         break;
       default:
         setModalTitle("Detalhes");
         setModalData([]);
-
         modalColumns = [
           { field: 'idHardWareTech', headerName: 'ID', width: 100 },
           { field: 'descricao', headerName: 'Descrição', width: 250 },
         ];
     }
 
-    // Definindo as colunas no estado para uso no modal
     setModalColumns(modalColumns);
-    setModalLoading(false);
+
+
+    setTimeout(() => setModalLoading(false), 400);
   };
 
   // Função para fechar o modal
@@ -263,8 +281,7 @@ const Dashboard = () => {
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
     setupKPIsAndDashboardsData();
-  }, []);
-
+  }, [setupKPIsAndDashboardsData]);
   // Ajusta alturas dos gráficos com base no redimensionamento da janela
   useEffect(() => {
     const handleResize = () => {
@@ -356,46 +373,47 @@ const Dashboard = () => {
 
   return (
     <div className={styles.dashboard}>
-      <Box className={styles.kpiContainer}>        <Card
-        className={styles.kpiCard}
-        sx={{
-          borderTop: '4px solid #61131A',
-          cursor: 'pointer',
-          position: 'relative',
-          '&::after': {
-            content: '""',
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            height: '4px',
-            background: 'linear-gradient(90deg, #61131A 70%, rgba(97, 19, 26, 0.4) 100%)',
-            borderRadius: '4px 4px 0 0',
-            opacity: 0,
-            transition: 'opacity 0.3s ease-in-out',
-          },
-          '&:hover::after': {
-            opacity: 1,
-          }
-        }}
-        onClick={() => handleKpiClick('lowStock')}
-      >
-        <CardContent sx={{ p: 2 }}>
-          <Box className={styles.kpiContent}>
-            <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#ffeded' }}>
-              <WarningIcon sx={{ color: '#61131A' }} />
+      <Box className={styles.kpiContainer}>
+        <Card
+          className={styles.kpiCard}
+          sx={{
+            borderTop: '4px solid #61131A',
+            cursor: 'pointer',
+            position: 'relative',
+            '&::after': {
+              content: '""',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              height: '4px',
+              background: 'linear-gradient(90deg, #61131A 70%, rgba(97, 19, 26, 0.4) 100%)',
+              borderRadius: '4px 4px 0 0',
+              opacity: 0,
+              transition: 'opacity 0.3s ease-in-out',
+            },
+            '&:hover::after': {
+              opacity: 1,
+            }
+          }}
+          onClick={() => handleKpiClick('lowStock')}
+        >
+          <CardContent sx={{ p: 2 }}>
+            <Box className={styles.kpiContent}>
+              <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#ffeded' }}>
+                <ErrorOutlineIcon sx={{ color: '#61131A' }} /> {/* Baixo estoque */}
+              </Box>
+              <Box className={styles.kpiDataBox}>
+                <Typography variant="h4" className={styles.kpiValue}>
+                  {quantityLowStockComponents}
+                </Typography>
+                <Typography variant="body2" className={styles.kpiLabel}>
+                  Produtos com Baixo Estoque
+                </Typography>
+              </Box>
             </Box>
-            <Box className={styles.kpiDataBox}>
-              <Typography variant="h4" className={styles.kpiValue}>
-                {quantityLowStockComponents}
-              </Typography>
-              <Typography variant="body2" className={styles.kpiLabel}>
-                Produtos com Baixo Estoque
-              </Typography>
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
 
         <Card
           className={styles.kpiCard}
@@ -424,7 +442,7 @@ const Dashboard = () => {
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#e6f7ff' }}>
-                <AttachMoneyIcon sx={{ color: '#0288d1' }} />
+                <VisibilityOffIcon sx={{ color: '#0288d1' }} /> {/* Em observação */}
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
@@ -465,7 +483,7 @@ const Dashboard = () => {
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#f0f7e6' }}>
-                <AutorenewIcon sx={{ color: '#689f38' }} />
+                <ReportProblemIcon sx={{ color: '#689f38' }} /> {/* Incompletos */}
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
@@ -506,7 +524,7 @@ const Dashboard = () => {
           <CardContent sx={{ p: 2 }}>
             <Box className={styles.kpiContent}>
               <Box className={styles.kpiIconBox} sx={{ backgroundColor: '#f5f0ff' }}>
-                <InventoryIcon sx={{ color: '#7b1fa2' }} />
+                <EventBusyIcon sx={{ color: '#7b1fa2' }} /> {/* 30 dias não vendidos */}
               </Box>
               <Box className={styles.kpiDataBox}>
                 <Typography variant="h4" className={styles.kpiValue}>
