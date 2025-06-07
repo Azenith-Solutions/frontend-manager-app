@@ -239,6 +239,7 @@ const Dashboard = () => {
 
     // Definindo as colunas no estado para uso no modal
     setModalColumns(modalColumns);
+    setModalLoading(false);
   };
 
   // Função para fechar o modal
@@ -262,7 +263,8 @@ const Dashboard = () => {
   useEffect(() => {
     document.title = "HardwareTech | Dashboard";
     setupKPIsAndDashboardsData();
-  }, [setupKPIsAndDashboardsData]);
+  }, []);
+
   // Ajusta alturas dos gráficos com base no redimensionamento da janela
   useEffect(() => {
     const handleResize = () => {
