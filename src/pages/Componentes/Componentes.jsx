@@ -1,4 +1,4 @@
-import React, { Component, useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import styles from "./Componentes.module.css";
 import { api } from "../../service/api";
 import ComponentFormModal from "../../components/forms/ComponentFormModal/ComponentFormModal";
@@ -44,10 +44,14 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import CancelIcon from '@mui/icons-material/Cancel';
 import InventoryIcon from '@mui/icons-material/Inventory';
 import StorefrontIcon from '@mui/icons-material/Storefront';
+import WarningIcon from '@mui/icons-material/Warning';
+import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
 
 const Componentes = () => {
+  // Estados para a página
   const [loading, setLoading] = useState(true);
   const [components, setComponents] = useState([]);
+  const [filteredComponents, setFilteredComponents] = useState([]);
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchText, setSearchText] = useState("");
@@ -71,8 +75,24 @@ const Componentes = () => {
     condicao: [] 
   });
 
-  // Imagem padrão para os componentes TESTE
+  // Imagem padrão para os componentes
   const defaultImage = "https://cdn.awsli.com.br/500x500/2599/2599375/produto/21644533946530777e3.jpg";
+
+  // Definição dos cabeçalhos para exportação
+  const exportHeaders = [
+    { id: 'idComponente', label: 'ID' },
+    { id: 'idHardWareTech', label: 'IDH' },
+    { id: 'nomeComponente', label: 'Nome' },
+    { id: 'partNumber', label: 'Part Number' },
+    { id: 'descricao', label: 'Descrição' },
+    { id: 'quantidade', label: 'Quantidade' },
+    { id: 'fkCaixa.nomeCaixa', label: 'Caixa' },
+    { id: 'flagML', label: 'Mercado Livre' },
+    { id: 'flagVerificado', label: 'Verificado' },
+    { id: 'condicao', label: 'Condição' },
+    { id: 'observacao', label: 'Observação' },
+    { id: 'isVisibleCatalog', label: 'Visível no Catálogo' }
+  ];
 
   useEffect(() => {
     document.title = "HardwareTech | Componentes";
@@ -160,25 +180,79 @@ const Componentes = () => {
     try {
       setLoading(true);
 
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Tentar buscar do API
+      try {
+        const response = await api.get('/components');
+        console.log('Resposta dos componentes:', response);
 
-      const response = await api.get('/components');
-      console.log('Resposta dos componentes:', response);
+        const responseData = response.data.data || response.data;
 
-      const responseData = response.data.data || response.data;
-
-      if (Array.isArray(responseData)) {
-        setComponents(responseData);
-        setTotalComponents(responseData.length);
-      } else {
-        console.error('Dados recebidos não são um array:', responseData);
-        setComponents([]);
+        if (Array.isArray(responseData)) {
+          setComponents(responseData);
+          setFilteredComponents(responseData);
+          setTotalComponents(responseData.length);
+        } else {
+          console.error('Dados recebidos não são um array:', responseData);
+          setComponents([]);
+          setFilteredComponents([]);
+        }
+      } catch (error) {
+        console.error('Erro ao buscar dados da API:', error);
+        // Carregar dados simulados caso a API falhe
+        loadMockData();
       }
     } catch (error) {
       console.error('Erro ao buscar dados:', error);
+      loadMockData();
     } finally {
       setLoading(false);
     }
+  };
+
+  // Função para carregar dados simulados caso a API falhe
+  const loadMockData = () => {
+    const mockComponents = [
+      { 
+        idComponente: 1, 
+        idHardWareTech: 'IDH001', 
+        partNumber: 'PN12345', 
+        quantidade: 10, 
+        flagML: true, 
+        flagVerificado: true,
+        condicao: 'Bom Estado',
+        descricao: 'Processador Intel Core i7 de 10ª geração',
+        fkCaixa: { nomeCaixa: 'Caixa A' },
+        isVisibleCatalog: true
+      },
+      { 
+        idComponente: 2, 
+        idHardWareTech: 'IDH002', 
+        partNumber: 'PN54321', 
+        quantidade: 5, 
+        flagML: false, 
+        flagVerificado: true,
+        condicao: 'Observação',
+        observacao: 'Alguns pinos danificados',
+        descricao: '',
+        fkCaixa: { nomeCaixa: 'Caixa B' },
+        isVisibleCatalog: false
+      },
+      { 
+        idComponente: 3, 
+        idHardWareTech: 'IDH003', 
+        partNumber: 'PN67890', 
+        quantidade: 15, 
+        flagML: true, 
+        flagVerificado: false,
+        descricao: 'Placa de vídeo GeForce RTX 3060',
+        fkCaixa: { nomeCaixa: 'Caixa A' },
+        isVisibleCatalog: true
+      }
+    ];
+    
+    setComponents(mockComponents);
+    setFilteredComponents(mockComponents);
+    setTotalComponents(mockComponents.length);
   };
 
   const handleChangePage = (event, newPage) => {
@@ -191,7 +265,20 @@ const Componentes = () => {
   };
 
   const handleSearchChange = (event) => {
-    setSearchText(event.target.value);
+    const value = event.target.value;
+    setSearchText(value);
+    
+    if (value.trim() === '') {
+      setFilteredComponents(components);
+    } else {
+      const filtered = components.filter(item => 
+        (item.partNumber && item.partNumber.toLowerCase().includes(value.toLowerCase())) ||
+        (item.descricao && item.descricao.toLowerCase().includes(value.toLowerCase())) ||
+        (item.idHardWareTech && item.idHardWareTech.toString().includes(value.toLowerCase())) ||
+        (item.nomeComponente && item.nomeComponente.toLowerCase().includes(value.toLowerCase()))
+      );
+      setFilteredComponents(filtered);
+    }
     setPage(0);
   };
 
@@ -201,48 +288,49 @@ const Componentes = () => {
   }, [components]);
 
   // Função para filtrar componentes com base em filtros e texto de busca
-  const filteredComponents = components.filter(
-    (item) => {
-      // Filtro de texto de busca
-      const matchesSearch = 
-        (item.partNumber && item.partNumber.toLowerCase().includes(searchText.toLowerCase())) ||
-        (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
-        (item.idHardWareTech && item.idHardWareTech.toString().includes(searchText.toLowerCase())) ||
-        (item.nomeComponente && item.nomeComponente.toLowerCase().includes(searchText.toLowerCase()));
-      
-      // Filtro por caixa
-      const matchesCaixa = activeFilters.caixas.length === 0 || 
-        (item.fkCaixa && activeFilters.caixas.includes(item.fkCaixa.nomeCaixa));
-      
-      // Filtro por mercado livre
-      const matchesMercadoLivre = activeFilters.mercadoLivre === null || 
-        item.flagML === activeFilters.mercadoLivre;
-      
-      // Filtro por verificado
-      const matchesVerificado = activeFilters.verificado === null || 
-        item.flagVerificado === activeFilters.verificado;
-      
-      // Filtro por condição (só se aplica se verificado for true)
-      let matchesCondicao = true;
-      if (item.flagVerificado && activeFilters.condicao.length > 0) {
-        const condicaoFormatada = item.condicao ? item.condicao.toLowerCase() : '';
+  useEffect(() => {
+    const filtered = components.filter(
+      (item) => {
+        // Filtro de texto de busca
+        const matchesSearch = 
+          (item.partNumber && item.partNumber.toLowerCase().includes(searchText.toLowerCase())) ||
+          (item.descricao && item.descricao.toLowerCase().includes(searchText.toLowerCase())) ||
+          (item.idHardWareTech && item.idHardWareTech.toString().includes(searchText.toLowerCase())) ||
+          (item.nomeComponente && item.nomeComponente.toLowerCase().includes(searchText.toLowerCase()));
         
-        // Verifica se a condição do item corresponde a algum dos filtros selecionados
-        matchesCondicao = (
-          (activeFilters.condicao.includes('Bom Estado') && 
-            (condicaoFormatada === 'bom_estado' || condicaoFormatada === 'bomestado')) ||
-          (activeFilters.condicao.includes('Observação') && 
-            (condicaoFormatada === 'em_observacao' || condicaoFormatada === 'emobservacao' || 
-             condicaoFormatada === 'observacao' || condicaoFormatada === 'observação'))
-        );
+        // Filtro por caixa
+        const matchesCaixa = activeFilters.caixas.length === 0 || 
+          (item.fkCaixa && activeFilters.caixas.includes(item.fkCaixa.nomeCaixa));
+        
+        // Filtro por mercado livre
+        const matchesMercadoLivre = activeFilters.mercadoLivre === null || 
+          item.flagML === activeFilters.mercadoLivre;
+        
+        // Filtro por verificado
+        const matchesVerificado = activeFilters.verificado === null || 
+          item.flagVerificado === activeFilters.verificado;
+        
+        // Filtro por condição (só se aplica se verificado for true)
+        let matchesCondicao = true;
+        if (item.flagVerificado && activeFilters.condicao.length > 0) {
+          const condicaoFormatada = item.condicao ? item.condicao.toLowerCase() : '';
+          
+          // Verifica se a condição do item corresponde a algum dos filtros selecionados
+          matchesCondicao = (
+            (activeFilters.condicao.includes('Bom Estado') && 
+              (condicaoFormatada === 'bom_estado' || condicaoFormatada === 'bomestado')) ||
+            (activeFilters.condicao.includes('Observação') && 
+              (condicaoFormatada === 'em_observacao' || condicaoFormatada === 'emobservacao' || 
+               condicaoFormatada === 'observacao' || condicaoFormatada === 'observação'))
+          );
+        }
+        
+        return matchesSearch && matchesCaixa && matchesMercadoLivre && matchesVerificado && matchesCondicao;
       }
-      
-      return matchesSearch && matchesCaixa && matchesMercadoLivre && matchesVerificado && matchesCondicao;
-    }
-  );
-
-  // Calculando a contagem de itens filtrados para mostrar o badge
-  const filteredCount = components.length - filteredComponents.length;
+    );
+    
+    setFilteredComponents(filtered);
+  }, [components, searchText, activeFilters]);
 
   const handleEditComponent = (component) => {
     setComponentToEdit(component);
@@ -314,6 +402,31 @@ const Componentes = () => {
       setToggleVisibilityLoading(false);
     }
   };
+  
+  // Cards de estatísticas para o DatagridHeader
+  const statsCards = [
+    {
+      icon: <InventoryIcon fontSize="small" sx={{ color: '#61131A' }} />,
+      value: totalComponents,
+      label: 'Total de Componentes',
+      color: '#61131A',
+      iconBgColor: '#ffeded'
+    },
+    {
+      icon: <CheckCircleOutlineIcon fontSize="small" sx={{ color: '#27ae60' }} />,
+      value: components.filter(c => c.flagVerificado).length,
+      label: 'Verificados',
+      color: '#27ae60',
+      iconBgColor: 'rgba(46, 204, 113, 0.1)'
+    },
+    {
+      icon: <StorefrontIcon fontSize="small" sx={{ color: '#2980b9' }} />,
+      value: components.filter(item => item.flagML).length,
+      label: 'Anunciados',
+      color: '#2980b9',
+      iconBgColor: 'rgba(41, 128, 185, 0.1)'
+    }
+  ];
 
   if (loading) {
     return (
@@ -328,370 +441,21 @@ const Componentes = () => {
 
   return (
     <div className={styles.componentes}>
-      <Paper elevation={1} className={styles.toolbar} sx={{
-        p: '10px 16px',
-        display: 'flex',
-        flexWrap: 'wrap',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '12px',
-        boxShadow: '0 2px 8px rgba(255, 255, 255, 0.08)',
-        borderRadius: '8px',
-        mb: 2,
-      }}>
-        <Box sx={{
-          display: 'flex',
-          flexWrap: 'wrap',
-          alignItems: 'center',
-          gap: '12px',
-          flex: '1 1 auto',
-          minWidth: '0',
-        }}>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              width: { xs: '100%', sm: '250px' },
-              minWidth: { xs: '100%', sm: '250px' },
-              maxWidth: '300px',
-              height: '38px',
-              backgroundColor: '#f0f2f5',
-              borderRadius: '20px',
-              px: 1.5,
-              overflow: 'hidden',
-              border: '1px solid transparent',
-              transition: 'all 0.2s ease-in-out',
-              '&:hover': {
-                backgroundColor: '#e9ecf0',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.03)'
-              },
-              '&:focus-within': {
-                backgroundColor: '#fff',
-                boxShadow: '0 0 0 2px rgba(97,19,26,0.1)',
-                border: '1px solid #e0e0e0'
-              }
-            }}
-          >
-            <SearchIcon
-              sx={{
-                color: '#61131A',
-                fontSize: 18,
-                opacity: 0.7,
-                mr: 1,
-                transition: 'transform 0.2s ease',
-                transform: 'rotate(-5deg)',
-                '&:hover': {
-                  transform: 'rotate(0deg) scale(1.1)'
-                }
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Buscar componente..."
-              value={searchText}
-              onChange={handleSearchChange}
-              style={{
-                border: 'none',
-                outline: 'none',
-                backgroundColor: 'transparent',
-                color: '#333',
-                width: '100%',
-                fontSize: '0.75rem',
-                fontWeight: 500,
-                padding: '0px',
-                fontFamily: 'inherit'
-              }}
-            />
-          </Box>
-          <Box sx={{
-            display: 'flex',
-            gap: '10px',
-            flexShrink: 0,
-          }}>
-            <Box
-              onClick={handleOpenFilterMenu}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                position: 'relative',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FilterListIcon
-                fontSize="small"
-                sx={{
-                  color: '#61131A',
-                  transition: 'transform 0.3s ease',
-                  '&:hover': {
-                    transform: 'rotate(180deg)'
-                  }
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Filtrar
-              </Typography>
-              {filteredCount > 0 && (
-                <Chip
-                  label={filteredCount}
-                  size="small"
-                  color="error"
-                  sx={{
-                    position: 'absolute',
-                    top: -8,
-                    right: -8,
-                    height: 18,
-                    minWidth: 18,
-                    fontSize: '0.65rem',
-                    fontWeight: 600,
-                    '& .MuiChip-label': {
-                      px: 1
-                    }
-                  }}
-                />
-              )}
-            </Box>
-
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FileDownloadIcon
-                fontSize="small"
-                sx={{
-                  color: '#2980b9',
-                  transition: 'transform 0.2s ease',
-                }}
-              />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Exportar
-              </Typography>
-            </Box>
-          </Box>
-
-          <Divider orientation="vertical" flexItem sx={{
-            height: 28,
-            mx: 0.5,
-            display: { xs: 'none', md: 'block' }
-          }} />
-
-          <Box sx={{
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            gap: '12px',
-            ml: { xs: 0, md: 0.5 },
-            flexGrow: 1,
-            justifyContent: { xs: 'flex-start', md: 'flex-start' },
-          }}>
-            <Card sx={{
-              height: '38px',
-              flex: '1 1 140px',
-              maxWidth: '180px',
-              minWidth: '140px',
-              borderTop: '3px solid #61131A',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s',
-              overflow: 'visible',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-              }
-            }}>
-              <CardContent sx={{
-                p: '4px 8px',
-                pb: '4px !important',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  width: '100%',
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    backgroundColor: '#ffeded',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 1,
-                    flexShrink: 0
-                  }}>
-                    <InventoryIcon sx={{ color: '#61131A', fontSize: 14 }} />
-                  </Box>
-                  <Box sx={{
-                    minWidth: 0,
-                    overflow: 'hidden',
-                  }}>
-                    <Typography variant="h6" sx={{
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      lineHeight: 1,
-                      mb: 0,
-                      color: '#333',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {totalComponents}
-                    </Typography>
-                    <Typography variant="caption" sx={{
-                      fontSize: '0.6rem',
-                      color: '#666',
-                      fontWeight: 500,
-                      lineHeight: 1,
-                      mt: '0px',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      Cadastrados
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-            <Card sx={{
-              height: '38px',
-              flex: '1 1 170px',
-              maxWidth: '200px',
-              minWidth: '170px',
-              borderTop: '3px solid #27ae60',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-              transition: 'transform 0.2s',
-              overflow: 'visible',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
-              }
-            }}>
-              <CardContent sx={{
-                p: '4px 8px',
-                pb: '4px !important',
-                height: '100%',
-                display: 'flex',
-                alignItems: 'center',
-              }}>
-                <Box sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  width: '100%',
-                  overflow: 'hidden'
-                }}>
-                  <Box sx={{
-                    width: '24px',
-                    height: '24px',
-                    borderRadius: '4px',
-                    backgroundColor: '#eaf7ef',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    mr: 1,
-                    flexShrink: 0
-                  }}>
-                    <StorefrontIcon sx={{ color: '#27ae60', fontSize: 14 }} />
-                  </Box>
-                  <Box sx={{
-                    minWidth: 0,
-                    overflow: 'hidden',
-                  }}>
-                    <Typography variant="h6" sx={{
-                      fontSize: '0.85rem',
-                      fontWeight: 700,
-                      lineHeight: 1,
-                      mb: 0,
-                      color: '#333',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      {components.filter(item => item.flagML).length}
-                    </Typography>
-                    <Typography variant="caption" sx={{
-                      fontSize: '0.6rem',
-                      color: '#666',
-                      fontWeight: 500,
-                      lineHeight: 1,
-                      mt: '0px',
-                      display: 'block',
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis'
-                    }}>
-                      Anunciados
-                    </Typography>
-                  </Box>
-                </Box>
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
-        <Button
-          size="small"
-          variant="contained"
-          disableElevation
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={handleAddComponent}
-          sx={{
-            height: '38px',
-            bgcolor: '#61131A',
-            '&:hover': { bgcolor: '#4e0f15' },
-            borderRadius: '4px',
-            textTransform: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            px: 1.5,
-            minWidth: '100px',
-            flexShrink: 0,
-            ml: { xs: 0, sm: 'auto' },
-            alignSelf: { xs: 'flex-start', sm: 'center' }
-          }}
-        >
-          Adicionar componente
-        </Button>
-      </Paper>
+      <DatagridHeader
+        title="Adicionar componente"
+        searchPlaceholder="Buscar por part number, IDH ou descrição..."
+        searchProps={{
+          value: searchText,
+          onChange: handleSearchChange
+        }}
+        onAddClick={handleAddComponent}
+        activeFilterCount={Object.values(activeFilters).flat().filter(Boolean).length}
+        onFilterClick={handleOpenFilterMenu}
+        statsCards={statsCards}
+        data={filteredComponents}
+        exportHeaders={exportHeaders}
+        exportFilename="componentes_hardwaretech"
+      />
 
       <Container
         maxWidth={false}
@@ -704,7 +468,7 @@ const Componentes = () => {
           overflow: 'hidden'
         }}
       >
-        {/* Substituindo a tabela pelo componente ComponentesDataGrid */}
+        {/* DataGrid com os componentes */}
         <ComponentesDataGrid 
           components={components}
           filteredComponents={filteredComponents}
@@ -716,6 +480,7 @@ const Componentes = () => {
           onToggleCatalog={handleToggleCatalog}
           onPageChange={handleChangePage}
           onRowsPerPageChange={handleChangeRowsPerPage}
+          loading={loading}
         />
       </Container>
 

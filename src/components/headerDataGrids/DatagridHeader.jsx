@@ -8,7 +8,8 @@ import {
   CardContent,
   Paper,
   Badge,
-  Alert
+  Alert,
+  Tooltip
 } from "@mui/material";
 
 // Material UI Icons
@@ -17,6 +18,9 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import AddIcon from '@mui/icons-material/Add';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+
+// Utilitários de exportação
+import { exportToCsv, getFormattedDate } from "../../utils/exportUtils";
 
 /**
  * FilterButton - Componente para o botão de filtro com contagem de filtros ativos
@@ -96,6 +100,9 @@ export const FilterButton = ({
  * @param {number} props.activeFilterCount - Número de filtros ativos
  * @param {function} props.onFilterClick - Função para abrir o menu de filtros
  * @param {Array} props.statsCards - Array com cartões de estatísticas para exibir
+ * @param {Array} props.data - Dados para exportação
+ * @param {Array} props.exportHeaders - Cabeçalhos para exportação
+ * @param {string} props.exportFilename - Nome do arquivo para exportação
  */
 const DatagridHeader = ({
   title = "Adicionar",
@@ -105,38 +112,40 @@ const DatagridHeader = ({
   activeFilterCount = 0,
   onFilterClick,
   statsCards = [],
-  componentesSemDescricao = 0
+  data = [],
+  exportHeaders = [],
+  exportFilename = "dados"
 }) => {
   const { value: searchText = "", onChange: handleSearchChange = () => {} } = searchProps;
-  const [alertOpen, setAlertOpen] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+
+  // Função para exportar dados para CSV
+  const handleExport = () => {
+    if (!data || data.length === 0) {
+      console.warn('Não há dados para exportar');
+      return;
+    }
+
+    if (!exportHeaders || exportHeaders.length === 0) {
+      console.warn('Cabeçalhos de exportação não definidos');
+      return;
+    }
+
+    try {
+      setIsExporting(true);
+      const formattedDate = getFormattedDate();
+      const filename = `${exportFilename}_${formattedDate}.csv`;
+      
+      exportToCsv(data, exportHeaders, filename);
+    } catch (error) {
+      console.error('Erro ao exportar dados:', error);
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   return (
     <>
-      {componentesSemDescricao > 0 && alertOpen && (
-        <Alert 
-          severity="warning"
-          icon={<WarningAmberIcon fontSize="inherit" />}
-          onClose={() => setAlertOpen(false)}
-          sx={{
-            mb: 2,
-            '& .MuiAlert-icon': {
-              color: '#f39c12'
-            },
-            border: '1px solid rgba(243, 156, 18, 0.2)',
-            backgroundColor: 'rgba(243, 156, 18, 0.1)'
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Typography component="span" sx={{ fontWeight: 600 }}>
-              {componentesSemDescricao} {componentesSemDescricao === 1 ? 'componente está' : 'componentes estão'} sem descrição no estoque
-            </Typography>
-            <Typography component="span" sx={{ ml: 1, fontSize: '0.85rem' }}>
-              - Clique nas linhas da tabela para ver e editar as descrições dos componentes.
-            </Typography>
-          </Box>
-        </Alert>
-      )}
-      
       <Paper elevation={1} sx={{ 
         p: '10px 16px',
         display: 'flex',
@@ -227,41 +236,51 @@ const DatagridHeader = ({
             />
             
             {/* Botão de Exportar */}
-            <Box
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                backgroundColor: '#f0f2f5',
-                borderRadius: '20px',
-                cursor: 'pointer',
-                transition: 'all 0.3s ease',
-                border: '1px solid transparent',
-                '&:hover': {
-                  backgroundColor: '#e2e6eb',
-                  transform: 'scale(1.02)',
-                }
-              }}
-            >
-              <FileDownloadIcon 
-                fontSize="small" 
-                sx={{ 
-                  color: '#2980b9',
-                  transition: 'transform 0.2s ease',
-                }} 
-              />
-              <Typography
+            <Tooltip title={data.length > 0 ? "Exportar para CSV" : "Não há dados para exportar"}>
+              <Box
+                onClick={data.length > 0 ? handleExport : undefined}
                 sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  padding: '6px 12px',
+                  backgroundColor: data.length > 0 ? '#f0f2f5' : '#f5f5f5',
+                  borderRadius: '20px',
+                  cursor: data.length > 0 ? 'pointer' : 'not-allowed',
+                  transition: 'all 0.3s ease',
+                  border: '1px solid transparent',
+                  opacity: data.length > 0 ? 1 : 0.7,
+                  '&:hover': data.length > 0 ? {
+                    backgroundColor: '#e2e6eb',
+                    transform: 'scale(1.02)',
+                  } : {}
                 }}
               >
-                Exportar
-              </Typography>
-            </Box>
+                <FileDownloadIcon 
+                  fontSize="small" 
+                  sx={{ 
+                    color: '#2980b9',
+                    transition: 'transform 0.2s ease',
+                    animation: isExporting ? 'pulse 1.5s infinite' : 'none',
+                    '@keyframes pulse': {
+                      '0%': { opacity: 0.7 },
+                      '50%': { opacity: 1 },
+                      '100%': { opacity: 0.7 }
+                    }
+                  }} 
+                />
+                <Typography
+                  sx={{
+                    fontSize: '0.75rem',
+                    fontWeight: 600,
+                    color: '#444',
+                    userSelect: 'none'
+                  }}
+                >
+                  Exportar
+                </Typography>
+              </Box>
+            </Tooltip>
           </Box>
           
           {/* Separador vertical */}

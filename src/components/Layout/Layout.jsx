@@ -30,13 +30,7 @@ import {
     useTheme,
     Collapse,
     Tooltip,
-    Avatar,
-    InputBase,
-    Popper,
-    Paper,
-    ClickAwayListener,
-    List as MuiList,
-    ListItemButton as MuiListItemButton
+    Avatar
 } from "@mui/material";
 
 import {
@@ -44,21 +38,13 @@ import {
     Menu as MenuIcon,
     ExpandLess,
     ExpandMore,
-    ChevronLeft as ChevronLeftIcon,
-    ChevronRight as ChevronRightIcon,
     ArrowBackIosNew as ArrowBackIosNewIcon,
     ArrowForwardIos as ArrowForwardIosIcon,
-    NotificationsNoneOutlined as NotificationsNoneOutlinedIcon,
-    MailOutlineOutlined as MailOutlineOutlinedIcon,
-    Search as SearchIcon
 } from "@mui/icons-material";
-
-import { alpha } from '@mui/material/styles';
 
 // icons
 import Logo from "../../assets/Logo.svg";
 import DashboardOutlinedIcon from '@mui/icons-material/DashboardOutlined';
-import ManageSearchOutlinedIcon from '@mui/icons-material/ManageSearchOutlined';
 import ShoppingCartOutlinedIcon from '@mui/icons-material/ShoppingCartOutlined';
 import BarChartOutlinedIcon from '@mui/icons-material/BarChartOutlined';
 import PsychologyIcon from '@mui/icons-material/Psychology';
@@ -153,7 +139,6 @@ const Layout = () => {
                 ...(userRole !== "Gestor do Estoque" ? [{ text: "Usuários", key: "users", path: "/usuarios" }] : [])
             ]
         },
-        { text: "Relatórios e Análise", key: "report", path: "/analise" },
         { text: "Assistente IA", key: "assistentIa", path: "/assistente-ia" },
         { text: "Suporte", key: "suport", path: "/suporte" },
     ];
@@ -515,97 +500,16 @@ const Layout = () => {
                     <Typography variant="h5" noWrap component="div" sx={{ flexGrow: 1 }}>
                         {getPageTitle()}
                     </Typography>
-                    <ClickAwayListener onClickAway={handleClickAwaySearch}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                            {/* Search Bar */}
-                            <Box sx={{
-                                position: 'relative',
-                                borderRadius: theme.shape.borderRadius,
-                                backgroundColor: alpha(theme.palette.common.white, 0.15),
-                                '&:hover': {
-                                    backgroundColor: alpha(theme.palette.common.white, 0.25),
-                                },
-                                marginRight: theme.spacing(2),
-                                marginLeft: 0,
-                                width: 'auto',
-                                display: { xs: 'none', sm: 'flex' }
-                            }}>
-                                <Box sx={{ padding: theme.spacing(0, 1), height: '100%', position: 'absolute', pointerEvents: 'none', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                    <SearchIcon />
-                                </Box>
-                                <InputBase
-                                    id="global-search-input"
-                                    placeholder="Pesquisar…"
-                                    value={searchTerm}
-                                    onChange={handleSearchChange}
-                                    onFocus={handleSearchFocus}
-                                    ref={searchInputRef}
-                                    sx={{
-                                        color: 'inherit',
-                                        '& .MuiInputBase-input': {
-                                            padding: theme.spacing(1, 1, 1, 0),
-                                            paddingLeft: `calc(1em + ${theme.spacing(3)})`,
-                                            transition: theme.transitions.create('width'),
-                                            width: '15ch',
-                                            '&:focus': {
-                                                width: '25ch',
-                                            },
-                                        },
-                                    }}
-                                />
-                                <Popper
-                                    open={Boolean(searchAnchorEl && searchResults.length > 0)}
-                                    anchorEl={searchAnchorEl}
-                                    placement="bottom-start"
-                                    modifiers={[
-                                        {
-                                            name: 'offset',
-                                            options: {
-                                                offset: [0, 8], // Add some offset from the anchor
-                                            },
-                                        },
-                                        {
-                                            name: 'preventOverflow',
-                                            options: {
-                                                boundary: 'viewport',
-                                            },
-                                        }
-                                    ]}
-                                    sx={{ zIndex: theme.zIndex.modal + 1, width: searchInputRef.current ? searchInputRef.current.offsetWidth : 'auto' }}
-                                >
-                                    <Paper elevation={3} sx={{ maxHeight: 300, overflow: 'auto' }}>
-                                        <MuiList dense>
-                                            {searchResults.map((result, index) => (
-                                                <MuiListItemButton key={index} onClick={() => handleSearchResultClick(result.path)}>
-                                                    <ListItemText primary={result.text} />
-                                                </MuiListItemButton>
-                                            ))}
-                                        </MuiList>
-                                    </Paper>
-                                </Popper>
-                            </Box>
-
-                            {/* Email Icon */}
-                            <IconButton color="inherit">
-                                <MailOutlineOutlinedIcon />
-                            </IconButton>
-
-                            {/* Notification Icon */}
-                            <IconButton color="inherit">
-                                <NotificationsNoneOutlinedIcon />
-                            </IconButton>                            {/* Avatar */}
-                            <Avatar
-                                src={`${STANDARD_AVATAR}${userInitials}`}
-                                alt={user}
-                                sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}
-                            />
-
-                            {/* Username */}
-                            <Typography variant="subtitle1" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
-                                {user ? user : "Usuário"}
-                            </Typography>
-                        </Box>
-                    </ClickAwayListener>
+                    {/* Avatar */}
+                    <Avatar
+                        src={`${STANDARD_AVATAR}${userInitials}`}
+                        alt={user}
+                        sx={{ width: 32, height: 32, bgcolor: 'primary.light', ml: 1 }}
+                    />
+                    {/* Username */}
+                    <Typography variant="subtitle1" noWrap component="div" sx={{ display: { xs: 'none', sm: 'block' } }}>
+                        {user ? user : "Usuário"}
+                    </Typography>
                 </Toolbar>
             </AppBar>
             <Box

@@ -7,7 +7,6 @@ import Layout from "../components/Layout/Layout";
 import Dashboard from "../pages/Dashboard/Dashboard";
 import Componentes from "../pages/Componentes/Componentes";
 import Pedidos from "../pages/Pedidos/Pedidos";
-import Analise from "../pages/Analise/Analise";
 import Suporte from "../pages/Suporte/Suporte";
 import { AssistenteIa } from "../pages/AssistenteIa/AssistenteIa";
 import { Usuarios } from "../pages/Usuarios/Usuarios";
@@ -25,7 +24,6 @@ export default function AppRoutes() {
         <Route path="componentes" element={<Componentes />} />
         <Route path="pedidos" element={<Pedidos />} />
         <Route path="usuarios" element={<Usuarios/>} />
-        <Route path="analise" element={<Analise />} />
         <Route path="assistente-ia" element={<AssistenteIa />} />
         <Route path="suporte" element={<Suporte />} />
   

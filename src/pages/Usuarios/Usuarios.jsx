@@ -1,17 +1,12 @@
 import React, { useEffect, useState, useMemo } from "react";
 import styles from "./Usuarios.module.css";
 import { api } from "../../service/api";
+import UsuariosDataGrid from "../../components/datagrids/UsuariosDataGrid/UsuariosDataGrid";
 import UserFormModal from "../../components/forms/UserFormModal/UserFormModal";
 import UserEditModal from "../../components/forms/UserFormModal/UserEditModal";
 import UserDeleteModal from "../../components/forms/UserFormModal/UserDeleteModal";
-import UsuariosFilter from "../../components/menuFilter/UsuariosFilter";
-import UsuariosDataGrid from "../../components/datagrids/UsuariosDataGrid/UsuariosDataGrid";
 import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
-
-// URL base para imagens de perfil
-const API_BASE_URL = "http://localhost:8080/api/uploads/images/";
-// Standardized avatar URL (fallback quando não há imagem de perfil)
-const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
+import UsuariosFilter from "../../components/menuFilter/UsuariosFilter";
 
 // Material UI Components
 import {
@@ -26,6 +21,11 @@ import {
 // Material UI Icons
 import PeopleIcon from '@mui/icons-material/People';
 import AdminPanelSettingsIcon from '@mui/icons-material/AdminPanelSettings';
+
+// URL base para imagens de perfil
+const API_BASE_URL = "http://localhost:8080/api/uploads/images/";
+// Standardized avatar URL (fallback quando não há imagem de perfil)
+const STANDARD_AVATAR = "https://ui-avatars.com/api/?background=61131A&color=fff&bold=true&font-size=0.33";
 
 const Usuarios = () => {
   const [loading, setLoading] = useState(true);
@@ -51,6 +51,16 @@ const Usuarios = () => {
   });
   const [filteredCount, setFilteredCount] = useState(0);
 
+  // Definição dos cabeçalhos para exportação
+  const exportHeaders = [
+    { id: 'id', label: 'ID' },
+    { id: 'nome', label: 'Nome' },
+    { id: 'email', label: 'Email' },
+    { id: 'cargo', label: 'Cargo' },
+    { id: 'status', label: 'Status' },
+    { id: 'criadoEm', label: 'Data de Criação' }
+  ];
+
   useEffect(() => {
     document.title = "HardwareTech | Usuários";
     fetchUsuarios();
@@ -60,6 +70,7 @@ const Usuarios = () => {
   useEffect(() => {
     setTotalUsuarios(usuarios.length);
   }, [usuarios]);
+  
   // Funções para gerenciar os filtros
   const handleOpenFilterMenu = (event) => {
     setFilterAnchorEl(event.currentTarget);
@@ -177,6 +188,7 @@ const Usuarios = () => {
     setSearchText(event.target.value);
     setPage(0);
   };
+  
   // Função para lidar com o clique no botão de editar
   const handleEditUser = (user) => {
     setSelectedUser(user);
@@ -188,6 +200,7 @@ const Usuarios = () => {
     setSelectedUser(user);
     setDeleteModalOpen(true);
   };
+  
   // Função para filtrar usuários com base em filtros e texto de busca
   const filteredUsuarios = useMemo(() => {
     // Primeiro filtra por texto de busca
@@ -250,6 +263,24 @@ const Usuarios = () => {
     // quando os filtros mudarem
   }, [searchText, activeFilters.cargo, activeFilters.status, activeFilters.periodo]);
 
+  // Cards de estatísticas para o header
+  const statsCards = [
+    {
+      icon: <PeopleIcon fontSize="small" sx={{ color: '#61131A' }} />,
+      value: totalUsuarios,
+      label: 'Usuários',
+      color: '#61131A',
+      iconBgColor: '#ffeded'
+    },
+    {
+      icon: <AdminPanelSettingsIcon fontSize="small" sx={{ color: '#27ae60' }} />,
+      value: usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length,
+      label: 'Administradores',
+      color: '#27ae60',
+      iconBgColor: '#eaf7ef'
+    }
+  ];
+
   if (loading) {
     return (
       <Box className={styles.loadingContainer}>
@@ -260,6 +291,7 @@ const Usuarios = () => {
       </Box>
     );
   }
+  
   return (
     <div className={styles.usuarios}>
       {/* DatagridHeader para a página de usuários */}
@@ -273,22 +305,10 @@ const Usuarios = () => {
         onAddClick={() => setModalOpen(true)}
         activeFilterCount={Object.values(activeFilters).some(v => Array.isArray(v) ? v.length > 0 : v !== null) ? filteredCount : 0}
         onFilterClick={handleOpenFilterMenu}
-        statsCards={[
-          {
-            icon: <PeopleIcon fontSize="small" sx={{ color: '#61131A' }} />,
-            value: totalUsuarios,
-            label: 'Usuários',
-            color: '#61131A',
-            iconBgColor: '#ffeded'
-          },
-          {
-            icon: <AdminPanelSettingsIcon fontSize="small" sx={{ color: '#27ae60' }} />,
-            value: usuarios.filter(item => item.cargo === 'Administrador' || item.cargo === 'Administrator').length,
-            label: 'Administradores',
-            color: '#27ae60',
-            iconBgColor: '#eaf7ef'
-          }
-        ]}
+        statsCards={statsCards}
+        data={filteredUsuarios}
+        exportHeaders={exportHeaders}
+        exportFilename="usuarios_hardwaretech"
       />
 
       {/* Componente UsuariosFilter */}
@@ -355,7 +375,8 @@ const Usuarios = () => {
         }}
       />
 
-      {/* Modal for deleting a user */}      <UserDeleteModal
+      {/* Modal for deleting a user */}      
+      <UserDeleteModal
         open={deleteModalOpen}
         onClose={() => {
           setDeleteModalOpen(false);
