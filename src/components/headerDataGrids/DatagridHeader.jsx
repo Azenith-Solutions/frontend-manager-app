@@ -223,7 +223,6 @@ const DatagridHeader = ({
             />
           </Box>
           
-          {/* Botões de Filtrar e Exportar */}
           <Box sx={{ 
             display: 'flex', 
             gap: '10px',

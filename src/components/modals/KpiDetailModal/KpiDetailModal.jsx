@@ -359,27 +359,6 @@ const KpiDetailModal = ({ open, onClose, title, data, loading, columns }) => {
                 </Box>
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button
-                        variant="outlined"
-                        sx={{
-                            borderRadius: '8px',
-                            textTransform: 'none',
-                            fontWeight: 500,
-                            borderColor: 'rgba(97, 19, 26, 0.5)',
-                            color: '#61131A',
-                            '&:hover': {
-                                backgroundColor: 'rgba(97, 19, 26, 0.04)',
-                                borderColor: '#61131A'
-                            }
-                        }}
-                        startIcon={
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                                <path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z" fill="currentColor" />
-                            </svg>
-                        }
-                    >
-                        Exportar
-                    </Button>
-                    <Button
                         onClick={onClose}
                         variant="contained"
                         sx={{

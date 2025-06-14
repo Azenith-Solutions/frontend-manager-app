@@ -24,13 +24,13 @@ const initialForm = {
   nomeComprador: "",
   emailComprador: "",
   telCelular: "",
-  status: "EM_ANALISE",
+  status: "PENDENTE",
   valor: ""
 };
 
 const statusOptions = [
   { value: "CONCLUIDO", label: "CONCLUÍDO" },
-  { value: "EM_ANALISE", label: "EM ANÁLISE" },
+  { value: "PENDENTE", label: "PENDENTE" },
   { value: "EM_ANDAMENTO", label: "EM ANDAMENTO" }
 ];
 
@@ -63,7 +63,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
         nomeComprador: pedido.nomeComprador || pedido.nomeComprador || "",
         emailComprador: pedido.emailComprador || pedido.emailComprador || "",
         telCelular: pedido.telCelular || pedido.telCelular || "",
-        status: pedido.status || "EM_ANALISE",
+        status: pedido.status || "PENDENTE",
         valor: pedido.valor || ""
       });
       // Detecta tipoPessoa com base no tamanho do cnpj/cpf
@@ -132,6 +132,12 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+    // Validação manual dos campos obrigatórios
+    if (!form.codigo || !form.nomeComprador || !form.emailComprador || !form.telCelular || !form.status || !form.valor) {
+      setFeedbackMessage({ open: true, message: "Preencha todos os campos obrigatórios antes de salvar.", severity: 'error' });
+      setLoading(false);
+      return;
+    }
     // Bloqueia salvar se não houver itens no pedido
     if (itensPedido.length === 0) {
       setFeedbackMessage({ open: true, message: "Adicione pelo menos um item ao pedido antes de salvar.", severity: 'error' });
@@ -180,19 +186,15 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
 
   const formatCnpjCpf = (value) => {
     if (!value) return "";
-    value = value.replace(/\D/g, '');
-    if (tipoPessoa === 'empresa') {
-      return value
-        .replace(/(\d{2})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,4})$/, '$1/$2')
-        .replace(/(\d{4})(\d{1,2})$/, '$1-$2');
-    } else {
-      return value
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d)/, '$1.$2')
-        .replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+    const digits = value.replace(/\D/g, "");
+    if (digits.length === 14) {
+      // CNPJ: 00.000.000/0000-00
+      return digits.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+    } else if (digits.length === 11) {
+      // CPF: 000.000.000-00
+      return digits.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
     }
+    return value;
   };
   const formatPhone = (value) => {
     if (!value) return "";
@@ -417,24 +419,25 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
-            <TextField
-              label={tipoPessoa === 'empresa' ? 'CNPJ' : 'CPF'}
-              name="cnpj"
-              value={formatCnpjCpf(form.cnpj)}
-              onChange={e => {
-                let value = e.target.value.replace(/\D/g, '');
-                const maxLen = tipoPessoa === 'empresa' ? 14 : 11;
-                value = value.slice(0, maxLen);
-                setForm(prev => ({ ...prev, cnpj: value }));
-              }}
-              required
-              fullWidth
-              inputProps={{ maxLength: tipoPessoa === 'empresa' ? 18 : 14, inputMode: 'text', pattern: '[0-9.\-/]*' }}
-              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
-              InputLabelProps={{ sx: { fontSize: '1rem' } }}
-              sx={{ bgcolor: '#fff' }}
-              disabled={!!pedido}
-            />
+            {tipoPessoa === 'empresa' && (
+              <TextField
+                label="CNPJ"
+                name="cnpj"
+                value={formatCnpjCpf(form.cnpj)}
+                onChange={e => {
+                  let value = e.target.value.replace(/\D/g, '');
+                  const maxLen = 14;
+                  value = value.slice(0, maxLen);
+                  setForm(prev => ({ ...prev, cnpj: value }));
+                }}
+                fullWidth
+                inputProps={{ maxLength: 18, inputMode: 'text', pattern: '[0-9.\-/]*' }}
+                InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+                InputLabelProps={{ sx: { fontSize: '1rem' } }}
+                sx={{ bgcolor: '#fff' }}
+                disabled={!!pedido}
+              />
+            )}
             <TextField
               label="Nome do Comprador"
               name="nomeComprador"

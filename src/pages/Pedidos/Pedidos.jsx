@@ -476,12 +476,12 @@ const Pedidos = () => {
                               sx={{
                                 backgroundColor:
                                   item.status && item.status.toLowerCase() === 'concluido' ? 'rgba(46, 204, 113, 0.1)' :
-                                    item.status && item.status.toLowerCase() === 'em_analise' ? 'rgba(241, 196, 15, 0.1)' :
+                                    item.status && item.status.toLowerCase() === 'pendente' ? 'rgba(241, 196, 15, 0.1)' :
                                       item.status && item.status.toLowerCase() === 'em_andamento' ? 'rgba(52, 152, 219, 0.1)' :
                                         'rgba(231, 76, 60, 0.1)',
                                 color:
                                   item.status && item.status.toLowerCase() === 'concluido' ? '#27ae60' :
-                                    item.status && item.status.toLowerCase() === 'em_analise' ? '#f39c12' :
+                                    item.status && item.status.toLowerCase() === 'pendente' ? '#f39c12' :
                                       item.status && item.status.toLowerCase() === 'em_andamento' ? '#3498db' :
                                         '#e74c3c',
                                 fontWeight: 500,
@@ -771,7 +771,7 @@ function formatStatus(status) {
   if (!status) return '';
   const map = {
     'concluido': 'CONCLUÍDO',
-    'em_analise': 'EM ANÁLISE',
+    'pendente': 'PENDENTE',
     'em_andamento': 'EM ANDAMENTO'
   };
   const lower = status.toLowerCase();
