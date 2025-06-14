@@ -492,16 +492,6 @@ const Componentes = () => {
                   transition: 'transform 0.2s ease',
                 }}
               />
-              <Typography
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                  color: '#444',
-                  userSelect: 'none'
-                }}
-              >
-                Exportar
-              </Typography>
             </Box>
           </Box>
 
