@@ -69,7 +69,7 @@ const Layout = () => {
 
     const isMobile = useMediaQuery(theme.breakpoints.down("md"));
     const [mobileOpen, setMobileOpen] = useState(false);
-    const [managementOpen, setManagementOpen] = useState(false);
+    const [managementOpen, setManagementOpen] = useState(true);
     const [sidebarExpanded, setSidebarExpanded] = useState(true);
 
     const [searchTerm, setSearchTerm] = useState("");
@@ -112,18 +112,6 @@ const Layout = () => {
             red: <PeopleIcon sx={{ color: "#61131A" }} />,
             white: <PeopleIcon sx={{ color: "#FFFFFF" }} />
         },
-        report: {
-            red: <BarChartOutlinedIcon sx={{ color: "#61131A" }} />,
-            white: <BarChartOutlinedIcon sx={{ color: "#FFFFFF" }} />
-        },
-        assistentIa: {
-            red: <PsychologyIcon sx={{ color: "#61131A" }} />,
-            white: <PsychologyIcon sx={{ color: "#FFFFFF" }} />
-        },
-        suport: {
-            red: <HeadsetMicIcon sx={{ color: "#61131A" }} />,
-            white: <HeadsetMicIcon sx={{ color: "#FFFFFF" }} />
-        },
     };
 
     const menuItems = [
@@ -139,8 +127,6 @@ const Layout = () => {
                 ...(userRole !== "Gestor do Estoque" ? [{ text: "Usuários", key: "users", path: "/usuarios" }] : [])
             ]
         },
-        { text: "Assistente IA", key: "assistentIa", path: "/assistente-ia" },
-        { text: "Suporte", key: "suport", path: "/suporte" },
     ];
 
     // Define o título com base na rota atual

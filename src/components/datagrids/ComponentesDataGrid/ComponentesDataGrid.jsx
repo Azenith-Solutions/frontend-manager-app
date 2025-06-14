@@ -196,19 +196,36 @@ const ComponentesDataGrid = ({
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.quantidade}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>{item.fkCaixa?.nomeCaixa || "N/A"}</TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
-                      <Chip 
-                        icon={item.flagML ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
-                        label={item.flagML ? "Sim" : "Não"}
-                        size="small"
-                        sx={{ 
-                          backgroundColor: item.flagML ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
-                          color: item.flagML ? '#27ae60' : '#e74c3c',
-                          fontWeight: 500,
-                          fontSize: '0.75rem',
-                          borderRadius: '4px',
-                          '& .MuiChip-icon': { color: 'inherit' }
-                        }}
-                      />
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+                        <Chip 
+                          icon={item.flagML ? <CheckCircleIcon fontSize="small" /> : <CancelIcon fontSize="small" />}
+                          label={item.flagML ? "Sim" : "Não"}
+                          size="small"
+                          sx={{ 
+                            backgroundColor: item.flagML ? 'rgba(46, 204, 113, 0.1)' : 'rgba(231, 76, 60, 0.1)',
+                            color: item.flagML ? '#27ae60' : '#e74c3c',
+                            fontWeight: 500,
+                            fontSize: '0.75rem',
+                            borderRadius: '4px',
+                            '& .MuiChip-icon': { color: 'inherit' }
+                          }}
+                        />
+                        {item.flagML && item.codigoML && (
+                          <Tooltip
+                            title={
+                              <Typography variant="body2" sx={{ p: 1 }}>
+                                Código ML: {item.codigoML}
+                              </Typography>
+                            }
+                            arrow
+                            placement="top"
+                          >
+                            <IconButton size="small" sx={{ p: 0.3, ml: 0.2, color: '#27ae60' }}>
+                              <InfoOutlinedIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
+                        )}
+                      </Box>
                     </TableCell>
                     <TableCell align="center" sx={{ py: 0.8 }}>
                       <Chip 

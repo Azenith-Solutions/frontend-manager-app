@@ -47,7 +47,9 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
     categoria: '',
     flagVerificado: 'Não',
     condicao: '',
-    observacao: ''
+    observacao: '',
+    flagML: 'Não',
+    codigoML: ''
   });
 
   const [selectedImage, setSelectedImage] = useState(null);
@@ -130,7 +132,9 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
           '',
         flagVerificado: componentToEdit.flagVerificado ? 'Sim' : 'Não',
         condicao: componentToEdit.condicao || '',
-        observacao: componentToEdit.observacao || ''
+        observacao: componentToEdit.observacao || '',
+        flagML: componentToEdit.flagML ? 'Sim' : 'Não',
+        codigoML: componentToEdit.codigoML || ''
       });
 
       if (componentToEdit.imagemUrl) {
@@ -138,6 +142,26 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
       } else {
         setPreviewImage(defaultImage);
       }
+    } else {
+      // Reset form to default values when switching from edit to add mode
+      setFormData({
+        idHardWareTech: '1801-',
+        nomeComponente: '',  
+        partNumber: '',
+        descricao: '',
+        quantidade: 1,
+        fkCaixa: '',
+        categoria: '',
+        flagVerificado: 'Não',
+        condicao: '',
+        observacao: '',
+        flagML: 'Não',
+        codigoML: ''
+      });
+      setSelectedImage(null);
+      setPreviewImage(null);
+      setImageError('');
+      setErrors({});
     }
   }, [componentToEdit, open]);
 
@@ -235,6 +259,11 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
       newErrors.observacao = 'Insira uma observação sobre o componente';
     }
     
+    // Validação do código ML se flagML for Sim
+    if (formData.flagML === 'Sim' && !formData.codigoML) {
+      newErrors.codigoML = 'O código do Mercado Livre é obrigatório quando o componente está anunciado';
+    }
+    
     // Validação obrigatória da imagem (apenas para novos componentes)
     if (!componentToEdit && !selectedImage) {
       newErrors.imagem = 'A imagem do componente é obrigatória';
@@ -289,8 +318,8 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
         fkCategoria: Number(formData.categoria),
         partNumber: formData.partNumber,
         quantidade: Number(formData.quantidade),
-        flagML: false, 
-        codigoML: "",  
+        flagML: formData.flagML === 'Sim', 
+        codigoML: formData.flagML === 'Sim' ? formData.codigoML : "",  
         flagVerificado: formData.flagVerificado === 'Sim',
         condicao: formData.flagVerificado === 'Sim' ? formData.condicao : null,
         observacao: formData.condicao === 'EM_OBSERVACAO' ? formData.observacao : "",
@@ -389,7 +418,9 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
       categoria: '',
       flagVerificado: 'Não',
       condicao: '',
-      observacao: ''
+      observacao: '',
+      flagML: 'Não',
+      codigoML: ''
     });
     setErrors({});
     setSuccess(false);
@@ -802,6 +833,41 @@ const ComponentFormModal = ({ open, onClose, componentToEdit = null, componentes
                     size="small"
                     multiline
                     rows={2}
+                    fullWidth
+                  />
+                )}
+                {/* Campos para Mercado Livre */}
+                <FormControl 
+                  variant="outlined" 
+                  disabled={submitting} 
+                  size="small"
+                  fullWidth
+                >
+                  <InputLabel id="select-flagML-label">Anunciado no ML</InputLabel>
+                  <Select
+                    labelId="select-flagML-label"
+                    id="select-flagML"
+                    name="flagML"
+                    value={formData.flagML}
+                    onChange={handleChange}
+                    label="Anunciado no ML"
+                  >
+                    <MenuItem value="Sim">Sim</MenuItem>
+                    <MenuItem value="Não">Não</MenuItem>
+                  </Select>
+                </FormControl>
+
+                {formData.flagML === 'Sim' && (
+                  <TextField
+                    label="Código do Mercado Livre"
+                    variant="outlined"
+                    name="codigoML"
+                    value={formData.codigoML}
+                    onChange={handleChange}
+                    error={Boolean(errors.codigoML)}
+                    helperText={errors.codigoML}
+                    disabled={submitting}
+                    size="small"
                     fullWidth
                   />
                 )}
