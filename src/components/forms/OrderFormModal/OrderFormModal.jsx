@@ -133,7 +133,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
     setLoading(true);
     setError("");
     // Validação manual dos campos obrigatórios
-    if (!form.codigo || !form.cnpj || !form.nomeComprador || !form.emailComprador || !form.telCelular || !form.status || !form.valor) {
+    if (!form.codigo || !form.nomeComprador || !form.emailComprador || !form.telCelular || !form.status || !form.valor) {
       setFeedbackMessage({ open: true, message: "Preencha todos os campos obrigatórios antes de salvar.", severity: 'error' });
       setLoading(false);
       return;
@@ -419,24 +419,25 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
               sx={{ bgcolor: '#fff' }}
               disabled={!!pedido}
             />
-            <TextField
-              label={tipoPessoa === 'empresa' ? 'CNPJ' : 'CPF'}
-              name="cnpj"
-              value={formatCnpjCpf(form.cnpj)}
-              onChange={e => {
-                let value = e.target.value.replace(/\D/g, '');
-                const maxLen = tipoPessoa === 'empresa' ? 14 : 11;
-                value = value.slice(0, maxLen);
-                setForm(prev => ({ ...prev, cnpj: value }));
-              }}
-              required
-              fullWidth
-              inputProps={{ maxLength: tipoPessoa === 'empresa' ? 18 : 14, inputMode: 'text', pattern: '[0-9.\-/]*' }}
-              InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
-              InputLabelProps={{ sx: { fontSize: '1rem' } }}
-              sx={{ bgcolor: '#fff' }}
-              disabled={!!pedido}
-            />
+            {tipoPessoa === 'empresa' && (
+              <TextField
+                label="CNPJ"
+                name="cnpj"
+                value={formatCnpjCpf(form.cnpj)}
+                onChange={e => {
+                  let value = e.target.value.replace(/\D/g, '');
+                  const maxLen = 14;
+                  value = value.slice(0, maxLen);
+                  setForm(prev => ({ ...prev, cnpj: value }));
+                }}
+                fullWidth
+                inputProps={{ maxLength: 18, inputMode: 'text', pattern: '[0-9.\-/]*' }}
+                InputProps={{ sx: { borderRadius: 2, fontSize: '1rem' } }}
+                InputLabelProps={{ sx: { fontSize: '1rem' } }}
+                sx={{ bgcolor: '#fff' }}
+                disabled={!!pedido}
+              />
+            )}
             <TextField
               label="Nome do Comprador"
               name="nomeComprador"
