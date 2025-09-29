@@ -430,4 +430,4 @@ const Usuarios = () => {
   );
 };
 
-export { Usuarios };
+export default Usuarios;
