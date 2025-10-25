@@ -380,7 +380,7 @@ const Layout = () => {
                                                                 minWidth: 30,
                                                                 color: "inherit",
                                                                 pl: sidebarExpanded ? 0 : '10px', // Added left padding when collapseds
-                                                            }} m
+                                                            }}
                                                         >
                                                             {subIconSrc}
                                                         </ListItemIcon>
