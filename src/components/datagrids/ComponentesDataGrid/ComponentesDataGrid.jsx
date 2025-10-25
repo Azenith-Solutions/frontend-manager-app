@@ -32,7 +32,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-const API_IMAGES_URL = "http://localhost:8080/api/uploads/images/";
+const API_IMAGES_URL = "http://localhost:8080/api";
 
 /**
  * Formata o valor da condição do componente
