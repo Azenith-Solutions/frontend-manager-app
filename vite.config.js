@@ -5,7 +5,7 @@ import path from 'path';
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
-  base: process.env.NODE_ENV === 'production' ? '/manager/' : '/',
+  base: '/manager/',
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './src'),
@@ -22,5 +22,16 @@ export default defineConfig({
   server: {
     port: 5173,
     open: true,
+  },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: false,
+    minify: 'esbuild',
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      }
+    }
   }
 });
