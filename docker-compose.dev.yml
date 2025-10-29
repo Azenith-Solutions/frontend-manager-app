@@ -1,0 +1,25 @@
+name: hardwaretech
+
+services:
+  frontend-manager-system:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - '3001:80'
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - hardwaretech-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 1m30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  hardwaretech-network:
+    driver: bridge
+    name: hardwaretech-network
+    external: true
