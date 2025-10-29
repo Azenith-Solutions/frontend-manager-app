@@ -2,7 +2,7 @@ version: "3.9"
 services:
   frontend-manager-system:
     image: ghcr.io/azenith-solutions/frontend-manager-app:${IMAGE_TAG}
-    container_name: site
+    container_name: sistema
     restart: unless-stopped
     ports:
       - "81:81"
