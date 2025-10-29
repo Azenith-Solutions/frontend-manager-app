@@ -10,26 +10,17 @@ import Usuarios from "../pages/Usuarios/Usuarios";
 
 const AppRoutes = () => {
   return (
-    // Funciona sem o /mangaer, por que?
-    <Router>
+    <Router basename= "/manager">
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/" element={
-          <PrivateRoutes>
-            <Layout />
-          </PrivateRoutes>
-        }>
-          <Route path="dashboard" element={<Dashboard />} />
-          <Route path="componentes" element={<Componentes />} />
-          <Route path="pedidos" element={<Pedidos />} />
-          <Route path="usuarios" element={<Usuarios />} />
+        <Route path="/" element={<Navigate to="/login" />} />
+        <Route path="/login" element={<Login />} />
+        <Route element={<PrivateRoutes />}>
+          <Route path="/dashboard" element={<Layout component={<Dashboard />} />} />
+          <Route path="/componentes" element={<Layout component={<Componentes />} />} />
+          <Route path="/pedidos" element={<Layout component={<Pedidos />} />} />
+          <Route path="/usuarios" element={<Layout component={<Usuarios />} />} />
         </Route>
-
-        {/* Página 404 */}
-        <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
       </Routes>
     </Router>
   );
 };
-
-export default AppRoutes;
