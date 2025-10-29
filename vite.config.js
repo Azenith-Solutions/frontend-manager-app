@@ -30,6 +30,14 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
+        entryFileNames: 'assets/index.js',
+        chunkFileNames: 'assets/[name].js',
+        assetFileNames: (assetInfo) => {
+          if (assetInfo.name === 'index.css') {
+            return 'assets/index.css';
+          }
+          return 'assets/[name]-[hash].[ext]';
+        },
         manualChunks: undefined,
       }
     }
