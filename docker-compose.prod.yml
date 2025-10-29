@@ -1,37 +1,13 @@
-name: hardwaretech
-
+version: "3.9"
 services:
   frontend-manager-system:
-    build: 
-      context: .
-      dockerfile: Dockerfile
-    expose:
-      - "80"                   
-    environment:
-      - NODE_ENV=production
-    deploy:
-      replicas: 2
-      resources:
-        limits:
-          memory: 512M
-          cpus: '0.5'
-        reservations:
-          memory: 256M
-          cpus: '0.25'
-      restart_policy:
-        condition: on-failure
-        delay: 5s
-        max_attempts: 3
+    image: ghcr.io/azenith-solutions/frontend-manager-app:${IMAGE_TAG}
+    container_name: site
     restart: unless-stopped
-    networks:
-      - hardwaretech-network   
+    ports:
+      - "81:81"
     healthcheck:
-      test: ["CMD", "wget", "--spider", "http://localhost:80/health"]
-      interval: 15s
+      test: ["CMD-SHELL","wget -qO- http://127.0.0.1/health || exit 1"]
+      interval: 20s
       timeout: 5s
       retries: 3
-      start_period: 30s
-
-networks:
-  hardwaretech-network:
-    external: true    

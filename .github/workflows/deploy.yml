@@ -1,0 +1,91 @@
+name: deploy-frontend
+on:
+  push: { branches: [ "main" ] }
+  workflow_dispatch: {}
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    permissions: { contents: read, packages: write }
+    env:
+      IMAGE: ghcr.io/azenith-solutions/frontend-website-catalog-app
+      TAG: ${{ github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build & Push
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          push: true
+          tags: ${{ env.IMAGE }}:${{ env.TAG }}
+
+      - name: Setup SSH 
+        run: |
+          set -x
+          mkdir -p ~/.ssh && chmod 700 ~/.ssh
+          
+          # Salvar chave privada
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ci
+          chmod 600 ~/.ssh/id_ci
+          
+          # Verificar se a chave foi criada
+          ls -la ~/.ssh/id_ci
+          
+          # Escanear host keys
+          ssh-keyscan -T 10 -H "${{ secrets.BASTION_IP }}" >> ~/.ssh/known_hosts || echo "ssh-keyscan failed"
+          
+          # Criar arquivo de configuração SSH
+          cat > ~/.ssh/config << 'SSHCONFIG'
+          Host bastion
+            HostName ${{ secrets.BASTION_IP }}
+            User ${{ secrets.SERVER_USER }}
+            IdentityFile ~/.ssh/id_ci
+            StrictHostKeyChecking accept-new
+          
+          Host target
+            HostName ${{ secrets.SERVER_IP }}
+            User ${{ secrets.SERVER_USER }}
+            IdentityFile ~/.ssh/id_ci
+            ProxyJump bastion
+            StrictHostKeyChecking accept-new
+          SSHCONFIG
+          
+          chmod 600 ~/.ssh/config
+          
+          # Verificar configuração
+          echo "=== SSH Config ==="
+          cat ~/.ssh/config
+          echo "=== Key fingerprint ==="
+          ssh-keygen -lf ~/.ssh/id_ci || echo "Key validation failed"
+
+      - name: Copy docker-compose.yml (via bastion)
+        run: |
+          scp -v ./docker-compose.yml target:/opt/frontend-sistema/docker-compose.yml
+
+      - name: Deploy via ProxyJump
+        run: |
+          set -euo pipefail
+          REMOTE_CMD='
+            set -e
+            mkdir -p /opt/frontend-sistema
+            cd /opt/frontend-sistema
+            echo IMAGE_TAG=${{ github.sha }} > .env
+            docker login ghcr.io -u "${{ github.actor }}" -p "${{ secrets.GITHUB_TOKEN }}"
+            docker compose --env-file .env pull
+            docker compose --env-file .env up -d
+          '
+          # 1ª conexão para testar
+          ssh target "echo connected"
+          # deploy
+          ssh target "$REMOTE_CMD"
+          
