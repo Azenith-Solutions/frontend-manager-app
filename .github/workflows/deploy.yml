@@ -1,6 +1,6 @@
 name: deploy-frontend
 on:
-  push: { branches: [ "main" ] }
+  push: { branches: ["main"] }
   workflow_dispatch: {}
 
 jobs:
@@ -8,7 +8,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions: { contents: read, packages: write }
     env:
-      IMAGE: ghcr.io/azenith-solutions/frontend-website-catalog-app
+      IMAGE: ghcr.io/azenith-solutions/frontend-manager-app
       TAG: ${{ github.sha }}
 
     steps:
@@ -29,21 +29,21 @@ jobs:
           push: true
           tags: ${{ env.IMAGE }}:${{ env.TAG }}
 
-      - name: Setup SSH 
+      - name: Setup SSH
         run: |
           set -x
           mkdir -p ~/.ssh && chmod 700 ~/.ssh
-          
+
           # Salvar chave privada
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ci
           chmod 600 ~/.ssh/id_ci
-          
+
           # Verificar se a chave foi criada
           ls -la ~/.ssh/id_ci
-          
+
           # Escanear host keys
           ssh-keyscan -T 10 -H "${{ secrets.BASTION_IP }}" >> ~/.ssh/known_hosts || echo "ssh-keyscan failed"
-          
+
           # Criar arquivo de configuração SSH
           cat > ~/.ssh/config << 'SSHCONFIG'
           Host bastion
@@ -51,7 +51,7 @@ jobs:
             User ${{ secrets.SERVER_USER }}
             IdentityFile ~/.ssh/id_ci
             StrictHostKeyChecking accept-new
-          
+
           Host target
             HostName ${{ secrets.SERVER_IP }}
             User ${{ secrets.SERVER_USER }}
@@ -59,9 +59,9 @@ jobs:
             ProxyJump bastion
             StrictHostKeyChecking accept-new
           SSHCONFIG
-          
+
           chmod 600 ~/.ssh/config
-          
+
           # Verificar configuração
           echo "=== SSH Config ==="
           cat ~/.ssh/config
@@ -88,4 +88,3 @@ jobs:
           ssh target "echo connected"
           # deploy
           ssh target "$REMOTE_CMD"
-          
