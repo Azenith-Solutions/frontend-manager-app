@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import PrivateRoutes from "../components/auth/PrivateRoutes/PrivateRoutes";
 import Login from "../pages/Login/Login";
 import Layout from "../components/Layout/Layout";
@@ -10,16 +10,18 @@ import Usuarios from "../pages/Usuarios/Usuarios";
 
 const AppRoutes = () => {
   return (
-    <Router basename= "/manager">
+    <Router basename="/manager">
       <Routes>
-        <Route path="/" element={<Navigate to="/login" />} />
-        <Route path="/login" element={<Login />} />
+        <Route path="/" element={<Login />} />
         <Route element={<PrivateRoutes />}>
-          <Route path="/dashboard" element={<Layout component={<Dashboard />} />} />
-          <Route path="/componentes" element={<Layout component={<Componentes />} />} />
-          <Route path="/pedidos" element={<Layout component={<Pedidos />} />} />
-          <Route path="/usuarios" element={<Layout component={<Usuarios />} />} />
+          <Route path="/" element={<Layout />}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="componentes" element={<Componentes />} />
+            <Route path="pedidos" element={<Pedidos />} />
+            <Route path="usuarios" element={<Usuarios />} />
+          </Route>
         </Route>
+        <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
       </Routes>
     </Router>
   );
