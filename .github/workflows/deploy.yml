@@ -41,21 +41,16 @@ jobs:
           # Verificar se a chave foi criada
           ls -la ~/.ssh/id_ci
 
-          # Escanear host keys com timeout maior
-          ssh-keyscan -T 30 -H "${{ secrets.BASTION_IP }}" >> ~/.ssh/known_hosts || echo "ssh-keyscan failed"
+          # Escanear host keys
+          ssh-keyscan -T 10 -H "${{ secrets.BASTION_IP }}" >> ~/.ssh/known_hosts || echo "ssh-keyscan failed"
 
-          # Criar arquivo de configuração SSH com timeouts ajustados
+          # Criar arquivo de configuração SSH
           cat > ~/.ssh/config << 'SSHCONFIG'
           Host bastion
             HostName ${{ secrets.BASTION_IP }}
             User ${{ secrets.SERVER_USER }}
             IdentityFile ~/.ssh/id_ci
             StrictHostKeyChecking accept-new
-            ConnectTimeout 60
-            ServerAliveInterval 30
-            ServerAliveCountMax 6
-            TCPKeepAlive yes
-            Compression yes
 
           Host target
             HostName ${{ secrets.SERVER_IP }}
@@ -63,11 +58,6 @@ jobs:
             IdentityFile ~/.ssh/id_ci
             ProxyJump bastion
             StrictHostKeyChecking accept-new
-            ConnectTimeout 60
-            ServerAliveInterval 30
-            ServerAliveCountMax 6
-            TCPKeepAlive yes
-            Compression yes
           SSHCONFIG
 
           chmod 600 ~/.ssh/config
@@ -78,18 +68,9 @@ jobs:
           echo "=== Key fingerprint ==="
           ssh-keygen -lf ~/.ssh/id_ci || echo "Key validation failed"
 
-      - name: Test Connections Step by Step
+      - name: Copy docker-compose.yml (via bastion)
         run: |
-          echo "=== Testing bastion direct connection ==="
-          timeout 60 ssh -v -o ConnectTimeout=30 bastion "echo 'Bastion direct OK'" || echo "Direct bastion failed"
-
-          echo "=== Testing target via ProxyJump ==="
-          timeout 60 ssh -v -o ConnectTimeout=30 target "echo 'Target via proxy OK'" || echo "Target proxy failed"
-
-      - name: Copy docker-compose.yml (via bastion) - Alternative
-        run: |
-          echo "=== Using rsync as alternative ==="
-          rsync -avz -e "ssh -o ConnectTimeout=30" ./docker-compose.yml target:/opt/frontend-sistema/docker-compose.yml
+          scp -v ./docker-compose.yml target:/opt/frontend-sistema/docker-compose.yml
 
       - name: Deploy via ProxyJump
         run: |
