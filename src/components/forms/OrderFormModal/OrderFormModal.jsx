@@ -80,7 +80,7 @@ const OrderFormModal = ({ open, onClose, onSuccess, pedido }) => {
           const itens = resp.data.data || resp.data || [];
           const itensDoPedido = itens.filter(item => item.fkPedido && String(item.fkPedido.idPedido) === String(id));
           setItensPedido(itensDoPedido.map(i => ({
-            fk_componente: i.fkComponente?.idComponente || i.fk_componente || i.fkComponente,
+            fk_componente: i.fkComponente?.id || i.fk_componente || i.fkComponente,
             quantidade: i.quantidadeCarrinho // Atualizado para refletir o novo nome do campo
           })));
         }).catch(() => setItensPedido([]));
