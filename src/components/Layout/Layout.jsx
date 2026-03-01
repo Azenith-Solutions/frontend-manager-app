@@ -112,6 +112,10 @@ const Layout = () => {
             red: <PeopleIcon sx={{ color: "#61131A" }} />,
             white: <PeopleIcon sx={{ color: "#FFFFFF" }} />
         },
+        aiAssistant: {
+            red: <PsychologyIcon sx={{ color: "#61131A" }} />,
+            white: <PsychologyIcon sx={{ color: "#FFFFFF" }} />
+        },
     };
 
     const menuItems = [
@@ -127,6 +131,7 @@ const Layout = () => {
                 ...(userRole !== "Gestor do Estoque" ? [{ text: "Usuários", key: "users", path: "/usuarios" }] : [])
             ]
         },
+        { text: "Assistente IA", key: "aiAssistant", path: "/assistente-ia" },
     ];
 
     // Define o título com base na rota atual

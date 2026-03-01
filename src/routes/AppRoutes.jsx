@@ -7,6 +7,7 @@ import Dashboard from "../pages/Dashboard/Dashboard";
 import Componentes from "../pages/Componentes/Componentes";
 import Pedidos from "../pages/Pedidos/Pedidos";
 import Usuarios from "../pages/Usuarios/Usuarios";
+import AiAssistant from "../pages/AiAssistant/AiAssistant";
 
 const AppRoutes = () => {
   return (
@@ -19,6 +20,7 @@ const AppRoutes = () => {
             <Route path="componentes" element={<Componentes />} />
             <Route path="pedidos" element={<Pedidos />} />
             <Route path="usuarios" element={<Usuarios />} />
+            <Route path="assistente-ia" element={<AiAssistant />} />
           </Route>
         </Route>
         <Route path="*" element={<h1>404 - Página não encontrada</h1>} />
