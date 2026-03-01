@@ -103,6 +103,7 @@ export const FilterButton = ({
  * @param {Array} props.data - Dados para exportação
  * @param {Array} props.exportHeaders - Cabeçalhos para exportação
  * @param {string} props.exportFilename - Nome do arquivo para exportação
+ * @param {Array} props.extraButtons - Botões extras [{label, icon, onClick}]
  */
 const DatagridHeader = ({
   title = "Adicionar",
@@ -114,7 +115,8 @@ const DatagridHeader = ({
   statsCards = [],
   data = [],
   exportHeaders = [],
-  exportFilename = "dados"
+  exportFilename = "dados",
+  extraButtons = []
 }) => {
   const { value: searchText = "", onChange: handleSearchChange = () => {} } = searchProps;
   const [isExporting, setIsExporting] = useState(false);
@@ -377,30 +379,63 @@ const DatagridHeader = ({
           </Box>
         </Box>
         
-        {/* Botão de Adicionar */}
-        <Button 
-          size="small" 
-          variant="contained" 
-          disableElevation
-          startIcon={<AddIcon fontSize="small" />}
-          onClick={onAddClick}
-          sx={{ 
-            height: '38px',
-            bgcolor: '#61131A', 
-            '&:hover': { bgcolor: '#4e0f15' },
-            borderRadius: '4px',
-            textTransform: 'none',
-            fontSize: '0.8rem',
-            fontWeight: 600,
-            px: 1.5,
-            minWidth: '100px',
-            flexShrink: 0,
-            ml: { xs: 0, sm: 'auto' }, 
-            alignSelf: { xs: 'flex-start', sm: 'center' } 
-          }}
-        >
-          {title}
-        </Button>
+        {/* Botões de ação */}
+        <Box sx={{
+          display: 'flex',
+          gap: '8px',
+          flexShrink: 0,
+          ml: { xs: 0, sm: 'auto' },
+          alignSelf: { xs: 'flex-start', sm: 'center' },
+          flexWrap: 'wrap'
+        }}>
+          {extraButtons.map((btn, index) => (
+            <Button
+              key={index}
+              size="small"
+              variant="outlined"
+              disableElevation
+              startIcon={btn.icon}
+              onClick={btn.onClick}
+              sx={{
+                height: '38px',
+                color: '#61131A',
+                borderColor: '#61131A',
+                '&:hover': {
+                  borderColor: '#4e0f15',
+                  bgcolor: 'rgba(97,19,26,0.04)'
+                },
+                borderRadius: '4px',
+                textTransform: 'none',
+                fontSize: '0.8rem',
+                fontWeight: 600,
+                px: 1.5,
+                minWidth: '100px',
+              }}
+            >
+              {btn.label}
+            </Button>
+          ))}
+          <Button
+            size="small"
+            variant="contained"
+            disableElevation
+            startIcon={<AddIcon fontSize="small" />}
+            onClick={onAddClick}
+            sx={{
+              height: '38px',
+              bgcolor: '#61131A',
+              '&:hover': { bgcolor: '#4e0f15' },
+              borderRadius: '4px',
+              textTransform: 'none',
+              fontSize: '0.8rem',
+              fontWeight: 600,
+              px: 1.5,
+              minWidth: '100px',
+            }}
+          >
+            {title}
+          </Button>
+        </Box>
       </Paper>
     </>
   );

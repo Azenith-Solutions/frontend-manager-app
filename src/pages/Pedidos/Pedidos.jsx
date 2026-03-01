@@ -76,12 +76,11 @@ const Pedidos = () => {
 
   // Definição dos cabeçalhos para exportação
   const exportHeaders = [
-    { id: 'idPedido', label: 'ID Pedido' },
-    { id: 'cnpj', label: 'CNPJ/CPF' },
-    { id: 'nome_comprador', label: 'Nome do Comprador' },
-    { id: 'email_comprador', label: 'Email do Comprador' },
-    { id: 'createdAt', label: 'Data do Pedido' },
-    { id: 'valor', label: 'Valor Total' },
+    { id: 'codigo', label: 'ID Solicitação' },
+    { id: 'cnpj', label: 'CNPJ' },
+    { id: 'email_comprador', label: 'Email' },
+    { id: 'createdAt', label: 'Data Pedido' },
+    { id: 'valor', label: 'Valor' },
     { id: 'status', label: 'Status' }
   ];
 
@@ -428,7 +427,8 @@ const Pedidos = () => {
                   }
                 }}>
                   <TableCell align="center">ID Solicitação</TableCell>
-                  <TableCell align="center">CNPJ/CPF</TableCell>
+                  <TableCell align="center">CNPJ</TableCell>
+                  <TableCell align="center">Email</TableCell>
                   <TableCell align="center">Data Pedido</TableCell>
                   <TableCell align="center">Valor</TableCell>
                   <TableCell align="center">Status</TableCell>
@@ -462,8 +462,9 @@ const Pedidos = () => {
                           height: '54px'
                         }}
                       >
-                        <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.idPedido}</TableCell>
-                        <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{formatCnpjCpf(item.cnpj) || ''}</TableCell>
+                        <TableCell align="center" sx={{ fontWeight: 'medium', py: 0.8 }}>{item.codigo || item.idPedido}</TableCell>
+                        <TableCell align="center" sx={{ fontFamily: 'monospace', fontWeight: 'medium', py: 0.8 }}>{item.cnpj ? formatCnpjCpf(item.cnpj) : '—'}</TableCell>
+                        <TableCell align="center" sx={{ py: 0.8 }}>{item.emailComprador || item.email_comprador || '—'}</TableCell>
                         <TableCell align="center" sx={{ py: 0.8 }}>{item.createdAt ? new Date(item.createdAt).toLocaleDateString('pt-BR') : ''}</TableCell>
                         <TableCell align="center" sx={{ py: 0.8 }}>
                           {item.valor !== undefined ? new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(item.valor) : ''}
@@ -567,12 +568,12 @@ const Pedidos = () => {
                   filteredPedidos.length < rowsPerPage &&
                   Array.from({ length: Math.max(0, rowsPerPage - filteredPedidos.length) }).map((_, index) => (
                     <TableRow key={`empty-${index}`} sx={{ height: '50px' }}>
-                      <TableCell colSpan={7} />
+                      <TableCell colSpan={8} />
                     </TableRow>
                   ))}
                 {filteredPedidos.length === 0 && (
                   <TableRow sx={{ height: '53px' }}>
-                    <TableCell colSpan={7} align="center">
+                    <TableCell colSpan={8} align="center">
                       Nenhum pedido encontrado
                     </TableCell>
                   </TableRow>

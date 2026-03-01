@@ -5,6 +5,7 @@ import ComponentFormModal from "../../components/forms/ComponentFormModal/Compon
 import ComponentesDataGrid from "../../components/datagrids/ComponentesDataGrid/ComponentesDataGrid";
 import ComponentDeleteModal from "../../components/forms/ComponentDeleteModal/ComponentDeleteModal";
 import CatalogVisibilityModal from "../../components/forms/CatalogVisibilityModal/CatalogVisibilityModal";
+import BoxCategoryModal from "../../components/forms/BoxCategoryModal/BoxCategoryModal";
 
 // Componentes genéricos para header e filtro
 import DatagridHeader from "../../components/headerDataGrids/DatagridHeader";
@@ -46,6 +47,8 @@ import InventoryIcon from '@mui/icons-material/Inventory';
 import StorefrontIcon from '@mui/icons-material/Storefront';
 import WarningIcon from '@mui/icons-material/Warning';
 import CheckCircleOutlineIcon from '@mui/icons-material/CheckCircleOutline';
+import InboxIcon from '@mui/icons-material/Inbox';
+import CategoryIcon from '@mui/icons-material/Category';
 
 const Componentes = () => {
   // Estados para a página
@@ -64,7 +67,9 @@ const Componentes = () => {
   const [componentToToggleVisibility, setComponentToToggleVisibility] = useState(null);
   const [newVisibilityValue, setNewVisibilityValue] = useState(false);
   const [toggleVisibilityLoading, setToggleVisibilityLoading] = useState(false);
-  
+  const [boxModalOpen, setBoxModalOpen] = useState(false);
+  const [categoryModalOpen, setCategoryModalOpen] = useState(false);
+
   const [filterMenuAnchor, setFilterMenuAnchor] = useState(null);
   const [availableCaixas, setAvailableCaixas] = useState([]);
 
@@ -455,6 +460,18 @@ const Componentes = () => {
         data={filteredComponents}
         exportHeaders={exportHeaders}
         exportFilename="componentes_hardwaretech"
+        extraButtons={[
+          {
+            label: "Caixas",
+            icon: <InboxIcon fontSize="small" />,
+            onClick: () => setBoxModalOpen(true)
+          },
+          {
+            label: "Categorias",
+            icon: <CategoryIcon fontSize="small" />,
+            onClick: () => setCategoryModalOpen(true)
+          }
+        ]}
       />
 
       <Container
@@ -508,6 +525,22 @@ const Componentes = () => {
         newVisibility={newVisibilityValue}
         onConfirm={handleConfirmVisibilityChange}
         isLoading={toggleVisibilityLoading}
+      />
+
+      {/* Modal de gerenciamento de caixas */}
+      <BoxCategoryModal
+        open={boxModalOpen}
+        onClose={() => setBoxModalOpen(false)}
+        onSuccess={fetchComponents}
+        type="box"
+      />
+
+      {/* Modal de gerenciamento de categorias */}
+      <BoxCategoryModal
+        open={categoryModalOpen}
+        onClose={() => setCategoryModalOpen(false)}
+        onSuccess={fetchComponents}
+        type="category"
       />
 
       {/* Menu de filtros */}
