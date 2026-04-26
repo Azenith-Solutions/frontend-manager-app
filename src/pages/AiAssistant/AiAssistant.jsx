@@ -13,7 +13,7 @@ import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import PsychologyIcon from "@mui/icons-material/Psychology";
 import PersonIcon from "@mui/icons-material/Person";
 import Markdown from "react-markdown";
-import { api } from "../../service/api";
+import { apiAi } from "../../service/api";
 import "./AiAssistant.css";
 
 const SUGGESTIONS = [
@@ -59,7 +59,7 @@ const AiAssistant = () => {
         setIsLoading(true);
 
         try {
-            const response = await api.post("/ai/assistant/chat", {
+            const response = await apiAi.post("/ai/assistant/chat", {
                 message: text,
                 history: history,
             });
