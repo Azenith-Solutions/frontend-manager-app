@@ -32,7 +32,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 import VisibilityIcon from '@mui/icons-material/Visibility';
 import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 
-const API_IMAGES_URL = "http://localhost:8080/api";
+const API_IMAGES_URL = import.meta.env.VITE_API_URL_BASE || "/api/v2";
 
 /**
  * Formata o valor da condição do componente
